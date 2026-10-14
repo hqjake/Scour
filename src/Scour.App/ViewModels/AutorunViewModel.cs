@@ -48,6 +48,7 @@ public sealed partial class AutorunEntryViewModel : ObservableObject
 public sealed partial class AutorunViewModel(AppServices services) : PageViewModel
 {
     public override string Title => "Startup programs";
+    public override string Group => "System";
     public override string Glyph => "";
 
     public ObservableCollection<AutorunEntryViewModel> Entries { get; } = [];

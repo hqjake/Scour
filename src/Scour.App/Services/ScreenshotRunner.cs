@@ -30,7 +30,13 @@ public static class ScreenshotRunner
         {
             await Task.Delay(1500);
             await Shot(window, dir, "dashboard", vm.Dashboard, page => WaitAsync(() => !((DashboardViewModel)page).IsChecking, 120));
-            await Shot(window, dir, "uninstaller", vm.Programs, null);
+            await Shot(window, dir, "uninstaller", vm.Programs, _ =>
+            {
+                // Show the details panel with a recognisable program selected.
+                vm.Programs.Selected = vm.Programs.Programs.FirstOrDefault(p => p.Name.StartsWith("Git", StringComparison.OrdinalIgnoreCase))
+                                       ?? vm.Programs.Programs.FirstOrDefault();
+                return Task.Delay(1500); // icon loads
+            });
             await Shot<AppUpdatesViewModel>(window, vm, dir, "app-updates", null, 180);
             await Shot<JunkViewModel>(window, vm, dir, "junk-cleaner", p => p.ScanCommand.ExecuteAsync(null), 180);
             await Shot<BrowserPrivacyViewModel>(window, vm, dir, "browser-privacy", null);

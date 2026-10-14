@@ -205,7 +205,8 @@ public static class SystemInfoCollector
                     ? $"{L(v, "CurrentHorizontalResolution")} × {L(v, "CurrentVerticalResolution")} @ {L(v, "CurrentRefreshRate")} Hz" : "")
                 .Add("Status", S(v, "Status"))
                 .Add("Device ID", S(v, "PNPDeviceID"));
-            if (s.Summary.Length == 0 && !name.Contains("Basic", StringComparison.OrdinalIgnoreCase)) s.Summary = $"{name} · {H.Bytes(mem)}";
+            if (s.Summary.Length == 0 && !name.Contains("Basic", StringComparison.OrdinalIgnoreCase))
+                s.Summary = mem > 0 ? $"{name} · {H.Bytes(mem)}" : name;
         }
     }
 
