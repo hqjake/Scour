@@ -14,6 +14,7 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 | ![Disk space analyzer](docs/screenshots/disk-analyzer.png) **Disk space analyzer** — MFT scan + treemap | ![Junk cleaner](docs/screenshots/junk-cleaner.png) **Junk cleaner** |
 | ![System information](docs/screenshots/system-info.png) **System information** | ![Repair center](docs/screenshots/repair-center.png) **Repair center** |
 | ![App updates](docs/screenshots/app-updates.png) **App updates** (winget) | ![Registry cleaner](docs/screenshots/registry-cleaner.png) **Registry cleaner** |
+| ![Bloatware remover](docs/screenshots/bloatware.png) **Bloatware remover** | ![Privacy tweaks](docs/screenshots/privacy-tweaks.png) **Privacy tweaks** |
 | ![USB tools](docs/screenshots/usb-tools.png) **USB tools** | ![Settings](docs/screenshots/settings.png) **Settings** — themes, sounds, automatic cleaning |
 | ![Light theme dashboard](docs/screenshots/dashboard-light.png) **Light theme** | ![Light theme disk analyzer](docs/screenshots/disk-analyzer-light.png) **Light theme** |
 
@@ -36,6 +37,9 @@ Captured automatically from the real app on Windows by the [build workflow](.git
   (Chrome, Edge, Firefox, Brave, Opera, Vivaldi), app caches (Discord, Spotify, Steam, Teams, Slack), developer caches
   (VS Code, npm/Yarn, pip, NuGet, Gradle), Recycle Bin, plus deep cleanup (component store via DISM, Windows.old,
   old restore points)
+- **Privacy tweaks** — telemetry, advertising ID, Start/Settings suggestions, tips, lock-screen ads, silent promo-app
+  installs, Bing in Start, Copilot, Recall, activity history, typing personalisation and more; originals are saved so
+  every switch can be turned back exactly
 - **Browser privacy** — history, cookies, form entries and sessions per browser/profile, edited inside the
   browsers' SQLite databases so bookmarks, passwords and payment methods are untouched
 - **Duplicates & large files** — duplicates confirmed by SHA-256 (size → partial hash → full hash)
@@ -48,6 +52,8 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 - **Automatic cleaning** on a daily/weekly schedule, **tray icon** with Quick clean, start with Windows, low-disk alerts
 
 **Programs (more)**
+- **Bloatware remover** — pre-installed Store apps, games, promotions and PC-maker trialware rated *Safe* or *Optional*;
+  core Windows apps are never listed; optionally removes for all accounts and stops reinstalls
 - **App updates** — finds outdated apps with winget and updates them all silently, with an ignore list
 
 **System**
@@ -100,6 +106,6 @@ The WPF app (`src/Scour.App`) can be compiled on Linux/macOS too (`EnableWindows
 
 ## Status
 
-Built and unit-tested (104 tests) but **not yet run on a real Windows machine** — please report anything that misbehaves.
+Built and unit-tested (109 tests) but **not yet run on a real Windows machine** — please report anything that misbehaves.
 The process-sampling, network-per-process, file-unlocking and services code exists in `Platform/` but the task manager
 screen is not part of this version.

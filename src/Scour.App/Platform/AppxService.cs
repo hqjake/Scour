@@ -64,6 +64,33 @@ public static class AppxService
         if (code != 0) throw new InvalidOperationException(output.Trim());
     }
 
+    /// <summary>
+    /// Removes several packages in one PowerShell session. Returns package name → error (null when removed).
+    /// </summary>
+    public static async Task<Dictionary<string, string?>> RemoveManyAsync(IEnumerable<(string Name, string FullName)> packages, bool allUsers,
+                                                                         bool deprovision, CancellationToken ct = default)
+    {
+        var list = packages.ToList();
+        var sb = new System.Text.StringBuilder("$ErrorActionPreference = 'Stop'\n");
+        foreach (var (name, full) in list)
+        {
+            string n = name.Replace("'", "''"), f = full.Replace("'", "''");
+            sb.Append($"try {{ Remove-AppxPackage -Package '{f}'{(allUsers ? " -AllUsers" : "")}; ");
+            if (deprovision)
+                sb.Append($"Get-AppxProvisionedPackage -Online | Where-Object {{ $_.DisplayName -eq '{n}' }} | Remove-AppxProvisionedPackage -Online | Out-Null; ");
+            sb.Append($"\"OK|{n}\" }} catch {{ \"FAIL|{n}|$($_.Exception.Message -replace '[\\r\\n]+', ' ')\" }}\n");
+        }
+        var (_, output) = await ProcessRunner.PowerShellAsync(sb.ToString(), TimeSpan.FromMinutes(15), ct);
+        var result = list.ToDictionary(p => p.Name, _ => (string?)"No result reported", StringComparer.OrdinalIgnoreCase);
+        foreach (var line in output.Split('\n').Select(l => l.Trim()))
+        {
+            var parts = line.Split('|', 3);
+            if (parts.Length >= 2 && result.ContainsKey(parts[1]))
+                result[parts[1]] = parts[0] == "OK" ? null : parts.Length > 2 ? parts[2] : "Failed";
+        }
+        return result;
+    }
+
     /// <summary>The per-user data folder Windows leaves behind for a removed package.</summary>
     public static string DataFolder(AppxPackage package) =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", package.FamilyName);

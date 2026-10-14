@@ -39,6 +39,8 @@ public static class ScreenshotRunner
             });
             await Shot<AppUpdatesViewModel>(window, vm, dir, "app-updates", null, 180);
             await Shot<JunkViewModel>(window, vm, dir, "junk-cleaner", p => p.ScanCommand.ExecuteAsync(null), 180);
+            await Shot<BloatwareViewModel>(window, vm, dir, "bloatware", null, 120);
+            await Shot<PrivacyViewModel>(window, vm, dir, "privacy-tweaks", null);
             await Shot<BrowserPrivacyViewModel>(window, vm, dir, "browser-privacy", null);
             await Shot<FileFinderViewModel>(window, vm, dir, "duplicates", null);
             await Shot<RegistryCleanerViewModel>(window, vm, dir, "registry-cleaner", p => p.ScanCommand.ExecuteAsync(null), 180);

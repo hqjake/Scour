@@ -24,6 +24,8 @@
         <DataTemplate DataType="{x:Type vm:UsbViewModel}"><v:UsbView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:RepairViewModel}"><v:RepairView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:AppUpdatesViewModel}"><v:AppUpdatesView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BloatwareViewModel}"><v:BloatwareView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PrivacyViewModel}"><v:PrivacyView /></DataTemplate>
     </Window.Resources>
 
     <Grid>
