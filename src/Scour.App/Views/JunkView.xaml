@@ -1,0 +1,58 @@
+<UserControl x:Class="Scour.App.Views.JunkView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="Junk cleaner" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="Free up space taken by temporary files, caches and crash reports. Everything here is safe to delete; Windows and your apps recreate what they need."
+                       Style="{StaticResource Caption}" />
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,16,0,12">
+            <Button Command="{Binding ScanCommand}" Style="{StaticResource ToolButton}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Glyph}" Text="&#xE721;" FontSize="14" />
+                    <TextBlock Text="Scan" Margin="8,0,0,0" />
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding CleanCommand}" Style="{DynamicResource AccentButtonStyle}" Padding="12,6">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Glyph}" Text="&#xE74D;" FontSize="14" />
+                    <TextBlock Text="Clean" Margin="8,0,0,0" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Categories}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,8" Padding="14,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center" MinWidth="0" Margin="0,0,8,0" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Description}" Style="{StaticResource Caption}" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="2" Text="{Binding SizeText}" VerticalAlignment="Center" Margin="12,0,0,0" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <StackPanel Grid.Row="3" Margin="2,10,0,0">
+            <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,6" Visibility="{Binding IsLoading, Converter={StaticResource TruthyToVisibility}}" />
+            <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

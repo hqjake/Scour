@@ -1,0 +1,183 @@
+<Window x:Class="Scour.App.Views.UninstallWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Uninstall" Width="860" Height="680" MinWidth="680" MinHeight="520"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <Grid Margin="24,20,24,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid Width="40" Height="40" Margin="0,0,14,0">
+                <TextBlock Style="{StaticResource Glyph}" Text="&#xE71D;" FontSize="28" HorizontalAlignment="Center"
+                           Visibility="{Binding Icon, Converter={StaticResource FalsyToVisibility}}" />
+                <Image Source="{Binding Icon}" />
+            </Grid>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding Subtitle}" Style="{StaticResource Caption}" />
+            </StackPanel>
+            <TextBlock Grid.Column="2" Text="{Binding JobCounter}" Style="{StaticResource Caption}" VerticalAlignment="Top"
+                       Visibility="{Binding IsBatch, Converter={StaticResource TruthyToVisibility}}" />
+        </Grid>
+
+        <!-- Steps -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,18,0,14">
+            <TextBlock Text="1  Analyze" Opacity="{Binding StepNumber, Converter={StaticResource StepOpacity}, ConverterParameter=1}" />
+            <TextBlock Style="{StaticResource Glyph}" Text="&#xE76C;" FontSize="10" Margin="12,0" Opacity="0.5" />
+            <TextBlock Text="2  Uninstall" Opacity="{Binding StepNumber, Converter={StaticResource StepOpacity}, ConverterParameter=2}" />
+            <TextBlock Style="{StaticResource Glyph}" Text="&#xE76C;" FontSize="10" Margin="12,0" Opacity="0.5" />
+            <TextBlock Text="3  Scan" Opacity="{Binding StepNumber, Converter={StaticResource StepOpacity}, ConverterParameter=3}" />
+            <TextBlock Style="{StaticResource Glyph}" Text="&#xE76C;" FontSize="10" Margin="12,0" Opacity="0.5" />
+            <TextBlock Text="4  Leftovers" Opacity="{Binding StepNumber, Converter={StaticResource StepOpacity}, ConverterParameter=4}" />
+            <TextBlock Style="{StaticResource Glyph}" Text="&#xE76C;" FontSize="10" Margin="12,0" Opacity="0.5" />
+            <TextBlock Text="5  Done" Opacity="{Binding StepNumber, Converter={StaticResource StepOpacity}, ConverterParameter=5}" />
+        </StackPanel>
+
+        <Grid Grid.Row="2">
+            <!-- Busy -->
+            <Border Style="{StaticResource Card}" VerticalAlignment="Center" Padding="28"
+                    Visibility="{Binding Stage, Converter={StaticResource MatchToVisibility}, ConverterParameter='Preparing,Uninstalling,Scanning,Removing'}">
+                <StackPanel>
+                    <TextBlock Text="{Binding Status}" FontSize="15" TextWrapping="Wrap" Margin="0,0,0,14" />
+                    <ProgressBar IsIndeterminate="True" Height="4" />
+                    <StackPanel Visibility="{Binding Stage, Converter={StaticResource MatchToVisibility}, ConverterParameter=Uninstalling}" Margin="0,18,0,0">
+                        <TextBlock Style="{StaticResource Caption}"
+                                   Text="Follow the program's own uninstaller. If it asks to restart now, choose to restart later so Scour can finish cleaning up." />
+                        <Button Content="Continue without waiting" Command="{Binding ContinueWithoutWaitingCommand}" HorizontalAlignment="Left" Margin="0,12,0,0" />
+                    </StackPanel>
+                    <Button Content="Cancel scan" Command="{Binding CancelScanCommand}" HorizontalAlignment="Left" Margin="0,18,0,0"
+                            Visibility="{Binding Stage, Converter={StaticResource MatchToVisibility}, ConverterParameter=Scanning}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Ready to scan -->
+            <StackPanel Visibility="{Binding Stage, Converter={StaticResource MatchToVisibility}, ConverterParameter=ReadyToScan}">
+                <Border Style="{StaticResource Card}" Margin="0,0,0,12" Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
+                        Visibility="{Binding StillInstalled, Converter={StaticResource TruthyToVisibility}}">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="The program still appears to be installed — its uninstaller may have been cancelled. Scanning now could remove files it still needs." />
+                </Border>
+                <TextBlock Text="Scan for leftovers" Style="{StaticResource SectionTitle}" />
+                <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12"
+                           Text="Scour looks for folders, files and registry entries the uninstaller left behind. Nothing is deleted until you confirm." />
+                <RadioButton GroupName="Mode" Margin="0,4" IsChecked="{Binding ScanMode, Converter={StaticResource EnumToBool}, ConverterParameter=Safe}">
+                    <StackPanel>
+                        <TextBlock Text="Safe" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource Caption}" Text="Only items with direct evidence: the install folder, its shortcuts, startup entries and registry keys named exactly after the program." />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton GroupName="Mode" Margin="0,4" IsChecked="{Binding ScanMode, Converter={StaticResource EnumToBool}, ConverterParameter=Moderate}">
+                    <StackPanel>
+                        <TextBlock Text="Moderate (recommended)" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource Caption}" Text="Adds services, file associations, COM registrations, firewall rules and close name matches." />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton GroupName="Mode" Margin="0,4" IsChecked="{Binding ScanMode, Converter={StaticResource EnumToBool}, ConverterParameter=Advanced}">
+                    <StackPanel>
+                        <TextBlock Text="Advanced" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource Caption}" Text="Deep sweep of Windows Installer components and type libraries, plus loose matches. Review results carefully." />
+                    </StackPanel>
+                </RadioButton>
+                <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+                    <Button Content="Scan" Command="{Binding ScanCommand}" Style="{DynamicResource AccentButtonStyle}" MinWidth="110" Margin="0,0,8,0" />
+                    <Button Content="Skip" Command="{Binding SkipLeftoversCommand}" MinWidth="90" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Results -->
+            <Grid Visibility="{Binding Stage, Converter={StaticResource MatchToVisibility}, ConverterParameter=Results}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid>
+                    <StackPanel>
+                        <TextBlock Text="Leftovers" Style="{StaticResource SectionTitle}" Margin="0" />
+                        <TextBlock Style="{StaticResource Caption}" Text="Items marked Safe are selected. Hover an item to see why it was found; double-click to open it." />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                        <Button Content="Safe only" Command="{Binding SelectSafeCommand}" Margin="0,0,6,0" />
+                        <Button Content="All" Command="{Binding SelectAllCommand}" Margin="0,0,6,0" />
+                        <Button Content="None" Command="{Binding SelectNoneCommand}" />
+                    </StackPanel>
+                </Grid>
+                <ListView x:Name="Leftovers" Grid.Row="1" Margin="0,10,0,10" ItemsSource="{Binding ItemsView}"
+                          ItemTemplate="{StaticResource LeftoverRow}" HorizontalContentAlignment="Stretch"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          VirtualizingPanel.IsVirtualizingWhenGrouping="True" VirtualizingPanel.IsVirtualizing="True"
+                          MouseDoubleClick="Leftovers_MouseDoubleClick"
+                          Visibility="{Binding Items.Count, Converter={StaticResource TruthyToVisibility}}">
+                    <ListView.GroupStyle>
+                        <GroupStyle HeaderTemplate="{StaticResource GroupHeader}" />
+                    </ListView.GroupStyle>
+                </ListView>
+                <Border Grid.Row="1" Style="{StaticResource Card}" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32"
+                        Visibility="{Binding Items.Count, Converter={StaticResource FalsyToVisibility}}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE73E;" FontSize="32" HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource SystemFillColorSuccessBrush}" />
+                        <TextBlock Text="No leftovers found. The program removed itself cleanly." Margin="0,12,0,0" />
+                    </StackPanel>
+                </Border>
+                <Grid Grid.Row="2">
+                    <TextBlock Text="{Binding SelectionSummary}" VerticalAlignment="Center" Style="{StaticResource Caption}" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Finish without deleting" Command="{Binding SkipLeftoversCommand}" Margin="0,0,8,0" />
+                        <Button Content="Delete selected" Command="{Binding DeleteSelectedCommand}" Style="{DynamicResource AccentButtonStyle}" MinWidth="130" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <!-- Done -->
+            <Grid Visibility="{Binding Stage, Converter={StaticResource MatchToVisibility}, ConverterParameter=Done}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Glyph}" Text="&#xE930;" FontSize="28" Foreground="{DynamicResource SystemFillColorSuccessBrush}" />
+                    <TextBlock Text="{Binding ResultSummary}" FontSize="15" TextWrapping="Wrap" Margin="14,0,0,0" VerticalAlignment="Center" MaxWidth="720" />
+                </StackPanel>
+                <Grid Grid.Row="1" Margin="0,16,0,0" Visibility="{Binding HasFailures, Converter={StaticResource TruthyToVisibility}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Couldn't delete" Style="{StaticResource SectionTitle}" />
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Failures}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Item.DisplayText}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Error}" Style="{StaticResource Caption}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Button Grid.Row="2" Content="Delete these at next restart" Command="{Binding ScheduleOnRebootCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                </Grid>
+                <Button Grid.Row="2" Content="{Binding NextButtonText}" Command="{Binding NextCommand}" Style="{DynamicResource AccentButtonStyle}"
+                        HorizontalAlignment="Right" MinWidth="130" Margin="0,12,0,0" />
+            </Grid>
+        </Grid>
+
+        <!-- Activity log -->
+        <Expander Grid.Row="3" Header="Activity log" Margin="0,14,0,0">
+            <ListBox ItemsSource="{Binding Log}" Height="130" FontFamily="Consolas" FontSize="12" />
+        </Expander>
+    </Grid>
+</Window>

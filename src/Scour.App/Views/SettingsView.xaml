@@ -1,0 +1,58 @@
+<UserControl x:Class="Scour.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24,20,24,24" MaxWidth="760" HorizontalAlignment="Left">
+            <TextBlock Text="Settings" Style="{StaticResource PageTitle}" Margin="0,0,0,20" />
+
+            <TextBlock Text="Uninstalling" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource Card}" Margin="0,0,0,20">
+                <StackPanel>
+                    <CheckBox IsChecked="{Binding CreateRestorePoint}">
+                        <StackPanel>
+                            <TextBlock Text="Create a system restore point before uninstalling" />
+                            <TextBlock Style="{StaticResource Caption}" Text="Needs System Protection to be on for the system drive." />
+                        </StackPanel>
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding QuickUninstallSilent}" Margin="0,12,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Quick uninstall runs uninstallers silently when possible" />
+                            <TextBlock Style="{StaticResource Caption}" Text="Supported for Windows Installer, Inno Setup and programs that register a quiet uninstall command." />
+                        </StackPanel>
+                    </CheckBox>
+                    <TextBlock Text="Default leftover scan mode" Margin="0,16,0,4" />
+                    <ComboBox ItemsSource="{Binding ScanModes}" SelectedItem="{Binding DefaultScanMode}" Width="200" HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="Deleting" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource Card}" Margin="0,0,0,20">
+                <StackPanel>
+                    <CheckBox Content="Move deleted files and folders to the Recycle Bin" IsChecked="{Binding FilesToRecycleBin}" />
+                    <CheckBox Content="Back up registry entries before deleting them" IsChecked="{Binding BackupRegistry}" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="Program list" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource Card}" Margin="0,0,0,20">
+                <StackPanel>
+                    <CheckBox Content="Show system components" IsChecked="{Binding ShowSystemComponents}" />
+                    <CheckBox Content="Show Windows updates and hotfixes" IsChecked="{Binding ShowUpdates}" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="About" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock>
+                        <Run Text="Scour Uninstaller " FontWeight="SemiBold" /><Run Text="{Binding Version, Mode=OneWay}" />
+                    </TextBlock>
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0">
+                        <Run Text="Backups and trace logs are stored in " /><Run Text="{Binding DataFolder, Mode=OneWay}" />
+                    </TextBlock>
+                    <Button Content="Open data folder" Command="{Binding OpenDataFolderCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

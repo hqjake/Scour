@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Scour.App/Scour.App.csproj" />
+    <Project Path="src/Scour.Core/Scour.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Scour.Tests/Scour.Tests.csproj" />
+  </Folder>
+</Solution>

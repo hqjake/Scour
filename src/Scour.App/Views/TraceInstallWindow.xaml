@@ -1,0 +1,84 @@
+<Window x:Class="Scour.App.Views.TraceInstallWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Install and trace" Width="820" Height="620" MinWidth="640" MinHeight="460"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <Grid Margin="24,20,24,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="Install and trace" FontSize="20" FontWeight="SemiBold" />
+            <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,16"
+                       Text="Scour records the system before and after an installation. Later it can remove exactly what the installer added." />
+        </StackPanel>
+
+        <!-- Choose installer -->
+        <StackPanel Grid.Row="1" Visibility="{Binding Stage, Converter={StaticResource MatchToVisibility}, ConverterParameter=Choose}">
+            <TextBlock Text="Installer" Style="{StaticResource Caption}" />
+            <Grid Margin="0,4,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding InstallerPath, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Column="1" Content="Browse…" Command="{Binding BrowseCommand}" Margin="8,0,0,0" />
+            </Grid>
+            <TextBlock Text="Command-line arguments (optional)" Style="{StaticResource Caption}" />
+            <TextBox Text="{Binding Arguments}" Margin="0,4,0,12" />
+            <Border Style="{StaticResource Card}" Margin="0,4,0,16">
+                <TextBlock TextWrapping="Wrap" Style="{StaticResource Caption}"
+                           Text="For the cleanest trace, close other programs first — anything they create during the installation ends up in the log too (you can untick it afterwards)." />
+            </Border>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Start" Command="{Binding StartCommand}" Style="{DynamicResource AccentButtonStyle}" MinWidth="110" Margin="0,0,8,0" />
+                <Button Content="Cancel" Command="{Binding CancelCommand}" MinWidth="90" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Snapshots -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" VerticalAlignment="Center" Padding="28"
+                Visibility="{Binding Stage, Converter={StaticResource MatchToVisibility}, ConverterParameter='SnapshotBefore,SnapshotAfter'}">
+            <StackPanel>
+                <TextBlock Text="Recording the system…" FontSize="15" Margin="0,0,0,6" />
+                <TextBlock Text="{Binding Status}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,0,0,14" />
+                <ProgressBar IsIndeterminate="True" Height="4" />
+            </StackPanel>
+        </Border>
+
+        <!-- Installing -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" VerticalAlignment="Center" Padding="28"
+                Visibility="{Binding Stage, Converter={StaticResource MatchToVisibility}, ConverterParameter=Installing}">
+            <StackPanel>
+                <TextBlock Text="Installing" FontSize="15" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,6,0,18" />
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Installation finished" Command="{Binding FinishInstallCommand}" Style="{DynamicResource AccentButtonStyle}" Margin="0,0,8,0" />
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" MinWidth="90" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Review -->
+        <Grid Grid.Row="1" Visibility="{Binding Stage, Converter={StaticResource MatchToVisibility}, ConverterParameter=Review}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel>
+                <TextBlock Text="Name" Style="{StaticResource Caption}" />
+                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10" />
+            </StackPanel>
+            <TextBlock Grid.Row="1" Text="{Binding Summary}" Style="{StaticResource Caption}" Margin="0,0,0,8" />
+            <ListView Grid.Row="2" ItemsSource="{Binding Items}" ItemTemplate="{StaticResource LeftoverRow}"
+                      HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                <Button Content="Discard" Command="{Binding CancelCommand}" Margin="0,0,8,0" MinWidth="90" />
+                <Button Content="Save trace" Command="{Binding SaveCommand}" Style="{DynamicResource AccentButtonStyle}" MinWidth="110" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
