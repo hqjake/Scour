@@ -21,6 +21,7 @@
         <DataTemplate DataType="{x:Type vm:RegistryCleanerViewModel}"><v:RegistryCleanerView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SystemInfoViewModel}"><v:SystemInfoView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:DiskAnalyzerViewModel}"><v:DiskAnalyzerView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UsbViewModel}"><v:UsbView /></DataTemplate>
     </Window.Resources>
 
     <Grid>

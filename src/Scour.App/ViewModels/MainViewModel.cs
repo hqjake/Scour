@@ -34,6 +34,7 @@ public sealed partial class MainViewModel : ObservableObject
             new SystemInfoViewModel(),
             new AutorunViewModel(services),
             new DiskAnalyzerViewModel(services),
+            new UsbViewModel(),
         ];
         Dashboard.ResolvePage = t => Pages.FirstOrDefault(p => p.GetType() == t);
         NavView = CollectionViewSource.GetDefaultView(Pages);
