@@ -1,31 +1,167 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
+using Scour.App.Platform;
 using Scour.App.Services;
 using Scour.App.ViewModels;
 using Scour.App.Views;
+using Scour.Core.Schedule;
 
 namespace Scour.App;
 
 public partial class App : Application
 {
-    protected override void OnStartup(StartupEventArgs e)
+    private AppServices? _services;
+    private TrayService? _tray;
+    private MainWindow? _window;
+    private MainViewModel? _vm;
+    private DispatcherTimer? _diskTimer;
+
+    /// <summary>Set when the user really wants to quit (tray "Exit"), so closing the window doesn't just hide it.</summary>
+    public bool ExitRequested { get; private set; }
+
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         DispatcherUnhandledException += OnUnhandledException;
+        _services = new AppServices();
 
-        var services = new AppServices();
-        SoundService.Enabled = services.Settings.SoundsEnabled;
+        if (e.Args.Contains("--autoclean", StringComparer.OrdinalIgnoreCase))
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            await RunScheduledCleanAsync(_services);
+            Shutdown();
+            return;
+        }
+
+        SoundService.Enabled = _services.Settings.SoundsEnabled;
         SoundService.Initialize();
-        ThemeService.Apply(services.Settings.DarkTheme);
+        ThemeService.Apply(_services.Settings.DarkTheme);
 
         // Every button and toggle clicks; every window gets the themed title bar and neon border.
         EventManager.RegisterClassHandler(typeof(ButtonBase), ButtonBase.ClickEvent, new RoutedEventHandler((_, _) => SoundService.Play(UiSound.Click)));
         EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((s, _) => ThemeService.StyleWindow((Window)s)));
 
-        var window = new MainWindow { DataContext = new MainViewModel(services) };
-        MainWindow = window;
-        window.Show();
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        _vm = new MainViewModel(_services);
+        _window = new MainWindow { DataContext = _vm };
+        MainWindow = _window;
+        _window.Closing += OnMainWindowClosing;
+        _window.Closed += (_, _) => Quit(closeWindow: false);
+
+        if (_services.Settings.KeepInTray || _services.Settings.StartInTray) EnsureTray();
+        bool startHidden = e.Args.Contains("--tray", StringComparer.OrdinalIgnoreCase) && _tray is not null;
+        if (!startHidden) _window.Show();
+
+        StartDiskWatch();
+        // Re-register scheduled tasks so they follow Scour if its exe was moved.
+        if (_services.Settings.AutoClean != CleaningSchedule.Off || _services.Settings.StartInTray)
+            _ = ScheduleService.ApplyAsync(_services.Settings);
+    }
+
+    public void EnsureTray()
+    {
+        if (_tray is not null || _services is null) return;
+        _tray = new TrayService(
+            open: ShowMainWindow,
+            quickClean: () => _ = QuickCleanAsync(),
+            checkHealth: () => { ShowMainWindow(); if (_vm is not null) { _vm.Navigate(_vm.Dashboard); _ = _vm.Dashboard.CheckHealthCommand.ExecuteAsync(null); } },
+            analyzeDisk: () => { ShowMainWindow(); _vm?.Navigate<DiskAnalyzerViewModel>(); },
+            exit: () => Quit());
+    }
+
+    public void RemoveTray()
+    {
+        _tray?.Dispose();
+        _tray = null;
+    }
+
+    private void ShowMainWindow()
+    {
+        if (_window is null) return;
+        if (!_window.IsVisible) _window.Show();
+        if (_window.WindowState == WindowState.Minimized) _window.WindowState = WindowState.Normal;
+        _window.Activate();
+    }
+
+    private void OnMainWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (ExitRequested || _services is null || !_services.Settings.KeepInTray) return;
+        EnsureTray();
+        e.Cancel = true;
+        _window!.Hide();
+        if (!_services.Settings.TrayHintShown)
+        {
+            _services.Settings.TrayHintShown = true;
+            _services.Settings.Save();
+            _tray?.Notify("Scour is still running", "It's in the notification area. Right-click the icon for quick actions, or turn this off in Settings.");
+        }
+    }
+
+    private void Quit(bool closeWindow = true)
+    {
+        if (ExitRequested) return;
+        ExitRequested = true;
+        _diskTimer?.Stop();
+        RemoveTray();
+        if (closeWindow) _window?.Close();
+        Shutdown();
+    }
+
+    private async Task QuickCleanAsync()
+    {
+        if (_services is null) return;
+        var s = _services;
+        var result = await Task.Run(() => AutoCleaner.Run(s.Junk, AutoCleaner.DefaultCategories(s.Junk), DateTime.UtcNow));
+        s.Settings.LastCleanupUtc = DateTime.UtcNow;
+        s.Settings.Save();
+        SoundService.Play(UiSound.Success);
+        _tray?.Notify("Quick clean finished", result.BytesFreed > 0 ? $"Freed {Format.Bytes(result.BytesFreed)}." : "Nothing to clean — already tidy.");
+    }
+
+    private static async Task RunScheduledCleanAsync(AppServices s)
+    {
+        try
+        {
+            var result = await Task.Run(() => AutoCleaner.Run(s.Junk, AutoCleaner.DefaultCategories(s.Junk), DateTime.UtcNow));
+            long freed = result.BytesFreed;
+            if (s.Settings.AutoCleanRecycleBin)
+            {
+                var (bytes, _) = RecycleBin.Query();
+                if (bytes > 0 && RecycleBin.Empty()) freed += bytes;
+            }
+            s.Settings.LastCleanupUtc = DateTime.UtcNow;
+            s.Settings.Save();
+            if (freed > 0) await TrayService.NotifyOnceAsync("Scour cleaned your PC", $"Freed {Format.Bytes(freed)} of junk.");
+        }
+        catch { /* scheduled runs stay silent on failure */ }
+    }
+
+    private void StartDiskWatch()
+    {
+        _diskTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(15) };
+        _diskTimer.Tick += (_, _) => CheckDiskSpace();
+        _diskTimer.Start();
+        CheckDiskSpace();
+    }
+
+    private void CheckDiskSpace()
+    {
+        var s = _services?.Settings;
+        if (s is null || !s.LowDiskAlerts || _tray is null) return;
+        if (s.LastLowDiskAlertUtc is { } last && DateTime.UtcNow - last < TimeSpan.FromHours(24)) return;
+        try
+        {
+            var drive = new DriveInfo(Path.GetPathRoot(Environment.SystemDirectory)!);
+            double pct = 100.0 * drive.AvailableFreeSpace / drive.TotalSize;
+            if (pct >= 10 && drive.AvailableFreeSpace >= 5L << 30) return;
+            s.LastLowDiskAlertUtc = DateTime.UtcNow;
+            s.Save();
+            _tray.Notify($"Low disk space on {drive.Name.TrimEnd('\\')}", $"Only {Format.Bytes(drive.AvailableFreeSpace)} left. Click to see what's using it.",
+                () => { ShowMainWindow(); _vm?.Navigate<DiskAnalyzerViewModel>(); }, warning: true);
+        }
+        catch { /* drive query failed */ }
     }
 
     private static void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

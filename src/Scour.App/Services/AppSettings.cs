@@ -19,6 +19,17 @@ public sealed class AppSettings
     public List<string> IgnoredUpdates { get; set; } = [];
     public DateTime? LastCleanupUtc { get; set; }
 
+    // Background
+    public Scour.Core.Schedule.CleaningSchedule AutoClean { get; set; } = Scour.Core.Schedule.CleaningSchedule.Off;
+    public DayOfWeek AutoCleanDay { get; set; } = DayOfWeek.Sunday;
+    public int AutoCleanHour { get; set; } = 12;
+    public bool AutoCleanRecycleBin { get; set; }
+    public bool KeepInTray { get; set; } = true;
+    public bool StartInTray { get; set; }
+    public bool LowDiskAlerts { get; set; } = true;
+    public DateTime? LastLowDiskAlertUtc { get; set; }
+    public bool TrayHintShown { get; set; }
+
     private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,

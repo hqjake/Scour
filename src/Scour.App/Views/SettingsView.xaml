@@ -23,6 +23,35 @@
                 </StackPanel>
             </Border>
 
+            <TextBlock Text="Automatic cleaning &amp; tray" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="Clean junk automatically" />
+                    <TextBlock Style="{StaticResource Caption}" Text="Runs quietly in the background with Windows Task Scheduler and only removes the safe, pre-ticked junk categories." />
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <ComboBox ItemsSource="{Binding Schedules}" SelectedItem="{Binding AutoClean}" Width="110" />
+                        <ComboBox ItemsSource="{Binding Days}" SelectedItem="{Binding AutoCleanDay}" Width="130" Margin="8,0,0,0"
+                                  Visibility="{Binding AutoClean, Converter={StaticResource MatchToVisibility}, ConverterParameter=Weekly}" />
+                        <TextBlock Text="at" VerticalAlignment="Center" Margin="10,0,6,0"
+                                   Visibility="{Binding AutoClean, Converter={StaticResource NotMatchToVisibility}, ConverterParameter=Off}" />
+                        <ComboBox ItemsSource="{Binding Hours}" SelectedItem="{Binding AutoCleanHour}" ItemStringFormat="{}{0:00}:00" Width="90"
+                                  Visibility="{Binding AutoClean, Converter={StaticResource NotMatchToVisibility}, ConverterParameter=Off}" />
+                    </StackPanel>
+                    <CheckBox Content="Also empty the Recycle Bin" IsChecked="{Binding AutoCleanRecycleBin}" Margin="0,10,0,0" />
+                    <TextBlock Text="{Binding LastCleanupText}" Style="{StaticResource Caption}" Margin="0,6,0,0" />
+                    <TextBlock Text="{Binding ScheduleStatus}" Style="{StaticResource Caption}" Foreground="{DynamicResource Scour.AccentHiBrush}" />
+
+                    <CheckBox IsChecked="{Binding KeepInTray}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Keep Scour in the notification area when closed" />
+                            <TextBlock Style="{StaticResource Caption}" Text="Right-click the tray icon for Quick clean, PC health and disk analysis." />
+                        </StackPanel>
+                    </CheckBox>
+                    <CheckBox Content="Start with Windows (in the notification area)" IsChecked="{Binding StartInTray}" Margin="0,12,0,0" />
+                    <CheckBox Content="Warn me when the system drive is running out of space" IsChecked="{Binding LowDiskAlerts}" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="Uninstalling" Style="{StaticResource SectionTitle}" />
             <Border Style="{StaticResource Panel}" Margin="0,0,0,20">
                 <StackPanel>

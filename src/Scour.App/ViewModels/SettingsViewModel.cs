@@ -69,6 +69,75 @@ public sealed partial class SettingsViewModel(AppServices services) : PageViewMo
         set { S.SoundsEnabled = value; SoundService.Enabled = value; Save(); }
     }
 
+    // ---- background
+
+    public IReadOnlyList<Scour.Core.Schedule.CleaningSchedule> Schedules { get; } =
+        [Scour.Core.Schedule.CleaningSchedule.Off, Scour.Core.Schedule.CleaningSchedule.Daily, Scour.Core.Schedule.CleaningSchedule.Weekly];
+    public IReadOnlyList<DayOfWeek> Days { get; } = Enum.GetValues<DayOfWeek>();
+    public IReadOnlyList<int> Hours { get; } = Enumerable.Range(0, 24).ToList();
+
+    [ObservableProperty] private string _scheduleStatus = "";
+
+    public Scour.Core.Schedule.CleaningSchedule AutoClean
+    {
+        get => S.AutoClean;
+        set { S.AutoClean = value; Save(); _ = ApplyScheduleAsync(); }
+    }
+
+    public DayOfWeek AutoCleanDay
+    {
+        get => S.AutoCleanDay;
+        set { S.AutoCleanDay = value; Save(); _ = ApplyScheduleAsync(); }
+    }
+
+    public int AutoCleanHour
+    {
+        get => S.AutoCleanHour;
+        set { S.AutoCleanHour = value; Save(); _ = ApplyScheduleAsync(); }
+    }
+
+    public bool AutoCleanRecycleBin
+    {
+        get => S.AutoCleanRecycleBin;
+        set { S.AutoCleanRecycleBin = value; Save(); }
+    }
+
+    public bool KeepInTray
+    {
+        get => S.KeepInTray;
+        set
+        {
+            S.KeepInTray = value;
+            Save();
+            if (System.Windows.Application.Current is App app)
+            {
+                if (value) app.EnsureTray();
+                else if (!S.StartInTray) app.RemoveTray();
+            }
+        }
+    }
+
+    public bool StartInTray
+    {
+        get => S.StartInTray;
+        set { S.StartInTray = value; Save(); _ = ApplyScheduleAsync(); }
+    }
+
+    public bool LowDiskAlerts
+    {
+        get => S.LowDiskAlerts;
+        set { S.LowDiskAlerts = value; Save(); }
+    }
+
+    public string LastCleanupText => S.LastCleanupUtc is { } t ? $"Last cleanup: {t.ToLocalTime():g}" : "No cleanup yet.";
+
+    private async Task ApplyScheduleAsync()
+    {
+        ScheduleStatus = "Updating Windows Task Scheduler…";
+        var error = await ScheduleService.ApplyAsync(S);
+        ScheduleStatus = error is null ? "Saved." : "Couldn't update the schedule: " + error;
+    }
+
     /// <summary>Re-reads every setting (after changes made elsewhere, e.g. the sidebar toggles).</summary>
     public void Refresh() => OnPropertyChanged(string.Empty);
 
