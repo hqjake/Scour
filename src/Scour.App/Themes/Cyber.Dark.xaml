@@ -45,6 +45,8 @@
         <GradientStop Color="#FF07060E" Offset="0" /><GradientStop Color="#FF0E0B1C" Offset="1" />
     </LinearGradientBrush>
 
+    <SolidColorBrush x:Key="Scour.SelectionBrush" Color="#558B5CF6" />
+
     <!-- Fluent overrides -->
     <SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#FF07060E" />
     <SolidColorBrush x:Key="SolidBackgroundFillColorBaseBrush" Color="#FF07060E" />

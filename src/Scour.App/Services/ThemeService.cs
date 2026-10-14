@@ -50,9 +50,25 @@ public static class ThemeService
         Make(app, typeof(DataGrid),
             (Control.BackgroundProperty, "Scour.CardBrush"), (Control.BorderBrushProperty, "Scour.StrokeBrush"),
             (DataGrid.RowBackgroundProperty, Brushes.Transparent), (Control.BorderThicknessProperty, new Thickness(1)));
+        MakeCellStyle(app);
         Make(app, typeof(ListView), (Control.BackgroundProperty, "Scour.CardBrush"), (Control.BorderBrushProperty, "Scour.StrokeBrush"));
         Make(app, typeof(ListBox), (Control.BackgroundProperty, "Scour.CardBrush"), (Control.BorderBrushProperty, "Scour.StrokeBrush"));
         Make(app, typeof(ProgressBar), (Control.ForegroundProperty, "Scour.AccentGradient"), (UIElement.EffectProperty, app.TryFindResource("SoftGlow")));
+    }
+
+    private static void MakeCellStyle(Application app)
+    {
+        app.Resources.Remove(typeof(DataGridCell));
+        var style = new Style(typeof(DataGridCell), app.TryFindResource(typeof(DataGridCell)) as Style);
+        if (app.TryFindResource("Scour.DataGridCellTemplate") is ControlTemplate template)
+            style.Setters.Add(new Setter(Control.TemplateProperty, template));
+        style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
+        style.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
+        var selected = new Trigger { Property = DataGridCell.IsSelectedProperty, Value = true };
+        selected.Setters.Add(new Setter(Control.BackgroundProperty, new DynamicResourceExtension("Scour.SelectionBrush")));
+        selected.Setters.Add(new Setter(Control.ForegroundProperty, new DynamicResourceExtension("Scour.TextBrush")));
+        style.Triggers.Add(selected);
+        app.Resources[typeof(DataGridCell)] = style;
     }
 
     private static void Make(Application app, Type type, params (DependencyProperty Property, object? Value)[] setters)

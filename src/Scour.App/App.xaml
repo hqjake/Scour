@@ -287,6 +287,13 @@
                 </Grid>
             </DataTemplate>
 
+            <!-- Grid cells: vertically centred content; selection colour comes from the theme. -->
+            <ControlTemplate x:Key="Scour.DataGridCellTemplate" TargetType="DataGridCell">
+                <Border Background="{TemplateBinding Background}" BorderThickness="0" SnapsToDevicePixels="True">
+                    <ContentPresenter VerticalAlignment="Center" Margin="6,0" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                </Border>
+            </ControlTemplate>
+
             <DataTemplate x:Key="GroupHeader">
                 <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="4,12,0,4" />
             </DataTemplate>

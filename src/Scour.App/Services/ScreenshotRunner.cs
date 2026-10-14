@@ -98,7 +98,7 @@ public static class ScreenshotRunner
                 await WaitAsync(() => !page.IsLoading, timeoutSeconds);
             }
             await Task.Delay(1400); // let page transitions and gauge animations settle
-            Capture(w, Path.Combine(dir, name + ".png"));
+            await CaptureAsync(w, Path.Combine(dir, name + ".png"));
             Log($"{name}: saved ({page.StatusText})");
         }
         catch (Exception e)
@@ -114,14 +114,34 @@ public static class ScreenshotRunner
         while (!condition() && DateTime.UtcNow < until) await Task.Delay(250);
     }
 
-    private static void Capture(Window w, string path)
+    private const double ShotWidth = 1440, ShotHeight = 900;
+
+    /// <summary>
+    /// CI machines have a 1024×768 screen and Windows won't let a window grow past it, so the page is
+    /// briefly taken out of the window and laid out off-screen at a fixed size for the capture.
+    /// </summary>
+    private static async Task CaptureAsync(Window w, string path)
     {
         var content = (FrameworkElement)w.Content;
-        content.UpdateLayout();
-        var dpi = VisualTreeHelper.GetDpi(content);
-        var bmp = new RenderTargetBitmap(
-            (int)Math.Ceiling(content.ActualWidth * dpi.DpiScaleX), (int)Math.Ceiling(content.ActualHeight * dpi.DpiScaleY),
-            dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
+        w.Content = null;
+        try
+        {
+            content.Measure(new Size(ShotWidth, ShotHeight));
+            content.Arrange(new Rect(0, 0, ShotWidth, ShotHeight));
+            content.UpdateLayout();
+            await Task.Delay(400); // bindings and virtualized rows fill in at the new size
+            content.UpdateLayout();
+            Render(content, path);
+        }
+        finally
+        {
+            w.Content = content;
+        }
+    }
+
+    private static void Render(FrameworkElement content, string path)
+    {
+        var bmp = new RenderTargetBitmap((int)ShotWidth, (int)ShotHeight, 96, 96, PixelFormats.Pbgra32);
         bmp.Render(content);
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bmp));

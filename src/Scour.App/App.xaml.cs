@@ -62,12 +62,6 @@ public partial class App : Application
             _window.Width = 1440;
             _window.Height = 900;
             _window.Show();
-            // CI screens are small (1024×768); lay the content out at a fixed size so the shots aren't cramped.
-            if (_window.Content is FrameworkElement root)
-            {
-                root.Width = 1440;
-                root.Height = 900;
-            }
             var dir = shotIndex + 1 < e.Args.Length ? e.Args[shotIndex + 1] : Path.Combine(AppContext.BaseDirectory, "screenshots");
             await ScreenshotRunner.RunAsync(_window, _vm, dir);
             Quit();
