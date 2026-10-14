@@ -63,7 +63,7 @@ public sealed partial class BloatwareViewModel : PageViewModel
             var tweak = PrivacyTweaks.All.Single(t => t.Id == "silent-apps");
             ReinstallBlocked = Tweaks().GetState(tweak) == TweakState.On;
             StatusText = Items.Count == 0 ? "No bloatware found — this PC is clean." :
-                $"Found {Format.Plural(Items.Count, "pre-installed app")}; {Items.Count(i => i.IsSafe)} are safe to remove.";
+                $"Found {Format.Plural(Items.Count, "pre-installed app")}; {Items.Count(i => i.IsSafe)} {(Items.Count(i => i.IsSafe) == 1 ? "is" : "are")} safe to remove.";
             SoundService.Play(UiSound.Scan);
         }
         catch (Exception e)

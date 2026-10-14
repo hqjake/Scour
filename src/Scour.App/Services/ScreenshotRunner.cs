@@ -1,4 +1,5 @@
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -21,10 +22,16 @@ public static class ScreenshotRunner
         try { _log?.WriteLine($"{DateTime.Now:HH:mm:ss}  {message}"); } catch { /* logging must never throw */ }
     }
 
-    public static async Task RunAsync(MainWindow window, MainViewModel vm, string dir)
+    public static void OpenLog(string dir)
     {
         Directory.CreateDirectory(dir);
-        _log = new StreamWriter(Path.Combine(dir, "log.txt"), append: false) { AutoFlush = true };
+        _log ??= new StreamWriter(Path.Combine(dir, "log.txt"), append: false) { AutoFlush = true };
+    }
+
+    public static async Task RunAsync(MainWindow window, MainViewModel vm, string dir)
+    {
+        OpenLog(dir);
+        Log($"Window {window.ActualWidth}x{window.ActualHeight}");
         Log($"Scour screenshot run on {Environment.OSVersion}, {Environment.ProcessorCount} CPUs, elevated={Environment.IsPrivilegedProcess}");
         try
         {
@@ -64,7 +71,7 @@ public static class ScreenshotRunner
         }
         finally
         {
-            _log.Dispose();
+            _log?.Dispose();
             _log = null;
         }
     }
@@ -116,26 +123,49 @@ public static class ScreenshotRunner
 
     private const double ShotWidth = 1440, ShotHeight = 900;
 
-    /// <summary>
-    /// CI machines have a 1024×768 screen and Windows won't let a window grow past it, so the page is
-    /// briefly taken out of the window and laid out off-screen at a fixed size for the capture.
-    /// </summary>
-    private static async Task CaptureAsync(Window w, string path)
+    private static Task CaptureAsync(Window w, string path)
     {
         var content = (FrameworkElement)w.Content;
-        w.Content = null;
-        try
+        content.UpdateLayout();
+        Render(content, path);
+        return Task.CompletedTask;
+    }
+
+    // ---- display resolution (CI machines start at 1024×768, too small for a 1440×900 window)
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct DEVMODE
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string dmDeviceName;
+        public short dmSpecVersion, dmDriverVersion, dmSize, dmDriverExtra;
+        public int dmFields, dmPositionX, dmPositionY, dmDisplayOrientation, dmDisplayFixedOutput;
+        public short dmColor, dmDuplex, dmYResolution, dmTTOption, dmCollate;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string dmFormName;
+        public short dmLogPixels;
+        public int dmBitsPerPel, dmPelsWidth, dmPelsHeight, dmDisplayFlags, dmDisplayFrequency;
+        public int dmICMMethod, dmICMIntent, dmMediaType, dmDitherType, dmReserved1, dmReserved2, dmPanningWidth, dmPanningHeight;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern bool EnumDisplaySettings(string? device, int mode, ref DEVMODE dm);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int ChangeDisplaySettings(ref DEVMODE dm, int flags);
+
+    /// <summary>Raises the screen resolution so the screenshot window fits. Only used in --screenshots mode.</summary>
+    public static void EnsureScreenSize()
+    {
+        var dm = new DEVMODE { dmSize = (short)Marshal.SizeOf<DEVMODE>() };
+        if (!EnumDisplaySettings(null, -1, ref dm)) return;
+        if (dm.dmPelsWidth >= 1600 && dm.dmPelsHeight >= 1000) return;
+        foreach (var (w, h) in new[] { (1920, 1080), (1920, 1200), (1680, 1050), (1600, 1200), (1600, 1024) })
         {
-            content.Measure(new Size(ShotWidth, ShotHeight));
-            content.Arrange(new Rect(0, 0, ShotWidth, ShotHeight));
-            content.UpdateLayout();
-            await Task.Delay(400); // bindings and virtualized rows fill in at the new size
-            content.UpdateLayout();
-            Render(content, path);
-        }
-        finally
-        {
-            w.Content = content;
+            dm.dmPelsWidth = w;
+            dm.dmPelsHeight = h;
+            dm.dmFields = 0x80000 | 0x100000; // DM_PELSWIDTH | DM_PELSHEIGHT
+            int result = ChangeDisplaySettings(ref dm, 0);
+            Log($"Display {w}x{h}: {(result == 0 ? "ok" : "failed (" + result + ")")}");
+            if (result == 0) return;
         }
     }
 

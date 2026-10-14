@@ -56,14 +56,16 @@ public partial class App : Application
 
         if (screenshots)
         {
+            var shotDir = shotIndex + 1 < e.Args.Length ? e.Args[shotIndex + 1] : Path.Combine(AppContext.BaseDirectory, "screenshots");
+            ScreenshotRunner.OpenLog(shotDir);
+            ScreenshotRunner.EnsureScreenSize();
             _window.WindowStartupLocation = WindowStartupLocation.Manual;
             _window.Left = 0;
             _window.Top = 0;
             _window.Width = 1440;
             _window.Height = 900;
             _window.Show();
-            var dir = shotIndex + 1 < e.Args.Length ? e.Args[shotIndex + 1] : Path.Combine(AppContext.BaseDirectory, "screenshots");
-            await ScreenshotRunner.RunAsync(_window, _vm, dir);
+            await ScreenshotRunner.RunAsync(_window, _vm, shotDir);
             Quit();
             return;
         }

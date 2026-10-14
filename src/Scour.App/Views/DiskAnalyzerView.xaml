@@ -112,14 +112,14 @@
                                         <DataTemplate><Border Width="14" Height="14" CornerRadius="3" Background="{Binding Swatch}" /></DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="Type" Binding="{Binding Extension}" Width="*" />
-                                <DataGridTextColumn Header="Size" Binding="{Binding SizeText}" Width="100" />
-                                <DataGridTemplateColumn Header="Share" Width="150" SortMemberPath="Percent">
+                                <DataGridTextColumn Header="Type" Binding="{Binding Extension}" Width="110" />
+                                <DataGridTextColumn Header="Size" Binding="{Binding SizeText}" Width="90" />
+                                <DataGridTemplateColumn Header="Share" Width="*" MinWidth="80" SortMemberPath="Percent">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate><ProgressBar Value="{Binding Percent, Mode=OneWay}" Maximum="100" Height="6" Margin="0,0,8,0" /></DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="Files" Binding="{Binding Count, StringFormat=N0}" Width="90" />
+                                <DataGridTextColumn Header="Files" Binding="{Binding Count, StringFormat=N0}" Width="80" />
                             </DataGrid.Columns>
                         </DataGrid>
                     </TabItem>

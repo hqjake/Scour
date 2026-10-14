@@ -13,7 +13,7 @@
             <TextBlock Style="{StaticResource Caption}"
                        Text="Pre-installed apps, games and trials that came with Windows or your PC. Core Windows apps (Store, Calculator, Photos, Notepad, Terminal…) are never listed." />
         </StackPanel>
-        <Grid Grid.Row="1" Margin="0,16,0,12">
+        <StackPanel Grid.Row="1" Margin="0,16,0,12">
             <StackPanel Orientation="Horizontal">
                 <Button Command="{Binding RemoveSelectedCommand}" Style="{DynamicResource AccentButtonStyle}" Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
@@ -28,11 +28,11 @@
                     <TextBlock Style="{StaticResource Glyph}" Text="&#xE72C;" FontSize="14" />
                 </Button>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <CheckBox Content="Remove for all user accounts" IsChecked="{Binding AllUsers}" Margin="0,0,16,0" />
+            <StackPanel Orientation="Horizontal" Margin="2,10,0,0">
+                <CheckBox Content="Remove for all user accounts" IsChecked="{Binding AllUsers}" Margin="0,0,20,0" />
                 <CheckBox Content="Don't install for new accounts" IsChecked="{Binding Deprovision}" />
             </StackPanel>
-        </Grid>
+        </StackPanel>
 
         <Grid Grid.Row="2">
             <Grid.RowDefinitions>
