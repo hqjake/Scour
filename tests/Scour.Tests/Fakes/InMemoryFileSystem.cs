@@ -58,6 +58,7 @@ public sealed class InMemoryFileSystem : IFileSystem
     public long GetFileSize(string path) => _files[N(path)].Data.Length;
     public DateTime GetLastWriteTimeUtc(string path) => _files[N(path)].Modified;
     public byte[] ReadAllBytes(string path) => _files[N(path)].Data;
+    public Stream OpenRead(string path) => new MemoryStream(ReadAllBytes(path), writable: false);
     public string ReadAllText(string path) => Encoding.UTF8.GetString(ReadAllBytes(path));
     public void WriteAllText(string path, string contents) => AddFile(path, Encoding.UTF8.GetBytes(contents), null);
     public void WriteAllBytes(string path, byte[] contents) => AddFile(path, contents, null);

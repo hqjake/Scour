@@ -11,6 +11,9 @@ public abstract partial class PageViewModel : ObservableObject
     /// <summary>Segoe Fluent Icons glyph for the navigation rail.</summary>
     public abstract string Glyph { get; }
 
+    /// <summary>Sidebar section this page belongs to.</summary>
+    public virtual string Group => "Programs";
+
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _statusText = "";
 

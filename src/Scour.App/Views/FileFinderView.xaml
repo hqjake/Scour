@@ -1,0 +1,104 @@
+<UserControl x:Class="Scour.App.Views.FileFinderView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="Duplicates &amp; large files" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="Find identical files (compared by content, not just name) or big files you've forgotten about." Style="{StaticResource Caption}" />
+        </StackPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,16,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <RadioButton Content="Duplicate files" GroupName="FinderMode" Margin="0,0,16,0"
+                                     IsChecked="{Binding Mode, Converter={StaticResource EnumToBool}, ConverterParameter=Duplicates}" />
+                        <RadioButton Content="Large files" GroupName="FinderMode"
+                                     IsChecked="{Binding Mode, Converter={StaticResource EnumToBool}, ConverterParameter=LargeFiles}" />
+                    </StackPanel>
+                    <TextBlock Text="Search in" Style="{StaticResource Caption}" />
+                    <Grid Margin="0,4,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ListBox ItemsSource="{Binding Folders}" SelectedItem="{Binding SelectedFolder}" Height="78" />
+                        <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                            <Button Content="Add folder…" Command="{Binding AddFolderCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+                            <Button Content="Add all drives" Command="{Binding AddDrivesCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+                            <Button Content="Remove" Command="{Binding RemoveFolderCommand}" HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Minimum size (MB)" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding MinSizeMb}" Width="70" Margin="8,0,16,0" />
+                        <TextBlock Text="Not modified for (months, 0 = any)" VerticalAlignment="Center"
+                                   Visibility="{Binding Mode, Converter={StaticResource MatchToVisibility}, ConverterParameter=LargeFiles}" />
+                        <TextBox Text="{Binding OlderThanMonths}" Width="60" Margin="8,0,0,0"
+                                 Visibility="{Binding Mode, Converter={StaticResource MatchToVisibility}, ConverterParameter=LargeFiles}" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="16,0,0,0">
+                    <Button Content="Search" Command="{Binding SearchCommand}" Style="{DynamicResource AccentButtonStyle}" MinWidth="110" Margin="0,0,0,6" />
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" MinWidth="110"
+                            Visibility="{Binding IsLoading, Converter={StaticResource TruthyToVisibility}}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding ResultsView}" AutoGenerateColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
+                  CanUserAddRows="False" SelectionMode="Single" RowHeight="34" VirtualizingPanel.IsVirtualizingWhenGrouping="True">
+            <DataGrid.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="4,10,0,4" />
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Width="44">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate><CheckBox IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" MinWidth="0" /></DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="220" IsReadOnly="True" />
+                <DataGridTextColumn Header="Folder" Binding="{Binding Folder}" Width="*" IsReadOnly="True" />
+                <DataGridTextColumn Header="Size" Binding="{Binding SizeText}" SortMemberPath="Size" Width="90" IsReadOnly="True" />
+                <DataGridTextColumn Header="Modified" Binding="{Binding Modified, StringFormat=d}" Width="100" IsReadOnly="True" />
+                <DataGridTemplateColumn Width="50">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button ToolTip="Open file location" Padding="6,2" Background="Transparent" BorderThickness="0"
+                                    Command="{Binding DataContext.OpenLocationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                <TextBlock Style="{StaticResource Glyph}" Text="&#xE8B7;" FontSize="13" />
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="3" Margin="2,10,0,0">
+            <StackPanel>
+                <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,6" Visibility="{Binding IsLoading, Converter={StaticResource TruthyToVisibility}}" />
+                <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <TextBlock Text="{Binding SelectionText}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                <Button Content="Delete selected" Command="{Binding DeleteSelectedCommand}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

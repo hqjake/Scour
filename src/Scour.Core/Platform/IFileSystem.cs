@@ -13,6 +13,7 @@ public interface IFileSystem
     long GetFileSize(string path);
     DateTime GetLastWriteTimeUtc(string path);
     byte[] ReadAllBytes(string path);
+    Stream OpenRead(string path);
     string ReadAllText(string path);
     void WriteAllText(string path, string contents);
     void WriteAllBytes(string path, byte[] contents);

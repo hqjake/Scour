@@ -10,7 +10,7 @@
         </Grid.RowDefinitions>
         <StackPanel>
             <TextBlock Text="Junk cleaner" Style="{StaticResource PageTitle}" />
-            <TextBlock Text="Free up space taken by temporary files, caches and crash reports. Everything here is safe to delete; Windows and your apps recreate what they need."
+            <TextBlock Text="Temporary files, caches, logs and leftovers from Windows, browsers, apps and developer tools. Windows and your apps recreate whatever they need."
                        Style="{StaticResource Caption}" />
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,16,0,12">
@@ -20,35 +20,72 @@
                     <TextBlock Text="Scan" Margin="8,0,0,0" />
                 </StackPanel>
             </Button>
-            <Button Command="{Binding CleanCommand}" Style="{DynamicResource AccentButtonStyle}" Padding="12,6">
+            <Button Command="{Binding CleanCommand}" Style="{DynamicResource AccentButtonStyle}" Padding="12,6" Margin="0,0,8,0">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Style="{StaticResource Glyph}" Text="&#xE74D;" FontSize="14" />
                     <TextBlock Text="Clean" Margin="8,0,0,0" />
                 </StackPanel>
             </Button>
+            <Button Content="Select all" Command="{Binding SelectAllCommand}" Style="{StaticResource ToolButton}" />
+            <Button Content="Select none" Command="{Binding SelectNoneCommand}" Style="{StaticResource ToolButton}" />
         </StackPanel>
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Categories}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Style="{StaticResource Card}" Margin="0,0,0,8" Padding="14,10">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center" MinWidth="0" Margin="0,0,8,0" />
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding Description}" Style="{StaticResource Caption}" />
-                                </StackPanel>
-                                <TextBlock Grid.Column="2" Text="{Binding SizeText}" VerticalAlignment="Center" Margin="12,0,0,0" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <StackPanel>
+                <ItemsControl ItemsSource="{Binding CategoriesView}">
+                    <ItemsControl.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" Style="{StaticResource SectionTitle}" Margin="2,12,0,8" />
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                        </GroupStyle>
+                    </ItemsControl.GroupStyle>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,6" Padding="14,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center" MinWidth="0" Margin="0,0,8,0" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Description}" Style="{StaticResource Caption}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding SizeText}" VerticalAlignment="Center" Margin="12,0,0,0" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="Deep Windows cleanup" Style="{StaticResource SectionTitle}" Margin="2,12,0,2" />
+                <TextBlock Text="Uses Windows' own tools. These can take a while and can't be undone." Style="{StaticResource Caption}" Margin="2,0,0,8" />
+                <ItemsControl ItemsSource="{Binding SystemActions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,6" Padding="14,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center" MinWidth="0" Margin="0,0,8,0" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Description}" Style="{StaticResource Caption}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding SizeText}" VerticalAlignment="Center" Margin="12,0,0,0" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
         </ScrollViewer>
         <StackPanel Grid.Row="3" Margin="2,10,0,0">
             <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,6" Visibility="{Binding IsLoading, Converter={StaticResource TruthyToVisibility}}" />

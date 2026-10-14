@@ -16,6 +16,9 @@ public sealed class JunkCategory
     public TimeSpan MinAge { get; init; } = TimeSpan.Zero;
 
     public bool EnabledByDefault { get; init; } = true;
+
+    /// <summary>Section in the UI: Windows, Browsers, Applications or Developer.</summary>
+    public string Group { get; init; } = "Windows";
 }
 
 public sealed class JunkScanResult
@@ -94,7 +97,7 @@ public sealed class JunkCleaner(IFileSystem fs, KnownFolders folders)
         },
         new()
         {
-            Id = "chrome", Name = "Google Chrome cache",
+            Id = "chrome", Group = "Browsers", Name = "Google Chrome cache",
             Description = "Cached web content. Close Chrome first.",
             Locations =
             [
@@ -105,7 +108,7 @@ public sealed class JunkCleaner(IFileSystem fs, KnownFolders folders)
         },
         new()
         {
-            Id = "edge", Name = "Microsoft Edge cache",
+            Id = "edge", Group = "Browsers", Name = "Microsoft Edge cache",
             Description = "Cached web content. Close Edge first.",
             Locations =
             [
@@ -116,19 +119,159 @@ public sealed class JunkCleaner(IFileSystem fs, KnownFolders folders)
         },
         new()
         {
-            Id = "firefox", Name = "Mozilla Firefox cache",
+            Id = "firefox", Group = "Browsers", Name = "Mozilla Firefox cache",
             Description = "Cached web content. Close Firefox first.",
             Locations = [new(WinPath.Combine(f.LocalAppData, @"Mozilla\Firefox\Profiles\*\cache2"))],
         },
         new()
         {
-            Id = "brave", Name = "Brave cache",
+            Id = "brave", Group = "Browsers", Name = "Brave cache",
             Description = "Cached web content. Close Brave first.",
             Locations =
             [
                 new(WinPath.Combine(f.LocalAppData, @"BraveSoftware\Brave-Browser\User Data\*\Cache")),
                 new(WinPath.Combine(f.LocalAppData, @"BraveSoftware\Brave-Browser\User Data\*\Code Cache")),
             ],
+        },
+        new()
+        {
+            Id = "prefetch", Name = "Prefetch files",
+            Description = "Launch-speed hints Windows rebuilds automatically. The first start of each program will be slightly slower.",
+            Locations = [new(WinPath.Combine(f.WindowsDir, "Prefetch"), "*.pf", false)], EnabledByDefault = false,
+        },
+        new()
+        {
+            Id = "win-logs", Name = "Old Windows logs",
+            Description = "Setup, servicing and update logs older than a week.",
+            Locations =
+            [
+                new(WinPath.Combine(f.WindowsDir, @"Logs\CBS"), "*.log"), new(WinPath.Combine(f.WindowsDir, @"Logs\CBS"), "*.cab"),
+                new(WinPath.Combine(f.WindowsDir, @"Logs\DISM"), "*.log"), new(WinPath.Combine(f.WindowsDir, @"Logs\MoSetup"), "*.log"),
+                new(WinPath.Combine(f.WindowsDir, @"Logs\WindowsUpdate"), "*.etl"), new(WinPath.Combine(f.WindowsDir, "Panther"), "*.log"),
+                new(WinPath.Combine(f.WindowsDir, "LiveKernelReports"), "*.dmp"),
+            ],
+            MinAge = TimeSpan.FromDays(7),
+        },
+        new()
+        {
+            Id = "do-cache", Name = "Delivery Optimization cache",
+            Description = "Update pieces Windows keeps to share with other PCs.",
+            Locations = [new(WinPath.Combine(f.WindowsDir, @"ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\Cache"))],
+            EnabledByDefault = false,
+        },
+        new()
+        {
+            Id = "setup-temp", Name = "Installer temp & old setup files",
+            Description = "Leftover files from Windows setup and program installers.",
+            Locations = [new(WinPath.Combine(f.WindowsDir, @"Downloaded Program Files")), new(WinPath.Combine(f.ProgramData, @"Microsoft\Windows\WER\Temp"))],
+        },
+        new()
+        {
+            Id = "opera", Name = "Opera cache", Group = "Browsers",
+            Description = "Cached web content. Close Opera first.",
+            Locations =
+            [
+                new(WinPath.Combine(f.LocalAppData, @"Opera Software\Opera Stable\Cache")),
+                new(WinPath.Combine(f.LocalAppData, @"Opera Software\Opera GX Stable\Cache")),
+                new(WinPath.Combine(f.RoamingAppData, @"Opera Software\Opera Stable\Code Cache")),
+                new(WinPath.Combine(f.RoamingAppData, @"Opera Software\Opera GX Stable\Code Cache")),
+            ],
+        },
+        new()
+        {
+            Id = "vivaldi", Name = "Vivaldi cache", Group = "Browsers",
+            Description = "Cached web content. Close Vivaldi first.",
+            Locations =
+            [
+                new(WinPath.Combine(f.LocalAppData, @"Vivaldi\User Data\*\Cache")),
+                new(WinPath.Combine(f.LocalAppData, @"Vivaldi\User Data\*\Code Cache")),
+            ],
+        },
+        new()
+        {
+            Id = "discord", Name = "Discord cache", Group = "Applications",
+            Description = "Images and media Discord downloaded. Close Discord first.",
+            Locations =
+            [
+                new(WinPath.Combine(f.RoamingAppData, @"discord\Cache")), new(WinPath.Combine(f.RoamingAppData, @"discord\Code Cache")),
+                new(WinPath.Combine(f.RoamingAppData, @"discord\GPUCache")),
+            ],
+        },
+        new()
+        {
+            Id = "spotify", Name = "Spotify cache", Group = "Applications",
+            Description = "Streamed songs cached for offline replay (not your downloads).",
+            Locations = [new(WinPath.Combine(f.LocalAppData, @"Spotify\Data")), new(WinPath.Combine(f.LocalAppData, @"Spotify\Browser\Cache"))],
+        },
+        new()
+        {
+            Id = "steam", Name = "Steam web cache", Group = "Applications",
+            Description = "Store and community page cache. Games and shader caches are not touched.",
+            Locations =
+            [
+                new(WinPath.Combine(f.LocalAppData, @"Steam\htmlcache")),
+                new(WinPath.Combine(f.ProgramFilesX86, @"Steam\appcache\httpcache")),
+                new(WinPath.Combine(f.ProgramFilesX86, @"Steam\logs"), "*.txt"),
+            ],
+        },
+        new()
+        {
+            Id = "teams", Name = "Microsoft Teams cache", Group = "Applications",
+            Description = "Classic and new Teams caches. Close Teams first.",
+            Locations =
+            [
+                new(WinPath.Combine(f.RoamingAppData, @"Microsoft\Teams\Cache")), new(WinPath.Combine(f.RoamingAppData, @"Microsoft\Teams\Code Cache")),
+                new(WinPath.Combine(f.RoamingAppData, @"Microsoft\Teams\GPUCache")), new(WinPath.Combine(f.RoamingAppData, @"Microsoft\Teams\Service Worker\CacheStorage")),
+                new(WinPath.Combine(f.LocalAppData, @"Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\Default\Cache")),
+                new(WinPath.Combine(f.LocalAppData, @"Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\Default\Code Cache")),
+            ],
+        },
+        new()
+        {
+            Id = "slack", Name = "Slack cache", Group = "Applications",
+            Description = "Cached files and web content. Close Slack first.",
+            Locations =
+            [
+                new(WinPath.Combine(f.RoamingAppData, @"Slack\Cache")), new(WinPath.Combine(f.RoamingAppData, @"Slack\Code Cache")),
+                new(WinPath.Combine(f.RoamingAppData, @"Slack\GPUCache")), new(WinPath.Combine(f.RoamingAppData, @"Slack\Service Worker\CacheStorage")),
+            ],
+        },
+        new()
+        {
+            Id = "vscode", Name = "Visual Studio Code cache", Group = "Developer",
+            Description = "Editor caches and downloaded extension packages. Close VS Code first.",
+            Locations =
+            [
+                new(WinPath.Combine(f.RoamingAppData, @"Code\Cache")), new(WinPath.Combine(f.RoamingAppData, @"Code\CachedData")),
+                new(WinPath.Combine(f.RoamingAppData, @"Code\CachedExtensionVSIXs")), new(WinPath.Combine(f.RoamingAppData, @"Code\Code Cache")),
+                new(WinPath.Combine(f.RoamingAppData, @"Code\GPUCache")),
+            ],
+        },
+        new()
+        {
+            Id = "npm", Name = "npm and Yarn caches", Group = "Developer",
+            Description = "Downloaded JavaScript packages; they are fetched again when needed.",
+            Locations = [new(WinPath.Combine(f.LocalAppData, "npm-cache")), new(WinPath.Combine(f.LocalAppData, @"Yarn\Cache"))],
+            EnabledByDefault = false,
+        },
+        new()
+        {
+            Id = "pip", Name = "pip cache", Group = "Developer",
+            Description = "Downloaded Python packages and wheels.",
+            Locations = [new(WinPath.Combine(f.LocalAppData, @"pip\cache"))], EnabledByDefault = false,
+        },
+        new()
+        {
+            Id = "nuget", Name = "NuGet HTTP cache", Group = "Developer",
+            Description = "Downloaded NuGet metadata and packages (your restored packages folder is not touched).",
+            Locations = [new(WinPath.Combine(f.LocalAppData, @"NuGet\v3-cache")), new(WinPath.Combine(f.LocalAppData, @"NuGet\plugins-cache"))],
+            EnabledByDefault = false,
+        },
+        new()
+        {
+            Id = "gradle", Name = "Gradle caches", Group = "Developer",
+            Description = "Downloaded build dependencies. The next build re-downloads what it needs.",
+            Locations = [new(WinPath.Combine(f.UserProfile, @".gradle\caches"))], EnabledByDefault = false,
         },
     ];
 

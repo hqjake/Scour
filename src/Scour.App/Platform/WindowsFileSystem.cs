@@ -40,6 +40,7 @@ public sealed class WindowsFileSystem : IFileSystem
     public long GetFileSize(string path) => new FileInfo(path).Length;
     public DateTime GetLastWriteTimeUtc(string path) => File.GetLastWriteTimeUtc(path);
     public byte[] ReadAllBytes(string path) => File.ReadAllBytes(path);
+    public Stream OpenRead(string path) => new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 1 << 16, System.IO.FileOptions.SequentialScan);
     public string ReadAllText(string path) => File.ReadAllText(path, Encoding.UTF8);
     public void WriteAllText(string path, string contents) => File.WriteAllText(path, contents, Encoding.UTF8);
     public void WriteAllBytes(string path, byte[] contents) => File.WriteAllBytes(path, contents);
@@ -64,10 +65,7 @@ public sealed class WindowsFileSystem : IFileSystem
         {
             Recycle(path);
             if (Directory.Exists(path))
-            {
-                // Recycle Bin refuses partial moves; remove what we can permanently and report the rest.
-                DeletePermanently(path);
-            }
+                throw new IOException("Some files in the folder are in use, so it could not be moved to the Recycle Bin.");
             return;
         }
         DeletePermanently(path);
