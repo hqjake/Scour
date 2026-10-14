@@ -19,6 +19,7 @@
         <DataTemplate DataType="{x:Type vm:BrowserPrivacyViewModel}"><v:BrowserPrivacyView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:FileFinderViewModel}"><v:FileFinderView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:RegistryCleanerViewModel}"><v:RegistryCleanerView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SystemInfoViewModel}"><v:SystemInfoView /></DataTemplate>
     </Window.Resources>
 
     <Grid>

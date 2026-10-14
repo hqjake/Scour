@@ -31,6 +31,7 @@ public sealed partial class MainViewModel : ObservableObject
             new BrowserPrivacyViewModel(services),
             new FileFinderViewModel(services),
             new RegistryCleanerViewModel(services),
+            new SystemInfoViewModel(),
             new AutorunViewModel(services),
         ];
         Dashboard.ResolvePage = t => Pages.FirstOrDefault(p => p.GetType() == t);
