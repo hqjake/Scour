@@ -1,6 +1,9 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 using Scour.App.Platform;
 using Scour.App.Services;
 using Scour.App.ViewModels;
@@ -9,9 +12,50 @@ namespace Scour.App.Views;
 
 public partial class MainWindow : Window
 {
-    public MainWindow() => InitializeComponent();
+    public MainWindow()
+    {
+        InitializeComponent();
+        Loaded += (_, _) => PlayIntro();
+        DataContextChanged += (_, e) =>
+        {
+            if (e.OldValue is INotifyPropertyChanged old) old.PropertyChanged -= OnVmPropertyChanged;
+            if (e.NewValue is INotifyPropertyChanged now) now.PropertyChanged += OnVmPropertyChanged;
+        };
+    }
 
     private MainViewModel Vm => (MainViewModel)DataContext;
+
+    private void PlayIntro()
+    {
+        SoundService.Play(UiSound.Startup);
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        var scale = (ScaleTransform)SplashLogo.RenderTransform;
+        scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(0.6, 1, TimeSpan.FromMilliseconds(700)) { EasingFunction = new BackEase { Amplitude = 0.4, EasingMode = EasingMode.EaseOut } });
+        scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(0.6, 1, TimeSpan.FromMilliseconds(700)) { EasingFunction = new BackEase { Amplitude = 0.4, EasingMode = EasingMode.EaseOut } });
+        SplashTitle.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(500)) { BeginTime = TimeSpan.FromMilliseconds(250), EasingFunction = ease });
+        SplashTag.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(500)) { BeginTime = TimeSpan.FromMilliseconds(450), EasingFunction = ease });
+
+        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(450)) { BeginTime = TimeSpan.FromMilliseconds(1400), EasingFunction = ease };
+        fade.Completed += (_, _) => Splash.Visibility = Visibility.Collapsed;
+        Splash.BeginAnimation(OpacityProperty, fade);
+        AnimatePage();
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(MainViewModel.CurrentPage)) return;
+        SoundService.Play(UiSound.Nav);
+        AnimatePage();
+    }
+
+    /// <summary>New pages fade in and glide up.</summary>
+    private void AnimatePage()
+    {
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        PageHost.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(320)) { EasingFunction = ease });
+        ((TranslateTransform)PageHost.RenderTransform).BeginAnimation(TranslateTransform.YProperty,
+            new DoubleAnimation(18, 0, TimeSpan.FromMilliseconds(380)) { EasingFunction = ease });
+    }
 
     private void Settings_Click(object sender, RoutedEventArgs e) => Vm.CurrentPage = Vm.Settings;
 
@@ -31,6 +75,7 @@ public partial class MainWindow : Window
 
         var hit = Vm.Hunt();
         if (hit is null) return; // released over Scour itself or nothing
+        SoundService.Play(UiSound.Scan);
         ShowHunterMenu(hit);
     }
 

@@ -124,6 +124,7 @@ public sealed partial class TraceInstallViewModel(AppServices services) : Observ
                       (_result.ModifiedValueCount > 0 ? $" and changed {Format.Plural(_result.ModifiedValueCount, "existing registry value")}" : "") +
                       ". Untick anything that wasn't created by this program (for example files other apps wrote meanwhile).";
             Stage = TraceStage.Review;
+            SoundService.Play(UiSound.Scan);
         }
         catch (Exception e)
         {

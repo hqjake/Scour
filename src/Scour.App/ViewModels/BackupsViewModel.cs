@@ -50,6 +50,7 @@ public sealed partial class BackupsViewModel(AppServices services) : PageViewMod
         try
         {
             int n = services.Backups.RestoreRegistry(b, services.Registry);
+            SoundService.Play(UiSound.Success);
             Dialogs.Info($"Restored {Format.Plural(n, "registry entry", "registry entries")}.");
             services.NotifyProgramsChanged();
         }

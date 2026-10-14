@@ -75,6 +75,7 @@ public sealed partial class BrowserPrivacyViewModel(AppServices services) : Page
                 p.Result = r.Errors.Count == 0 ? "Cleaned" : string.Join(" ", r.Errors);
             }
             StatusText = "Done.";
+            SoundService.Play(UiSound.Success);
         }
         finally
         {

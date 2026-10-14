@@ -21,6 +21,7 @@ public static class Dialogs
 
     public static bool ConfirmWarning(string message, string title = "Scour")
     {
+        SoundService.Play(UiSound.Warning);
         var owner = Owner;
         var r = owner is null
             ? MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No)
@@ -37,6 +38,7 @@ public static class Dialogs
 
     public static void Error(string message, string title = "Scour")
     {
+        SoundService.Play(UiSound.Warning);
         var owner = Owner;
         if (owner is null) MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
         else MessageBox.Show(owner, message, title, MessageBoxButton.OK, MessageBoxImage.Error);

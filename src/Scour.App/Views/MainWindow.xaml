@@ -3,9 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:Scour.App.ViewModels"
         xmlns:v="clr-namespace:Scour.App.Views"
-        Title="Scour Uninstaller" Width="1240" Height="780" MinWidth="900" MinHeight="560"
-        WindowStartupLocation="CenterScreen" Icon="/Assets/scour.ico">
+        xmlns:c="clr-namespace:Scour.App.Controls"
+        Title="Scour" Width="1320" Height="820" MinWidth="980" MinHeight="600"
+        WindowStartupLocation="CenterScreen" Icon="/Assets/scour.ico" Background="{DynamicResource Scour.BgBrush}">
     <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}"><v:DashboardView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ProgramsViewModel}"><v:ProgramsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:WindowsAppsViewModel}"><v:WindowsAppsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:TracesViewModel}"><v:TracesView /></DataTemplate>
@@ -20,68 +22,108 @@
     </Window.Resources>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="232" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <c:CyberBackground />
 
-        <!-- Navigation rail -->
-        <Grid Background="{DynamicResource LayerOnMicaBaseAltFillColorDefaultBrush}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="248" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-            <StackPanel Orientation="Horizontal" Margin="18,20,0,18">
-                <Image Source="/Assets/scour.png" Width="28" Height="28" />
-                <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="Scour" FontSize="18" FontWeight="SemiBold" />
-                    <TextBlock Text="Uninstaller" Style="{StaticResource Caption}" />
-                </StackPanel>
-            </StackPanel>
+            <!-- Navigation rail -->
+            <Border Background="{DynamicResource Scour.NavBrush}" BorderBrush="{DynamicResource Scour.EdgeBrush}" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-            <ListBox Grid.Row="1" ItemsSource="{Binding Pages}" SelectedItem="{Binding CurrentPage}"
-                     ItemContainerStyle="{StaticResource NavItem}" Background="Transparent" BorderThickness="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Style="{StaticResource Glyph}" Text="{Binding Glyph}" Width="20" />
-                            <TextBlock Text="{Binding Title}" Margin="12,0,0,0" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-
-            <StackPanel Grid.Row="2" Margin="8,0,8,12">
-                <!-- Hunter mode: press on the target and release it over any window. -->
-                <Border x:Name="HunterTarget" Style="{StaticResource Card}" Padding="12" Margin="4,0,4,8" Cursor="Cross"
-                        ToolTip="Press and drag this target onto any window, desktop icon or tray app, then release to see which program it belongs to."
-                        PreviewMouseLeftButtonDown="Hunter_MouseDown" PreviewMouseLeftButtonUp="Hunter_MouseUp">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE707;" FontSize="22" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
-                        <StackPanel Margin="10,0,0,0">
-                            <TextBlock Text="Hunter mode" FontWeight="SemiBold" />
-                            <TextBlock Text="Drag onto a window" Style="{StaticResource Caption}" />
+                    <StackPanel Orientation="Horizontal" Margin="20,22,0,14">
+                        <Image Source="/Assets/scour.png" Width="34" Height="34" Effect="{StaticResource NeonGlow}" />
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="SCOUR" FontFamily="{StaticResource DisplayFont}" FontSize="20" FontWeight="Black"
+                                       Foreground="{DynamicResource Scour.TitleBrush}" />
+                            <TextBlock Text="S Y S T E M   T O O L K I T" FontSize="9" Foreground="{DynamicResource Scour.Text3Brush}" />
                         </StackPanel>
                     </StackPanel>
-                </Border>
 
-                <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,8" Margin="4,0"
-                        Click="Settings_Click" Background="Transparent" BorderThickness="0">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE713;" Width="20" />
-                        <TextBlock Text="Settings" Margin="12,0,0,0" />
+                    <ListBox x:Name="Nav" Grid.Row="1" ItemsSource="{Binding NavView}" SelectedItem="{Binding SelectedNavPage}"
+                             ItemContainerStyle="{StaticResource NavItem}" Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" FontSize="10" FontWeight="SemiBold" Margin="22,14,0,4"
+                                                   Foreground="{DynamicResource Scour.Text3Brush}" Typography.Capitals="AllSmallCaps" />
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </ListBox.GroupStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource Glyph}" Text="{Binding Glyph}" Width="20" FontSize="15" />
+                                    <TextBlock Text="{Binding Title}" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="2" Margin="10,6,10,14">
+                        <!-- Hunter mode: press on the target and release it over any window. -->
+                        <Border x:Name="HunterTarget" Style="{StaticResource Card}" Padding="12,10" Margin="0,0,0,10" Cursor="Cross"
+                                ToolTip="Press and drag this target onto any window, then release to see which program it belongs to."
+                                PreviewMouseLeftButtonDown="Hunter_MouseDown" PreviewMouseLeftButtonUp="Hunter_MouseUp">
+                            <StackPanel Orientation="Horizontal">
+                                <Grid Width="28" Height="28">
+                                    <Ellipse Stroke="{DynamicResource Scour.AccentBrush}" StrokeThickness="1.5" Effect="{StaticResource NeonGlow}" />
+                                    <Ellipse Width="10" Height="10" Fill="{DynamicResource Scour.AccentGradient}" />
+                                </Grid>
+                                <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="Hunter mode" FontWeight="SemiBold" />
+                                    <TextBlock Text="Drag onto any window" Style="{StaticResource Caption}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Style="{StaticResource IconButton}" Click="Settings_Click" ToolTip="Settings">
+                                <TextBlock Style="{StaticResource Glyph}" Text="&#xE713;" />
+                            </Button>
+                            <Button Style="{StaticResource IconButton}" Command="{Binding ToggleThemeCommand}" ToolTip="Switch light / dark" Margin="8,0">
+                                <TextBlock Style="{StaticResource Glyph}" Text="{Binding ThemeGlyph}" />
+                            </Button>
+                            <Button Style="{StaticResource IconButton}" Command="{Binding ToggleSoundCommand}" ToolTip="Sounds on / off">
+                                <TextBlock Style="{StaticResource Glyph}" Text="{Binding SoundGlyph}" />
+                            </Button>
+                        </StackPanel>
+
+                        <TextBlock Text="Not running as administrator — some programs and leftovers can't be removed."
+                                   Style="{StaticResource Caption}" Foreground="{DynamicResource SystemFillColorCautionBrush}" Margin="8,10,8,0"
+                                   Visibility="{Binding IsElevated, Converter={StaticResource FalsyToVisibility}}" />
                     </StackPanel>
-                </Button>
+                </Grid>
+            </Border>
 
-                <TextBlock Text="Not running as administrator — some programs and leftovers can't be removed."
-                           Style="{StaticResource Caption}" Foreground="{DynamicResource SystemFillColorCautionBrush}" Margin="8,8,8,0"
-                           Visibility="{Binding IsElevated, Converter={StaticResource FalsyToVisibility}}" />
-            </StackPanel>
+            <ContentControl x:Name="PageHost" Grid.Column="1" Content="{Binding CurrentPage}" Focusable="False">
+                <ContentControl.RenderTransform><TranslateTransform /></ContentControl.RenderTransform>
+            </ContentControl>
         </Grid>
 
-        <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" Focusable="False" />
+        <!-- Intro: glowing logo that fades away. -->
+        <Grid x:Name="Splash" Background="{DynamicResource Scour.BgBrush}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Image x:Name="SplashLogo" Source="/Assets/scour.png" Width="120" Height="120" Effect="{StaticResource NeonGlowStrong}" RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform><ScaleTransform ScaleX="0.6" ScaleY="0.6" /></Image.RenderTransform>
+                </Image>
+                <TextBlock x:Name="SplashTitle" Text="SCOUR" FontFamily="{StaticResource DisplayFont}" FontSize="54" FontWeight="Black"
+                           Foreground="{DynamicResource Scour.TitleBrush}" HorizontalAlignment="Center" Margin="0,18,0,0" Opacity="0"
+                           Effect="{StaticResource NeonGlow}" />
+                <TextBlock x:Name="SplashTag" Text="U N I N S T A L L  ·  C L E A N  ·  O P T I M I Z E" FontSize="12" Opacity="0"
+                           Foreground="{DynamicResource Scour.Text2Brush}" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

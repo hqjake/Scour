@@ -57,6 +57,21 @@ public sealed partial class SettingsViewModel(AppServices services) : PageViewMo
         set { S.ShowUpdates = value; Save(); services.NotifyProgramsChanged(); }
     }
 
+    public bool DarkTheme
+    {
+        get => S.DarkTheme;
+        set { S.DarkTheme = value; Save(); ThemeService.Apply(value); }
+    }
+
+    public bool SoundsEnabled
+    {
+        get => S.SoundsEnabled;
+        set { S.SoundsEnabled = value; SoundService.Enabled = value; Save(); }
+    }
+
+    /// <summary>Re-reads every setting (after changes made elsewhere, e.g. the sidebar toggles).</summary>
+    public void Refresh() => OnPropertyChanged(string.Empty);
+
     public string DataFolder => services.Folders.AppDataDir;
     public string Version => typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3) ?? "";
 

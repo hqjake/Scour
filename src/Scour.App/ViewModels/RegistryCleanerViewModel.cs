@@ -75,6 +75,7 @@ public sealed partial class RegistryCleanerViewModel : PageViewModel
                 Issues.Add(vm);
             }
             StatusText = issues.Count == 0 ? "No problems found." : $"Found {Format.Plural(issues.Count, "problem")}.";
+            SoundService.Play(UiSound.Scan);
         }
         finally
         {
@@ -124,6 +125,7 @@ public sealed partial class RegistryCleanerViewModel : PageViewModel
                          (report.Failed.Count > 0 ? $" {report.Failed.Count} could not be fixed (access denied)." : "") +
                          " Backup saved.";
             _s.NotifyProgramsChanged();
+            SoundService.Play(report.Failed.Count == 0 ? UiSound.Success : UiSound.Warning);
         }
         finally
         {

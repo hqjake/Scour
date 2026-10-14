@@ -14,6 +14,8 @@ public sealed class AppSettings
     public bool ShowSystemComponents { get; set; }
     public bool ShowUpdates { get; set; }
     public bool QuickUninstallSilent { get; set; } = true;
+    public bool DarkTheme { get; set; } = true;
+    public bool SoundsEnabled { get; set; } = true;
 
     private static readonly JsonSerializerOptions Options = new()
     {

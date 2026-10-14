@@ -6,8 +6,9 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Windows 11 "Fluent" look; follows the system light/dark setting. -->
-                <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml" />
+                <!-- [0] Fluent control templates, [1] Scour's violet cyber palette. ThemeService swaps both for light/dark. -->
+                <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.Dark.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Scour;component/Themes/Cyber.Dark.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <local:MatchToVisibilityConverter x:Key="MatchToVisibility" />
@@ -19,6 +20,11 @@
             <local:InverseBoolConverter x:Key="InverseBool" />
 
             <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+            <FontFamily x:Key="DisplayFont">Segoe UI Variable Display, Segoe UI</FontFamily>
+
+            <DropShadowEffect x:Key="NeonGlow" BlurRadius="22" ShadowDepth="0" Opacity="0.55" Color="#8B5CF6" />
+            <DropShadowEffect x:Key="NeonGlowStrong" BlurRadius="30" ShadowDepth="0" Opacity="0.85" Color="#A78BFA" />
+            <DropShadowEffect x:Key="SoftGlow" BlurRadius="16" ShadowDepth="0" Opacity="0.35" Color="#8B5CF6" />
 
             <Style x:Key="Glyph" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
@@ -27,14 +33,18 @@
             </Style>
 
             <Style x:Key="PageTitle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="26" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="Margin" Value="0,0,0,4" />
+                <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
+                <Setter Property="FontSize" Value="30" />
+                <Setter Property="FontWeight" Value="Bold" />
+                <Setter Property="Foreground" Value="{DynamicResource Scour.TitleBrush}" />
+                <Setter Property="Margin" Value="0,0,0,6" />
             </Style>
 
             <Style x:Key="SectionTitle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
                 <Setter Property="FontSize" Value="16" />
                 <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{DynamicResource Scour.TextBrush}" />
                 <Setter Property="Margin" Value="0,0,0,8" />
             </Style>
 
@@ -44,18 +54,103 @@
                 <Setter Property="TextWrapping" Value="Wrap" />
             </Style>
 
+            <!-- Glass card with a neon edge that lights up on hover. -->
             <Style x:Key="Card" TargetType="Border">
-                <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="Background" Value="{DynamicResource Scour.CardBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Scour.StrokeBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="CornerRadius" Value="12" />
                 <Setter Property="Padding" Value="16" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="BorderBrush" Value="{DynamicResource Scour.EdgeBrush}" />
+                        <Setter Property="Background" Value="{DynamicResource Scour.CardHoverBrush}" />
+                        <Setter Property="Effect" Value="{StaticResource SoftGlow}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Static panel (no hover) for large containers. -->
+            <Style x:Key="Panel" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource Scour.CardBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Scour.StrokeBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Padding" Value="16" />
+            </Style>
+
+            <!-- Primary action: violet→magenta gradient with a neon glow; grows on hover, presses in on click. -->
+            <Style x:Key="AccentButtonStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Padding" Value="16,7" />
+                <Setter Property="MinHeight" Value="34" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+                <Setter Property="RenderTransform"><Setter.Value><ScaleTransform /></Setter.Value></Setter>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Border x:Name="Glow" CornerRadius="8" Background="{DynamicResource Scour.AccentGradient}" Effect="{StaticResource NeonGlow}" Opacity="0.9" />
+                                <Border x:Name="Bd" CornerRadius="8" Background="{DynamicResource Scour.AccentGradient}" BorderThickness="1"
+                                        BorderBrush="#40FFFFFF" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <Border x:Name="Shine" CornerRadius="8" IsHitTestVisible="False" Opacity="0">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#40FFFFFF" Offset="0" />
+                                            <GradientStop Color="#00FFFFFF" Offset="0.6" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Glow" Property="Effect" Value="{StaticResource NeonGlowStrong}" />
+                                    <Setter TargetName="Shine" Property="Opacity" Value="1" />
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.03" Duration="0:0:0.15" />
+                                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.03" Duration="0:0:0.15" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.2" />
+                                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.2" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="RenderTransform">
+                                        <Setter.Value><ScaleTransform ScaleX="0.97" ScaleY="0.97" /></Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.4" />
+                                    <Setter TargetName="Glow" Property="Visibility" Value="Collapsed" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style x:Key="ToolButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                 <Setter Property="Margin" Value="0,0,8,0" />
                 <Setter Property="Padding" Value="12,6" />
-                <Setter Property="MinHeight" Value="32" />
+                <Setter Property="MinHeight" Value="34" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Effect" Value="{StaticResource SoftGlow}" />
+                    </Trigger>
+                </Style.Triggers>
             </Style>
 
             <Style x:Key="LinkButton" TargetType="Button">
@@ -70,28 +165,72 @@
                 </Setter>
             </Style>
 
-            <!-- Navigation rail item with the Windows 11 accent pill. -->
+            <!-- Icon-only round button used in the sidebar footer. -->
+            <Style x:Key="IconButton" TargetType="Button">
+                <Setter Property="Foreground" Value="{DynamicResource Scour.TextBrush}" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Width" Value="38" />
+                <Setter Property="Height" Value="38" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" CornerRadius="19" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Scour.SubtleBrush}" />
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Scour.AccentBrush}" />
+                                    <Setter TargetName="Bd" Property="Effect" Value="{StaticResource SoftGlow}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Navigation rail item: neon pill + glow when selected, nudges right on hover. -->
             <Style x:Key="NavItem" TargetType="ListBoxItem">
-                <Setter Property="Margin" Value="4,2" />
+                <Setter Property="Margin" Value="6,1" />
                 <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Foreground" Value="{DynamicResource Scour.Text2Brush}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
-                            <Border x:Name="Bd" CornerRadius="6" Background="Transparent" Padding="12,9">
+                            <Border x:Name="Bd" CornerRadius="8" Background="Transparent" Padding="12,8" BorderThickness="1" BorderBrush="Transparent">
                                 <Grid>
-                                    <Border x:Name="Pill" Width="3" Height="16" CornerRadius="2" HorizontalAlignment="Left"
-                                            Margin="-12,0,0,0" Background="{DynamicResource AccentFillColorDefaultBrush}" Visibility="Collapsed" />
-                                    <ContentPresenter />
+                                    <Border x:Name="Pill" Width="3" Height="18" CornerRadius="2" HorizontalAlignment="Left" Margin="-12,0,0,0"
+                                            Background="{DynamicResource Scour.AccentGradient}" Effect="{StaticResource NeonGlowStrong}" Visibility="Collapsed" />
+                                    <ContentPresenter x:Name="Content">
+                                        <ContentPresenter.RenderTransform><TranslateTransform /></ContentPresenter.RenderTransform>
+                                    </ContentPresenter>
                                 </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Scour.SubtleBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource Scour.TextBrush}" />
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Content" Storyboard.TargetProperty="RenderTransform.X" To="3" Duration="0:0:0.15" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Content" Storyboard.TargetProperty="RenderTransform.X" To="0" Duration="0:0:0.2" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.ExitActions>
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Scour.SubtleBrush}" />
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Scour.StrokeBrush}" />
                                     <Setter TargetName="Pill" Property="Visibility" Value="Visible" />
+                                    <Setter Property="Foreground" Value="{DynamicResource Scour.AccentHiBrush}" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>

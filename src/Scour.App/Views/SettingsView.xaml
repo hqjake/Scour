@@ -5,8 +5,26 @@
         <StackPanel Margin="24,20,24,24" MaxWidth="760" HorizontalAlignment="Left">
             <TextBlock Text="Settings" Style="{StaticResource PageTitle}" Margin="0,0,0,20" />
 
+            <TextBlock Text="Appearance" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,20">
+                <StackPanel>
+                    <CheckBox IsChecked="{Binding DarkTheme}">
+                        <StackPanel>
+                            <TextBlock Text="Dark mode" />
+                            <TextBlock Style="{StaticResource Caption}" Text="Turn off for the light theme. You can also switch with the sun/moon button in the sidebar." />
+                        </StackPanel>
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding SoundsEnabled}" Margin="0,12,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Interface sounds" />
+                            <TextBlock Style="{StaticResource Caption}" Text="Clicks, navigation, scan complete and cleanup finished." />
+                        </StackPanel>
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="Uninstalling" Style="{StaticResource SectionTitle}" />
-            <Border Style="{StaticResource Card}" Margin="0,0,0,20">
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,20">
                 <StackPanel>
                     <CheckBox IsChecked="{Binding CreateRestorePoint}">
                         <StackPanel>
@@ -26,7 +44,7 @@
             </Border>
 
             <TextBlock Text="Deleting" Style="{StaticResource SectionTitle}" />
-            <Border Style="{StaticResource Card}" Margin="0,0,0,20">
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,20">
                 <StackPanel>
                     <CheckBox Content="Move deleted files and folders to the Recycle Bin" IsChecked="{Binding FilesToRecycleBin}" />
                     <CheckBox Content="Back up registry entries before deleting them" IsChecked="{Binding BackupRegistry}" Margin="0,12,0,0" />
@@ -34,7 +52,7 @@
             </Border>
 
             <TextBlock Text="Program list" Style="{StaticResource SectionTitle}" />
-            <Border Style="{StaticResource Card}" Margin="0,0,0,20">
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,20">
                 <StackPanel>
                     <CheckBox Content="Show system components" IsChecked="{Binding ShowSystemComponents}" />
                     <CheckBox Content="Show Windows updates and hotfixes" IsChecked="{Binding ShowUpdates}" Margin="0,12,0,0" />
@@ -42,7 +60,7 @@
             </Border>
 
             <TextBlock Text="About" Style="{StaticResource SectionTitle}" />
-            <Border Style="{StaticResource Card}">
+            <Border Style="{StaticResource Panel}">
                 <StackPanel>
                     <TextBlock>
                         <Run Text="Scour Uninstaller " FontWeight="SemiBold" /><Run Text="{Binding Version, Mode=OneWay}" />

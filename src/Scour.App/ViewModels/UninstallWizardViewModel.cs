@@ -264,6 +264,7 @@ public sealed partial class UninstallWizardViewModel : ObservableObject
             var items = await Task.Run(() => _s.Scanner.Scan(target, mode, progress, _scanCts.Token));
             Write($"Found {Format.Plural(items.Count, "leftover")}.");
             ShowResults(items);
+            SoundService.Play(UiSound.Scan);
             if (_quick) await DeleteSelectedAsync();
         }
         catch (OperationCanceledException)
@@ -369,6 +370,7 @@ public sealed partial class UninstallWizardViewModel : ObservableObject
         if (report.BytesFreed > 0) summary += $" and freed {Format.Bytes(report.BytesFreed)}";
         summary += ".";
         if (report.Failed.Count > 0) summary += $" {report.Failed.Count} could not be deleted (probably in use).";
+        SoundService.Play(report.Failed.Count == 0 ? UiSound.Success : UiSound.Warning);
         Finish(summary);
     }
 

@@ -117,6 +117,7 @@ public sealed partial class FileFinderViewModel(AppServices services) : PageView
         {
             IsLoading = false;
             UpdateSelection();
+            SoundService.Play(UiSound.Scan);
         }
     }
 
@@ -176,5 +177,6 @@ public sealed partial class FileFinderViewModel(AppServices services) : PageView
         IsLoading = false;
         UpdateSelection();
         StatusText = failed > 0 ? $"{failed} file(s) could not be deleted (in use or access denied)." : "Deleted.";
+        SoundService.Play(failed > 0 ? UiSound.Warning : UiSound.Success);
     }
 }

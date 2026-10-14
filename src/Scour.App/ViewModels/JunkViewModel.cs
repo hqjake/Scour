@@ -118,6 +118,7 @@ public sealed partial class JunkViewModel : PageViewModel
                 catch (Exception e) { a.SizeText = e.Message; }
             }
             StatusText = $"Found {Format.BytesOrZero(total)} of junk.";
+            SoundService.Play(UiSound.Scan);
             HasScanned = true;
         }
         finally
@@ -175,6 +176,7 @@ public sealed partial class JunkViewModel : PageViewModel
             StatusText = $"Freed {Format.BytesOrZero(freed)}." + (skipped > 0 ? $" {Format.Plural(skipped, "file")} in use were skipped." : "") +
                          (results.Count > 0 ? " " + string.Join(" ", results) : "");
             HasScanned = false;
+            SoundService.Play(UiSound.Success);
         }
         finally
         {

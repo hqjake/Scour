@@ -22,6 +22,7 @@
   <ItemGroup>
     <Resource Include="Assets\scour.png" />
     <Resource Include="Assets\scour.ico" />
+    <Resource Include="Assets\Sounds\*.wav" />
   </ItemGroup>
 
   <ItemGroup>

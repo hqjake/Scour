@@ -89,6 +89,7 @@ public sealed partial class WindowsAppsViewModel : PageViewModel
                 catch (Exception e) { StatusText = $"Removed, but its data folder is in use: {e.Message}"; }
             }
             Apps.Remove(app);
+            SoundService.Play(UiSound.Success);
             Refilter();
         }
         catch (Exception e)
