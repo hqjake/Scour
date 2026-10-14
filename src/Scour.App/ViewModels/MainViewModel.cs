@@ -33,6 +33,7 @@ public sealed partial class MainViewModel : ObservableObject
             new RegistryCleanerViewModel(services),
             new SystemInfoViewModel(),
             new AutorunViewModel(services),
+            new DiskAnalyzerViewModel(services),
         ];
         Dashboard.ResolvePage = t => Pages.FirstOrDefault(p => p.GetType() == t);
         NavView = CollectionViewSource.GetDefaultView(Pages);
