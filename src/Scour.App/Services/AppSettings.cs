@@ -16,6 +16,7 @@ public sealed class AppSettings
     public bool QuickUninstallSilent { get; set; } = true;
     public bool DarkTheme { get; set; } = true;
     public bool SoundsEnabled { get; set; } = true;
+    public List<string> IgnoredUpdates { get; set; } = [];
 
     private static readonly JsonSerializerOptions Options = new()
     {

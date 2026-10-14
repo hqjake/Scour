@@ -23,6 +23,7 @@
         <DataTemplate DataType="{x:Type vm:DiskAnalyzerViewModel}"><v:DiskAnalyzerView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:UsbViewModel}"><v:UsbView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:RepairViewModel}"><v:RepairView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AppUpdatesViewModel}"><v:AppUpdatesView /></DataTemplate>
     </Window.Resources>
 
     <Grid>

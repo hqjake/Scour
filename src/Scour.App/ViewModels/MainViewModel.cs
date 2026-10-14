@@ -23,6 +23,7 @@ public sealed partial class MainViewModel : ObservableObject
         [
             Dashboard,
             Programs,
+            new AppUpdatesViewModel(services),
             new WindowsAppsViewModel(services),
             new TracesViewModel(services),
             Forced,
