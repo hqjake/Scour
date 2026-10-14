@@ -24,6 +24,7 @@ public sealed partial class MainViewModel : ObservableObject
             new JunkViewModel(services),
             new BrowserPrivacyViewModel(services),
             new FileFinderViewModel(services),
+            new RegistryCleanerViewModel(services),
             new BackupsViewModel(services),
         ];
         Settings = new SettingsViewModel(services);

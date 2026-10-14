@@ -1,0 +1,86 @@
+<UserControl x:Class="Scour.App.Views.RegistryCleanerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="Registry cleaner" Style="{StaticResource PageTitle}" />
+            <TextBlock Style="{StaticResource Caption}"
+                       Text="Finds registry entries and shortcuts that point at programs or files that no longer exist. Only categories where that can be verified with certainty are checked." />
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,16,0,12">
+            <Button Command="{Binding ScanCommand}" Style="{StaticResource ToolButton}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Glyph}" Text="&#xE721;" FontSize="14" />
+                    <TextBlock Text="Scan" Margin="8,0,0,0" />
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding FixCommand}" Style="{DynamicResource AccentButtonStyle}" Padding="12,6" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Glyph}" Text="&#xE90F;" FontSize="14" />
+                    <TextBlock Text="Fix selected" Margin="8,0,0,0" />
+                </StackPanel>
+            </Button>
+            <Button Content="Select all" Command="{Binding SelectAllCommand}" Style="{StaticResource ToolButton}" />
+            <Button Content="Select none" Command="{Binding SelectNoneCommand}" Style="{StaticResource ToolButton}" />
+            <TextBlock Text="{Binding SelectionText}" Style="{StaticResource Caption}" VerticalAlignment="Center" />
+        </StackPanel>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Categories}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,6" Padding="12,8">
+                                <CheckBox IsChecked="{Binding IsChecked}">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Description}" Style="{StaticResource Caption}" />
+                                        <TextBlock Text="{Binding CountText}" Style="{StaticResource Caption}" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                                   Visibility="{Binding CountText, Converter={StaticResource TruthyToVisibility}}" />
+                                    </StackPanel>
+                                </CheckBox>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <DataGrid x:Name="IssuesGrid" Grid.Column="1" Margin="12,0,0,0" ItemsSource="{Binding IssuesView}" AutoGenerateColumns="False"
+                      HeadersVisibility="Column" GridLinesVisibility="None" CanUserAddRows="False" SelectionMode="Single" RowHeight="40"
+                      VirtualizingPanel.IsVirtualizingWhenGrouping="True" MouseDoubleClick="IssuesGrid_MouseDoubleClick">
+                <DataGrid.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock FontWeight="SemiBold" Margin="4,10,0,4">
+                                    <Run Text="{Binding Name, Mode=OneWay}" /><Run Text="  (" /><Run Text="{Binding ItemCount, Mode=OneWay}" /><Run Text=")" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </GroupStyle.HeaderTemplate>
+                    </GroupStyle>
+                </DataGrid.GroupStyle>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Width="44">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate><CheckBox IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" MinWidth="0" /></DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Problem" Binding="{Binding Problem}" Width="320" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="*" IsReadOnly="True" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        <StackPanel Grid.Row="3" Margin="2,10,0,0">
+            <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,6" Visibility="{Binding IsLoading, Converter={StaticResource TruthyToVisibility}}" />
+            <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}" />
+        </StackPanel>
+    </Grid>
+</UserControl>
