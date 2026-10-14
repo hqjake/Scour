@@ -1,44 +1,44 @@
-21:42:45  Display 1920x1080: ok
-21:42:45  Window 1440x900
-21:42:45  Scour screenshot run on Microsoft Windows NT 10.0.26100.0, 4 CPUs, elevated=True
-21:42:47  dashboard: opening
-21:42:47  dashboard: running action
-21:42:49  dashboard: saved ()
-21:42:49  uninstaller: opening
-21:42:50  uninstaller: running action
-21:42:53  uninstaller: saved (59 programs · 23.6 GB)
-21:42:53  app-updates: opening
-21:43:01  app-updates: saved (28 updates available.)
-21:43:01  junk-cleaner: opening
-21:43:01  junk-cleaner: running action
-21:43:03  junk-cleaner: saved (Found 389 MB of junk.)
-21:43:03  bloatware: opening
-21:43:07  bloatware: saved (Found 1 pre-installed app; 1 is safe to remove.)
-21:43:07  privacy-tweaks: opening
-21:43:09  privacy-tweaks: saved (0 of 17 protections on. Every change is saved first and can be switched back.)
-21:43:09  browser-privacy: opening
-21:43:11  browser-privacy: saved (1 browser profile found.)
-21:43:11  duplicates: opening
-21:43:13  duplicates: saved ()
-21:43:13  registry-cleaner: opening
-21:43:13  registry-cleaner: running action
-21:43:15  registry-cleaner: saved (Found 27 problems.)
-21:43:15  system-info: opening
-21:43:18  system-info: saved ()
-21:43:18  repair-center: opening
-21:43:20  repair-center: saved (Each fix uses Windows' own repair tools. Pick one to run it.)
-21:43:20  startup: opening
-21:43:22  startup: saved (3 startup entries)
-21:43:22  disk-analyzer: opening
-21:43:22  disk-analyzer: running action
-21:43:35  disk-analyzer: saved (MFT scan: 1,139,734 files in 208,261 folders, 144.3 GB, in 10.5 s.)
-21:43:35  usb-tools: opening
-21:43:37  usb-tools: saved ()
-21:43:37  settings: opening
-21:43:39  settings: saved ()
-21:43:39  Switching to the light theme
-21:43:39  dashboard-light: opening
-21:43:40  dashboard-light: saved ()
-21:43:40  disk-analyzer-light: opening
-21:43:43  disk-analyzer-light: saved (MFT scan: 1,139,734 files in 208,261 folders, 144.3 GB, in 10.5 s.)
-21:43:43  Done
+21:46:27  Display 1920x1080: ok
+21:46:28  Window 1440x900
+21:46:28  Scour screenshot run on Microsoft Windows NT 10.0.26100.0, 4 CPUs, elevated=True
+21:46:29  dashboard: opening
+21:46:29  dashboard: running action
+21:46:31  dashboard: saved ()
+21:46:31  uninstaller: opening
+21:46:32  uninstaller: running action
+21:46:35  uninstaller: saved (59 programs · 23.6 GB)
+21:46:35  app-updates: opening
+21:46:44  app-updates: saved (28 updates available.)
+21:46:44  junk-cleaner: opening
+21:46:44  junk-cleaner: running action
+21:46:46  junk-cleaner: saved (Found 389 MB of junk.)
+21:46:46  bloatware: opening
+21:46:50  bloatware: saved (Found 1 pre-installed app; 1 is safe to remove.)
+21:46:50  privacy-tweaks: opening
+21:46:52  privacy-tweaks: saved (0 of 17 protections on. Every change is saved first and can be switched back.)
+21:46:52  browser-privacy: opening
+21:46:54  browser-privacy: saved (1 browser profile found.)
+21:46:54  duplicates: opening
+21:46:56  duplicates: saved ()
+21:46:56  registry-cleaner: opening
+21:46:56  registry-cleaner: running action
+21:46:58  registry-cleaner: saved (Found 27 problems.)
+21:46:58  system-info: opening
+21:47:01  system-info: saved ()
+21:47:01  repair-center: opening
+21:47:03  repair-center: saved (Each fix uses Windows' own repair tools. Pick one to run it.)
+21:47:03  startup: opening
+21:47:05  startup: saved (3 startup entries)
+21:47:05  disk-analyzer: opening
+21:47:05  disk-analyzer: running action
+21:47:18  disk-analyzer: saved (MFT scan: 1,139,710 files in 208,235 folders, 144.3 GB, in 10.6 s.)
+21:47:18  usb-tools: opening
+21:47:20  usb-tools: saved ()
+21:47:20  settings: opening
+21:47:22  settings: saved ()
+21:47:22  Switching to the light theme
+21:47:22  dashboard-light: opening
+21:47:24  dashboard-light: saved ()
+21:47:24  disk-analyzer-light: opening
+21:47:26  disk-analyzer-light: saved (MFT scan: 1,139,710 files in 208,235 folders, 144.3 GB, in 10.6 s.)
+21:47:26  Done
