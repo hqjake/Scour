@@ -12,8 +12,72 @@
                 <Run Text="{Binding OsName, Mode=OneWay}" /><Run Text="  ·  " /><Run Text="{Binding CpuName, Mode=OneWay}" /><Run Text="  ·  up " /><Run Text="{Binding Uptime, Mode=OneWay}" />
             </TextBlock>
 
+            <!-- Health -->
+            <Border Style="{StaticResource Panel}" Margin="0,24,0,0" Padding="22">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <Grid Width="170" Height="170">
+                            <c:RingGauge Value="{Binding HealthScore}" Thickness="14" />
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding HealthScore, StringFormat={}{0:0}}" FontSize="48" FontWeight="Black" HorizontalAlignment="Center"
+                                           FontFamily="{StaticResource DisplayFont}" Foreground="{DynamicResource Scour.TitleBrush}" />
+                                <TextBlock Text="HEALTH" Style="{StaticResource Caption}" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="{Binding HealthGrade}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,10,0,0"
+                                   Foreground="{Binding GradeBrush, TargetNullValue={StaticResource Scour.TextBrush}, FallbackValue={StaticResource Scour.TextBrush}}" />
+                        <Button Content="Check again" Command="{Binding CheckHealthCommand}" Style="{StaticResource ToolButton}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                    </StackPanel>
+                    <Grid Grid.Column="1" Margin="26,0,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="PC health" Style="{StaticResource SectionTitle}" Margin="0" />
+                            <TextBlock Text="{Binding HealthStatus}" Style="{StaticResource Caption}" Margin="0,2,0,10" />
+                            <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,10" Visibility="{Binding IsChecking, Converter={StaticResource TruthyToVisibility}}" />
+                        </StackPanel>
+                        <ItemsControl Grid.Row="1" ItemsSource="{Binding Issues}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource Card}" Padding="12,8" Margin="0,0,0,6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Ellipse x:Name="Dot" Width="10" Height="10" Fill="{DynamicResource Scour.AccentHiBrush}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding Detail}" Style="{StaticResource Caption}" />
+                                            </StackPanel>
+                                            <Button Grid.Column="2" Content="{Binding FixLabel}" Style="{StaticResource ToolButton}" Margin="12,0,0,0" VerticalAlignment="Center"
+                                                    Command="{Binding DataContext.FixCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Severity}" Value="Critical">
+                                            <Setter TargetName="Dot" Property="Fill" Value="{DynamicResource Scour.BadBrush}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Severity}" Value="Warning">
+                                            <Setter TargetName="Dot" Property="Fill" Value="{DynamicResource Scour.WarnBrush}" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Grid>
+            </Border>
+
             <!-- Gauges -->
-            <UniformGrid Columns="3" Margin="0,24,0,0">
+            <UniformGrid Columns="3" Margin="0,12,0,0">
                 <Border Style="{StaticResource Card}" Margin="0,0,12,0" Padding="20">
                     <Grid>
                         <c:RingGauge Value="{Binding CpuPercent}" Width="150" Height="150" Thickness="12" />

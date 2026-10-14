@@ -176,6 +176,8 @@ public sealed partial class JunkViewModel : PageViewModel
             StatusText = $"Freed {Format.BytesOrZero(freed)}." + (skipped > 0 ? $" {Format.Plural(skipped, "file")} in use were skipped." : "") +
                          (results.Count > 0 ? " " + string.Join(" ", results) : "");
             HasScanned = false;
+            _s.Settings.LastCleanupUtc = DateTime.UtcNow;
+            _s.Settings.Save();
             SoundService.Play(UiSound.Success);
         }
         finally

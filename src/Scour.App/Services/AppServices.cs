@@ -26,6 +26,9 @@ public sealed class AppServices
     public IconCache Icons { get; }
     public IServiceController ServiceController { get; }
 
+    /// <summary>Apps with updates at the last check (null until App updates has run).</summary>
+    public int? LastUpdatesCount { get; set; }
+
     /// <summary>Most recent program list, used by forced uninstall, hunter mode and safety checks.</summary>
     public IReadOnlyList<InstalledProgram> LastKnownPrograms { get; set; } = [];
 

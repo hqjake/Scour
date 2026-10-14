@@ -36,6 +36,39 @@ public static class SystemInfoCollector
         return sections;
     }
 
+    /// <summary>Per-drive health, wear and temperature for the health check.</summary>
+    public static List<Scour.Core.Health.DriveHealth> DriveHealth()
+    {
+        const string scope = @"root\Microsoft\Windows\Storage";
+        var reliability = Query("SELECT DeviceId, Wear, Temperature FROM MSFT_StorageReliabilityCounter", scope)
+            .GroupBy(r => S(r, "DeviceId")).ToDictionary(g => g.Key, g => g.First());
+        var result = new List<Scour.Core.Health.DriveHealth>();
+        foreach (var d in Query("SELECT DeviceId, FriendlyName, HealthStatus FROM MSFT_PhysicalDisk", scope))
+        {
+            int health = (int)L(d, "HealthStatus");
+            int? wear = null, temp = null;
+            if (reliability.TryGetValue(S(d, "DeviceId"), out var r))
+            {
+                if (r["Wear"] is not null) wear = (int)L(r, "Wear");
+                if (L(r, "Temperature") > 0) temp = (int)L(r, "Temperature");
+            }
+            result.Add(new Scour.Core.Health.DriveHealth(S(d, "FriendlyName"), health switch { 0 => true, 2 => false, _ => (bool?)null }, health == 1, wear, temp));
+        }
+        return result;
+    }
+
+    /// <summary>Antivirus products registered with Windows Security Center (null where it isn't available, e.g. Server).</summary>
+    public static List<Scour.Core.Health.AntivirusStatus>? Antivirus()
+    {
+        var products = Query("SELECT displayName, productState FROM AntiVirusProduct", @"root\SecurityCenter2");
+        if (products.Count == 0) return null;
+        return products.Select(p =>
+        {
+            var (enabled, upToDate) = Scour.Core.Health.HealthScore.DecodeProductState((int)L(p, "productState"));
+            return new Scour.Core.Health.AntivirusStatus(S(p, "displayName"), enabled, upToDate);
+        }).ToList();
+    }
+
     // ---------------------------------------------------------------- WMI helpers
 
     private static List<ManagementObject> Query(string wql, string scope = @"root\cimv2")

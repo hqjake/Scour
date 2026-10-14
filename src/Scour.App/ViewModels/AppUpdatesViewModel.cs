@@ -52,6 +52,7 @@ public sealed partial class AppUpdatesViewModel(AppServices services) : PageView
             foreach (var p in list.OrderBy(p => ignored.Contains(p.Id)).ThenBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase))
                 Updates.Add(new UpdateItemViewModel(p, ignored.Contains(p.Id)));
             int active = Updates.Count(u => !u.IsIgnored);
+            services.LastUpdatesCount = active;
             StatusText = active == 0 ? "Everything is up to date." : $"{Format.Plural(active, "update")} available.";
             SoundService.Play(UiSound.Scan);
         }

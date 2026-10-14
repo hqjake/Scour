@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using Scour.App.Platform;
 using Scour.App.Services;
+using Scour.Core.Health;
 
 namespace Scour.App.ViewModels;
 
@@ -51,6 +52,72 @@ public sealed partial class DashboardViewModel : PageViewModel
     [ObservableProperty] private string _greeting = "";
 
     public ObservableCollection<DriveUsage> Drives { get; } = [];
+    public ObservableCollection<HealthIssue> Issues { get; } = [];
+
+    [ObservableProperty] private double _healthScore;
+    [ObservableProperty] private string _healthGrade = "Checking…";
+    [ObservableProperty] private string _healthStatus = "";
+    [ObservableProperty] private bool _isChecking;
+    [ObservableProperty] private System.Windows.Media.Brush? _gradeBrush;
+
+    [RelayCommand]
+    private async Task CheckHealthAsync()
+    {
+        if (IsChecking) return;
+        IsChecking = true;
+        HealthGrade = "Checking…";
+        var progress = new Progress<string>(s => HealthStatus = s + "…");
+        try
+        {
+            var report = await HealthChecker.RunAsync(_s, progress);
+            HealthScore = report.Score;
+            HealthGrade = report.Grade;
+            GradeBrush = System.Windows.Application.Current.TryFindResource(report.Score switch
+            {
+                >= 75 => "Scour.OkBrush",
+                >= 50 => "Scour.WarnBrush",
+                _ => "Scour.BadBrush",
+            }) as System.Windows.Media.Brush;
+            Issues.Clear();
+            foreach (var i in report.Issues) Issues.Add(i);
+            HealthStatus = report.Issues.Count == 0 ? "No problems found — your PC is in great shape." : $"{Format.Plural(report.Issues.Count, "thing")} to look at.";
+            SoundService.Play(UiSound.Scan);
+        }
+        catch (Exception e)
+        {
+            HealthGrade = "Unavailable";
+            HealthStatus = e.Message;
+        }
+        finally
+        {
+            IsChecking = false;
+        }
+    }
+
+    [RelayCommand]
+    private void Fix(HealthIssue? issue)
+    {
+        if (issue is null) return;
+        Type? page = issue.Fix switch
+        {
+            HealthFix.CleanJunk => typeof(JunkViewModel),
+            HealthFix.FreeSpace => typeof(DiskAnalyzerViewModel),
+            HealthFix.Startup => typeof(AutorunViewModel),
+            HealthFix.Registry => typeof(RegistryCleanerViewModel),
+            HealthFix.Updates => typeof(AppUpdatesViewModel),
+            HealthFix.DriveHealth => typeof(SystemInfoViewModel),
+            _ => null,
+        };
+        if (page is not null)
+        {
+            if (ResolvePage?.Invoke(page) is { } p) _navigate(p);
+            return;
+        }
+        if (issue.Fix == HealthFix.Antivirus)
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("windowsdefender:") { UseShellExecute = true });
+        else if (issue.Fix == HealthFix.Restart && Dialogs.Confirm("Restart the PC now? Save your work in other programs first."))
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("shutdown.exe", "/r /t 5") { CreateNoWindow = true, UseShellExecute = false });
+    }
 
     public IReadOnlyList<QuickAction> Actions { get; } =
     [
@@ -78,6 +145,7 @@ public sealed partial class DashboardViewModel : PageViewModel
         Greeting = h < 5 ? "Working late" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
         Sample();
         _timer.Start();
+        _ = CheckHealthAsync();
         await RefreshCountsAsync();
         _s.ProgramsChanged += () => _ = RefreshCountsAsync();
     }
