@@ -25,8 +25,16 @@ public partial class MainWindow : Window
 
     private MainViewModel Vm => (MainViewModel)DataContext;
 
+    /// <summary>Skip the splash animation (screenshot runs).</summary>
+    public bool SkipIntro { get; set; }
+
     private void PlayIntro()
     {
+        if (SkipIntro)
+        {
+            Splash.Visibility = Visibility.Collapsed;
+            return;
+        }
         SoundService.Play(UiSound.Startup);
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
         var scale = (ScaleTransform)SplashLogo.RenderTransform;

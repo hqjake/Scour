@@ -35,7 +35,11 @@ public partial class App : Application
             return;
         }
 
-        SoundService.Enabled = _services.Settings.SoundsEnabled;
+        var shotIndex = Array.FindIndex(e.Args, a => a.Equals("--screenshots", StringComparison.OrdinalIgnoreCase));
+        bool screenshots = shotIndex >= 0;
+        if (screenshots) Dialogs.Headless = true;
+
+        SoundService.Enabled = _services.Settings.SoundsEnabled && !screenshots;
         SoundService.Initialize();
         ThemeService.Apply(_services.Settings.DarkTheme);
 
@@ -45,10 +49,24 @@ public partial class App : Application
 
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
         _vm = new MainViewModel(_services);
-        _window = new MainWindow { DataContext = _vm };
+        _window = new MainWindow { DataContext = _vm, SkipIntro = screenshots };
         MainWindow = _window;
         _window.Closing += OnMainWindowClosing;
         _window.Closed += (_, _) => Quit(closeWindow: false);
+
+        if (screenshots)
+        {
+            _window.WindowStartupLocation = WindowStartupLocation.Manual;
+            _window.Left = 0;
+            _window.Top = 0;
+            _window.Width = 1440;
+            _window.Height = 900;
+            _window.Show();
+            var dir = shotIndex + 1 < e.Args.Length ? e.Args[shotIndex + 1] : Path.Combine(AppContext.BaseDirectory, "screenshots");
+            await ScreenshotRunner.RunAsync(_window, _vm, dir);
+            Quit();
+            return;
+        }
 
         if (_services.Settings.KeepInTray || _services.Settings.StartInTray) EnsureTray();
         bool startHidden = e.Args.Contains("--tray", StringComparer.OrdinalIgnoreCase) && _tray is not null;
@@ -166,6 +184,7 @@ public partial class App : Application
 
     private static void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
+        ScreenshotRunner.Log("Unhandled: " + e.Exception);
         Dialogs.Error("Something went wrong:\n\n" + e.Exception.Message);
         e.Handled = true;
     }

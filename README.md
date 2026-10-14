@@ -4,6 +4,19 @@ An all-in-one Windows toolkit: a Revo-style uninstaller with deep leftover remov
 a WizTree-style disk space analyzer, USB formatting and bootable-USB creation, and a detailed system information
 viewer — wrapped in a dark/light "cyber" interface with violet neon accents, animations and UI sounds.
 
+## Screenshots
+
+Captured automatically from the real app on Windows by the [build workflow](.github/workflows/build.yml) after every change.
+
+| | |
+| --- | --- |
+| ![Dashboard with PC health score](docs/screenshots/dashboard.png) **Dashboard** — health score, live gauges, quick actions | ![Uninstaller](docs/screenshots/uninstaller.png) **Uninstaller** |
+| ![Disk space analyzer](docs/screenshots/disk-analyzer.png) **Disk space analyzer** — MFT scan + treemap | ![Junk cleaner](docs/screenshots/junk-cleaner.png) **Junk cleaner** |
+| ![System information](docs/screenshots/system-info.png) **System information** | ![Repair center](docs/screenshots/repair-center.png) **Repair center** |
+| ![App updates](docs/screenshots/app-updates.png) **App updates** (winget) | ![Registry cleaner](docs/screenshots/registry-cleaner.png) **Registry cleaner** |
+| ![USB tools](docs/screenshots/usb-tools.png) **USB tools** | ![Settings](docs/screenshots/settings.png) **Settings** — themes, sounds, automatic cleaning |
+| ![Light theme dashboard](docs/screenshots/dashboard-light.png) **Light theme** | ![Light theme disk analyzer](docs/screenshots/disk-analyzer-light.png) **Light theme** |
+
 ## Features
 
 **Programs**
@@ -29,7 +42,17 @@ viewer — wrapped in a dark/light "cyber" interface with violet neon accents, a
 - **Registry cleaner** — only entries that point at files that *definitely* no longer exist (never Windows
   folders, disconnected drives or unresolvable commands); everything is backed up first
 
+**Health**
+- **PC health score** on the dashboard (disk space, junk, startup load, registry, drive health and wear, antivirus,
+  uptime, cleanup cadence, app updates) with one-click fixes
+- **Automatic cleaning** on a daily/weekly schedule, **tray icon** with Quick clean, start with Windows, low-disk alerts
+
+**Programs (more)**
+- **App updates** — finds outdated apps with winget and updates them all silently, with an ignore list
+
 **System**
+- **Repair center** — SFC, DISM, chkdsk scan, network/DNS reset, Windows Update reset, icon cache, Store and Start menu
+  repair, stuck printing, clock sync — with live output
 - **System information** — CPU, every RAM module (type, speed, part number, slot), GPU (true VRAM), motherboard,
   BIOS/UEFI, Secure Boot, TPM, drives with health/temperature/wear, displays, network, audio, battery, OS; export a report
 - **Startup programs** — enable/disable with the same switches Task Manager uses
@@ -77,6 +100,6 @@ The WPF app (`src/Scour.App`) can be compiled on Linux/macOS too (`EnableWindows
 
 ## Status
 
-Built and unit-tested (87 tests) but **not yet run on a real Windows machine** — please report anything that misbehaves.
+Built and unit-tested (104 tests) but **not yet run on a real Windows machine** — please report anything that misbehaves.
 The process-sampling, network-per-process, file-unlocking and services code exists in `Platform/` but the task manager
 screen is not part of this version.

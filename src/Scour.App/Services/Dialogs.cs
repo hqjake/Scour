@@ -8,10 +8,14 @@ namespace Scour.App.Services;
 /// <summary>Thin wrapper over message boxes and windows so view models stay free of view types.</summary>
 public static class Dialogs
 {
+    /// <summary>No modal UI (screenshot/automation runs): questions answer "no", messages go to the log.</summary>
+    public static bool Headless { get; set; }
+
     private static Window? Owner => Application.Current?.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive) ?? Application.Current?.MainWindow;
 
     public static bool Confirm(string message, string title = "Scour")
     {
+        if (Headless) { ScreenshotRunner.Log("Confirm (answered no): " + message); return false; }
         var owner = Owner;
         var r = owner is null
             ? MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question)
@@ -21,6 +25,7 @@ public static class Dialogs
 
     public static bool ConfirmWarning(string message, string title = "Scour")
     {
+        if (Headless) { ScreenshotRunner.Log("Confirm (answered no): " + message); return false; }
         SoundService.Play(UiSound.Warning);
         var owner = Owner;
         var r = owner is null
@@ -31,6 +36,7 @@ public static class Dialogs
 
     public static void Info(string message, string title = "Scour")
     {
+        if (Headless) { ScreenshotRunner.Log("Info: " + message); return; }
         var owner = Owner;
         if (owner is null) MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
         else MessageBox.Show(owner, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
@@ -38,6 +44,7 @@ public static class Dialogs
 
     public static void Error(string message, string title = "Scour")
     {
+        if (Headless) { ScreenshotRunner.Log("Error dialog: " + message); return; }
         SoundService.Play(UiSound.Warning);
         var owner = Owner;
         if (owner is null) MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
