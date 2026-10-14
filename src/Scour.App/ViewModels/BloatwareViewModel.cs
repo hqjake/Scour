@@ -37,7 +37,7 @@ public sealed partial class BloatwareViewModel : PageViewModel
     }
 
     public override string Title => "Bloatware remover";
-    public override string Glyph => "";
+    public override string Glyph => "\uE71C";
     public override string Group => "Programs";
 
     public ObservableCollection<BloatItemViewModel> Items { get; } = [];

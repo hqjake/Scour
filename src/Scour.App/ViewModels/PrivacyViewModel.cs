@@ -76,7 +76,7 @@ public sealed partial class PrivacyViewModel : PageViewModel
     }
 
     public override string Title => "Privacy tweaks";
-    public override string Glyph => "";
+    public override string Glyph => "\uEA18";
     public override string Group => "Cleaning";
 
     public ObservableCollection<TweakViewModel> Tweaks { get; } = [];
