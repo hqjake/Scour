@@ -1,37 +1,38 @@
-21:26:31  Scour screenshot run on Microsoft Windows NT 10.0.26100.0, 4 CPUs, elevated=True
-21:26:33  dashboard: opening
-21:26:33  dashboard: running action
-21:26:35  dashboard: saved ()
-21:26:35  uninstaller: opening
-21:26:37  uninstaller: saved (59 programs · 23.6 GB)
-21:26:37  app-updates: opening
-21:26:50  app-updates: saved (28 updates available.)
-21:26:50  junk-cleaner: opening
-21:26:51  junk-cleaner: running action
-21:26:52  junk-cleaner: saved (Found 389 MB of junk.)
-21:26:52  browser-privacy: opening
-21:26:54  browser-privacy: saved (1 browser profile found.)
-21:26:54  duplicates: opening
-21:26:56  duplicates: saved ()
-21:26:56  registry-cleaner: opening
-21:26:56  registry-cleaner: running action
-21:26:58  registry-cleaner: saved (Found 27 problems.)
-21:26:58  system-info: opening
-21:27:02  system-info: saved ()
-21:27:02  repair-center: opening
-21:27:04  repair-center: saved (Each fix uses Windows' own repair tools. Pick one to run it.)
-21:27:04  startup: opening
-21:27:06  startup: saved (3 startup entries)
-21:27:06  disk-analyzer: opening
-21:27:06  disk-analyzer: running action
-21:27:27  disk-analyzer: saved (MFT scan: 1,139,455 files in 208,239 folders, 143.9 GB, in 18.5 s.)
-21:27:27  usb-tools: opening
-21:27:29  usb-tools: saved ()
-21:27:29  settings: opening
-21:27:30  settings: saved ()
-21:27:30  Switching to the light theme
-21:27:30  dashboard-light: opening
-21:27:32  dashboard-light: saved ()
-21:27:32  disk-analyzer-light: opening
-21:27:34  disk-analyzer-light: saved (MFT scan: 1,139,455 files in 208,239 folders, 143.9 GB, in 18.5 s.)
-21:27:34  Done
+21:31:50  Scour screenshot run on Microsoft Windows NT 10.0.26100.0, 4 CPUs, elevated=True
+21:31:52  dashboard: opening
+21:31:52  dashboard: running action
+21:32:03  dashboard: saved ()
+21:32:03  uninstaller: opening
+21:32:04  uninstaller: running action
+21:32:08  uninstaller: saved (59 programs · 23.6 GB)
+21:32:08  app-updates: opening
+21:32:21  app-updates: saved (28 updates available.)
+21:32:21  junk-cleaner: opening
+21:32:21  junk-cleaner: running action
+21:32:23  junk-cleaner: saved (Found 389 MB of junk.)
+21:32:23  browser-privacy: opening
+21:32:25  browser-privacy: saved (1 browser profile found.)
+21:32:25  duplicates: opening
+21:32:27  duplicates: saved ()
+21:32:27  registry-cleaner: opening
+21:32:27  registry-cleaner: running action
+21:32:29  registry-cleaner: saved (Found 27 problems.)
+21:32:29  system-info: opening
+21:32:33  system-info: saved ()
+21:32:33  repair-center: opening
+21:32:34  repair-center: saved (Each fix uses Windows' own repair tools. Pick one to run it.)
+21:32:34  startup: opening
+21:32:36  startup: saved (3 startup entries)
+21:32:36  disk-analyzer: opening
+21:32:37  disk-analyzer: running action
+21:32:55  disk-analyzer: saved (MFT scan: 1,139,734 files in 208,259 folders, 144.3 GB, in 15.8 s.)
+21:32:55  usb-tools: opening
+21:32:56  usb-tools: saved ()
+21:32:56  settings: opening
+21:32:58  settings: saved ()
+21:32:58  Switching to the light theme
+21:32:58  dashboard-light: opening
+21:33:00  dashboard-light: saved ()
+21:33:00  disk-analyzer-light: opening
+21:33:02  disk-analyzer-light: saved (MFT scan: 1,139,734 files in 208,259 folders, 144.3 GB, in 15.8 s.)
+21:33:02  Done
