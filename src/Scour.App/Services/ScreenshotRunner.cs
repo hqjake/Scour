@@ -171,7 +171,7 @@ public static class ScreenshotRunner
 
     private static void Render(FrameworkElement content, string path)
     {
-        var bmp = new RenderTargetBitmap((int)ShotWidth, (int)ShotHeight, 96, 96, PixelFormats.Pbgra32);
+        var bmp = new RenderTargetBitmap((int)Math.Round(content.ActualWidth), (int)Math.Round(content.ActualHeight), 96, 96, PixelFormats.Pbgra32);
         bmp.Render(content);
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bmp));
