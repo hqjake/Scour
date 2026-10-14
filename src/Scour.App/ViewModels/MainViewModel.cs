@@ -32,6 +32,7 @@ public sealed partial class MainViewModel : ObservableObject
             new FileFinderViewModel(services),
             new RegistryCleanerViewModel(services),
             new SystemInfoViewModel(),
+            new RepairViewModel(services),
             new AutorunViewModel(services),
             new DiskAnalyzerViewModel(services),
             new UsbViewModel(),

@@ -1,0 +1,82 @@
+<UserControl x:Class="Scour.App.Views.RepairView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="Repair center" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="One-click fixes for common Windows problems, using Windows' own repair tools." Style="{StaticResource Caption}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="420" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Actions}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><UniformGrid Columns="2" /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Margin="0,0,12,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="42" Height="42" CornerRadius="10" Background="{DynamicResource Scour.AccentGradient}" Effect="{StaticResource NeonGlow}" VerticalAlignment="Top">
+                                        <TextBlock Style="{StaticResource Glyph}" Text="{Binding Glyph}" FontSize="19" Foreground="White" HorizontalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="14,0,0,0">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" />
+                                        <TextBlock Text="{Binding Description}" Style="{StaticResource Caption}" Margin="0,4,0,8" />
+                                        <Grid>
+                                            <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center">
+                                                <Run Text="{Binding Duration, Mode=OneWay}" /><Run Text="  " /><Run Text="{Binding State, Mode=OneWay}" Foreground="{DynamicResource Scour.AccentHiBrush}" />
+                                            </TextBlock>
+                                            <Button Content="Run" HorizontalAlignment="Right" MinWidth="72" Style="{StaticResource ToolButton}" Margin="0"
+                                                    Command="{Binding DataContext.RunCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <Border Grid.Column="1" Style="{StaticResource Panel}" Margin="4,0,0,12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Output" Style="{StaticResource SectionTitle}" />
+                    <StackPanel Grid.Row="1" Margin="0,0,0,8" Visibility="{Binding IsRunning, Converter={StaticResource TruthyToVisibility}}">
+                        <TextBlock Text="{Binding Current}" Foreground="{DynamicResource Scour.AccentHiBrush}" />
+                        <ProgressBar IsIndeterminate="True" Height="4" Margin="0,6,0,0" />
+                    </StackPanel>
+                    <ListBox x:Name="OutputList" Grid.Row="2" ItemsSource="{Binding Output}" FontFamily="Consolas" FontSize="12"
+                             Background="Transparent" BorderThickness="0" VirtualizingPanel.IsVirtualizing="True" />
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,8,0,0">
+                        <Button Content="Cancel" Command="{Binding CancelCommand}" Style="{StaticResource ToolButton}"
+                                Visibility="{Binding IsRunning, Converter={StaticResource TruthyToVisibility}}" />
+                        <Button Content="Restart now" Command="{Binding RestartNowCommand}" Style="{DynamicResource AccentButtonStyle}"
+                                Visibility="{Binding RestartNeeded, Converter={StaticResource TruthyToVisibility}}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <TextBlock Grid.Row="2" Text="{Binding StatusText}" Style="{StaticResource Caption}" Margin="2,6,0,0" />
+    </Grid>
+</UserControl>
