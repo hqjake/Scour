@@ -76,8 +76,8 @@ public static class ReinstallKit
         var sb = new System.Text.StringBuilder(word.Length + 4);
         for (int i = 0; i < word.Length; i++)
         {
-            if (i > 0 && char.IsUpper(word[i]) && char.IsLower(word[i - 1])) sb.Append(' ');
-            sb.Append(word[i]);
+            if (i > 0 && char.IsUpper(word[i]) && (char.IsLower(word[i - 1]) || char.IsDigit(word[i - 1]))) sb.Append(' ');
+            sb.Append(i == 0 ? char.ToUpperInvariant(word[i]) : word[i]);
         }
         return sb.ToString();
     }

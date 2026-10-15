@@ -116,7 +116,7 @@ The WPF app (`src/Scour.App`) can be compiled on Linux/macOS too (`EnableWindows
 
 ## Status
 
-Unit-tested (125 tests) and exercised on Windows by CI, which runs the real app and captures the screenshots above.
+Unit-tested (127 tests) and exercised on Windows by CI, which runs the real app and captures the screenshots above.
 Please report anything that misbehaves.
 The process-sampling, network-per-process, file-unlocking and services code exists in `Platform/` but the task manager
 screen is not part of this version.

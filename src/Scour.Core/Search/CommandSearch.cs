@@ -9,8 +9,11 @@ public static class CommandSearch
     {
         query = query.Trim();
         if (query.Length == 0) return entries.Take(max).ToList();
-        return entries.Select(e => (Entry: e, Score: Score(e, query)))
-                      .Where(x => x.Score > 0)
+        var scored = entries.Select(e => (Entry: e, Score: Score(e, query))).Where(x => x.Score > 0).ToList();
+        if (scored.Count == 0) return [];
+        // Once something matches well, scattered-letter matches are just noise.
+        int floor = scored.Max(x => x.Score) / 2;
+        return scored.Where(x => x.Score >= floor)
                       .OrderByDescending(x => x.Score)
                       .ThenBy(x => x.Entry.Title.Length)
                       .Take(max)
@@ -56,6 +59,9 @@ public static class CommandSearch
             last = at;
             i = at + 1;
         }
-        return q.Length >= 3 ? Math.Max(1, 40 - gaps * 5) : 0;
+        // Too scattered to be what was meant ("disk" in "Microsoft Workflow Diagnostic Pack").
+        int letters = q.Replace(" ", "").Length;
+        if (letters < 3 || gaps > letters - 2) return 0;
+        return Math.Max(1, 40 - gaps * 5);
     }
 }

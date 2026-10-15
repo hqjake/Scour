@@ -29,6 +29,8 @@ public class PaletteKitReleaseTests
     public void Nonsense_finds_nothing_and_empty_lists_everything()
     {
         Assert.Empty(CommandSearch.Find(Entries, "zzqx"));
+        Assert.DoesNotContain(CommandSearch.Find([.. Entries, E("Uninstall Microsoft Workflow Diagnostic Pack")], "disk"),
+                              e => e.Title.Contains("Workflow"));
         Assert.Equal(Entries.Length, CommandSearch.Find(Entries, "  ").Count);
     }
 
@@ -84,6 +86,8 @@ public class PaletteKitReleaseTests
     [InlineData("Python.Python.3.12", "Python 3.12")]
     [InlineData("Git.Git", "Git")]
     [InlineData("VideoLAN.VLC", "VLC")]
+    [InlineData("GitHub.cli", "Cli")]
+    [InlineData("Microsoft.EdgeWebView2Runtime", "Edge Web View2 Runtime")]
     [InlineData("9NBLGGH4NNS1", "9NBLGGH4NNS1")]
     public void Friendly_names_from_package_ids(string id, string expected) =>
         Assert.Equal(expected, ReinstallKit.FriendlyName(id));
