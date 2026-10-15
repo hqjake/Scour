@@ -10,6 +10,11 @@ on:
 permissions:
   contents: write
 
+# One run at a time per branch: overlapping runs would fight over the screenshot commit.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: windows-latest
@@ -140,5 +145,8 @@ jobs:
           git diff --cached --quiet
           if ($LASTEXITCODE -eq 0) { 'Screenshots unchanged'; exit 0 }
           git commit -m 'Update screenshots [skip ci]'
-          git pull --rebase origin main
+          # Newer code may have landed meanwhile; these screenshots are the freshest, so they win any conflict.
+          git pull --rebase -X theirs origin main
+          if ($LASTEXITCODE -ne 0) { exit 1 }
           git push origin HEAD:main
+          if ($LASTEXITCODE -ne 0) { exit 1 }
