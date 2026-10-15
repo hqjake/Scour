@@ -13,6 +13,8 @@ public static class DriverService
         var devices = DevicesByInf();
         var infDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "INF");
         var repository = Path.Combine(Environment.SystemDirectory, @"DriverStore\FileRepository");
+        var byContent = new Lazy<Dictionary<string, string>>(() => PackagesByContent(repository));
+        var byPublished = PackagesByPublishedName();
         var list = new List<DriverPackage>();
         foreach (var inf in Directory.EnumerateFiles(infDir, "oem*.inf"))
         {
@@ -22,7 +24,10 @@ public static class DriverService
             try { info = InfParser.Parse(File.ReadAllText(inf)); }
             catch (IOException) { continue; }
 
-            var packageId = PackageId(published);
+            var packageId = byPublished.GetValueOrDefault(published) ?? PackageId(published);
+            // Last resort: Windows copies the INF into the store unchanged, so the same bytes identify the folder.
+            if (packageId is null || !Directory.Exists(Path.Combine(repository, packageId)))
+                packageId = byContent.Value.GetValueOrDefault(Hash(inf)) ?? packageId;
             long size = 0;
             if (packageId is not null)
             {
@@ -38,6 +43,46 @@ public static class DriverService
                                        devices.GetValueOrDefault(published) ?? []));
         }
         return list;
+    }
+
+    /// <summary>DriverDatabase\DriverPackages\&lt;package&gt; holds the published name (oemNN.inf) as its default value.</summary>
+    private static Dictionary<string, string> PackagesByPublishedName()
+    {
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        using var root = Registry.LocalMachine.OpenSubKey(@"SYSTEM\DriverDatabase\DriverPackages");
+        if (root is null) return map;
+        foreach (var id in root.GetSubKeyNames())
+        {
+            try
+            {
+                using var key = root.OpenSubKey(id);
+                if (key?.GetValue("") is string published && published.StartsWith("oem", StringComparison.OrdinalIgnoreCase))
+                    map.TryAdd(published, id);
+            }
+            catch (System.Security.SecurityException) { /* skip */ }
+        }
+        return map;
+    }
+
+    private static Dictionary<string, string> PackagesByContent(string repository)
+    {
+        var map = new Dictionary<string, string>();
+        if (!Directory.Exists(repository)) return map;
+        foreach (var dir in Directory.EnumerateDirectories(repository))
+        {
+            try
+            {
+                foreach (var inf in Directory.EnumerateFiles(dir, "*.inf")) map.TryAdd(Hash(inf), Path.GetFileName(dir));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* skip */ }
+        }
+        return map;
+    }
+
+    private static string Hash(string file)
+    {
+        try { return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(file))); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return file; }
     }
 
     /// <summary>The driver store folder name for an oemNN.inf, from Windows' driver database.</summary>

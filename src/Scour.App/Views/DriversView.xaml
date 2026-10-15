@@ -27,7 +27,8 @@
                         <TextBlock Text="Old versions" Style="{StaticResource Caption}" />
                         <TextBlock Text="{Binding OldText}" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0" Foreground="{DynamicResource Scour.AccentHiBrush}" />
                     </StackPanel>
-                    <Button Command="{Binding RemoveOldCommand}" Style="{DynamicResource AccentButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Command="{Binding RemoveOldCommand}" Style="{DynamicResource AccentButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                            IsEnabled="{Binding HasOld}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource Glyph}" Text="&#xE74D;" FontSize="14" />
                             <TextBlock Text="Remove selected" Margin="8,0,0,0" />

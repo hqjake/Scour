@@ -43,6 +43,7 @@ public sealed partial class DriversViewModel : PageViewModel
     [ObservableProperty] private string _totalText = "";
     [ObservableProperty] private string _oldText = "";
     [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private bool _hasOld;
 
     protected override Task LoadAsync() => RefreshAsync();
 
@@ -59,6 +60,7 @@ public sealed partial class DriversViewModel : PageViewModel
             foreach (var p in packages.OrderBy(p => states[p.PublishedName]).ThenByDescending(p => p.SizeBytes))
                 Drivers.Add(new DriverItemViewModel(p, states[p.PublishedName]));
             var old = Drivers.Where(d => d.CanRemove).ToList();
+            HasOld = old.Count > 0;
             TotalText = $"{Format.Plural(packages.Count, "driver package")} · {Format.Bytes(packages.Sum(p => p.SizeBytes))}";
             OldText = old.Count == 0 ? "No old versions" : $"{Format.Plural(old.Count, "old version")} · {Format.Bytes(old.Sum(d => d.Package.SizeBytes))} to free";
             StatusText = old.Count == 0
