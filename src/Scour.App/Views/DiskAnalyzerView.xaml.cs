@@ -27,4 +27,9 @@ public partial class DiskAnalyzerView : UserControl
     {
         if (Largest.SelectedItem is DiskNode node && DataContext is DiskAnalyzerViewModel vm) vm.Selected = node;
     }
+
+    private void Changes_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ChangesGrid.SelectedItem is ChangeRow row && DataContext is DiskAnalyzerViewModel vm) vm.ShowChangeCommand.Execute(row);
+    }
 }

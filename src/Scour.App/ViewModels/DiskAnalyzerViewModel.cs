@@ -58,6 +58,15 @@ public sealed partial class DiskNodeViewModel : ObservableObject
 
 public sealed record DriveChoice(string Root, string Label, bool IsNtfs);
 
+public sealed record ChangeRow(FolderChange Change)
+{
+    public string Path => Change.Path;
+    public string Was => Change.IsNew ? "—" : Format.Bytes(Change.OldSize);
+    public string Now => Change.IsGone ? "deleted" : Format.Bytes(Change.NewSize);
+    public string Delta => (Change.Delta >= 0 ? "+" : "−") + Format.Bytes(Math.Abs(Change.Delta)) + (Change.IsNew ? "  new" : "");
+    public bool Grew => Change.Delta > 0;
+}
+
 public sealed record ExtensionRow(string Extension, string SizeText, int Count, double Percent, Brush Swatch);
 
 public sealed partial class DiskAnalyzerViewModel(AppServices services) : PageViewModel
@@ -72,6 +81,9 @@ public sealed partial class DiskAnalyzerViewModel(AppServices services) : PageVi
     public ObservableCollection<DiskNodeViewModel> Tree { get; } = [];
     public ObservableCollection<ExtensionRow> Extensions { get; } = [];
     public ObservableCollection<DiskNode> LargestFiles { get; } = [];
+    public ObservableCollection<ChangeRow> Changes { get; } = [];
+
+    [ObservableProperty] private string _changesSummary = "Scan a drive twice — days apart — to see which folders grew. Each scan is remembered.";
 
     [ObservableProperty] private DriveChoice? _selectedDrive;
     [ObservableProperty] private DiskNode? _root;
@@ -148,6 +160,7 @@ public sealed partial class DiskAnalyzerViewModel(AppServices services) : PageVi
             }
             sw.Stop();
             SetRoot(root);
+            await CompareWithLastScanAsync(root);
             StatusText = $"{method}: {root.FileCount:N0} files in {root.FolderCount:N0} folders, {Format.Bytes(root.Size)}, in {sw.Elapsed.TotalSeconds:0.0} s.";
             SoundService.Play(UiSound.Scan);
         }
@@ -160,6 +173,69 @@ public sealed partial class DiskAnalyzerViewModel(AppServices services) : PageVi
             IsLoading = false;
             Progress = 0;
         }
+    }
+
+    private string SnapshotDir(string root) => Path.Combine(services.Folders.AppDataDir, "Snapshots", DiskSnapshot.KeyFor(root));
+
+    /// <summary>Saves this scan's folder sizes and shows what changed since the previous scan of the same place.</summary>
+    private async Task CompareWithLastScanAsync(DiskNode root)
+    {
+        try
+        {
+            var dir = SnapshotDir(root.FullPath);
+            var (current, previous) = await Task.Run(() =>
+            {
+                var snap = DiskSnapshot.Create(root, DateTime.UtcNow);
+                Directory.CreateDirectory(dir);
+                var files = Directory.GetFiles(dir, "*.json.gz").Order(StringComparer.Ordinal).ToList();
+                DiskSnapshot? last = null;
+                // Ignore scans from the last few minutes; comparing with them shows nothing.
+                foreach (var f in Enumerable.Reverse(files))
+                {
+                    try
+                    {
+                        using var s = File.OpenRead(f);
+                        var candidate = DiskSnapshot.Load(s);
+                        if (snap.TakenUtc - candidate.TakenUtc >= TimeSpan.FromMinutes(10)) { last = candidate; break; }
+                    }
+                    catch (Exception e) when (e is IOException or InvalidDataException or System.Text.Json.JsonException) { /* skip damaged */ }
+                }
+                using (var s = File.Create(Path.Combine(dir, snap.FileName))) snap.Save(s);
+                foreach (var old in files.SkipLast(11)) File.Delete(old); // keep the last dozen
+                return (snap, last);
+            });
+
+            Changes.Clear();
+            if (previous is null)
+            {
+                ChangesSummary = "This scan is saved. Scan again in a few days to see which folders grew or shrank.";
+                return;
+            }
+            foreach (var c in DiskSnapshot.Compare(previous, current).Take(200)) Changes.Add(new ChangeRow(c));
+            long delta = current.TotalSize - previous.TotalSize;
+            ChangesSummary = $"Since {previous.TakenUtc.ToLocalTime():g}: {(delta >= 0 ? "+" : "−")}{Format.Bytes(Math.Abs(delta))} in total" +
+                             (Changes.Count == 0 ? " — no folder changed by more than 100 MB." : $", mostly in the {Format.Plural(Changes.Count, "folder")} below.");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            ChangesSummary = "Couldn't save this scan for later comparison: " + e.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void ShowChange(ChangeRow? row)
+    {
+        if (row is null || Root is null) return;
+        // Walk the current tree to the folder and select it.
+        var node = Root;
+        var rest = row.Path.Length > Root.FullPath.Length ? row.Path[Root.FullPath.Length..].Trim('\\') : "";
+        foreach (var part in rest.Split('\\', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var next = node.Children?.FirstOrDefault(c => c.IsDirectory && string.Equals(c.Name, part, StringComparison.OrdinalIgnoreCase));
+            if (next is null) break;
+            node = next;
+        }
+        Selected = node;
     }
 
     private Task<DiskNode> FolderScan(string path, CancellationToken ct)

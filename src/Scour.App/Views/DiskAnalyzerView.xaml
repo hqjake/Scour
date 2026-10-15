@@ -134,6 +134,36 @@
                             </DataGrid.Columns>
                         </DataGrid>
                     </TabItem>
+                    <TabItem Header="What changed">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{Binding ChangesSummary}" Style="{StaticResource Caption}" Margin="4,6,0,6" TextWrapping="Wrap" />
+                            <DataGrid x:Name="ChangesGrid" Grid.Row="1" ItemsSource="{Binding Changes}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column"
+                                      GridLinesVisibility="None" RowHeight="28" SelectionChanged="Changes_SelectionChanged">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Folder" Binding="{Binding Path}" Width="*" />
+                                    <DataGridTextColumn Header="Was" Binding="{Binding Was}" Width="90" />
+                                    <DataGridTextColumn Header="Now" Binding="{Binding Now}" Width="90" />
+                                    <DataGridTemplateColumn Header="Change" Width="130">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock x:Name="D" Text="{Binding Delta}" FontWeight="SemiBold" VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource SystemFillColorSuccessBrush}" />
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding Grew}" Value="True">
+                                                        <Setter TargetName="D" Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </TabItem>
                 </TabControl>
             </Grid>
         </Grid>
