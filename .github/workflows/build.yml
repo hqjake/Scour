@@ -13,6 +13,17 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    # Optional code signing and winget publishing; each step is skipped while its secrets are missing.
+    env:
+      SIGN_PFX_BASE64: ${{ secrets.SIGN_PFX_BASE64 }}
+      SIGN_PFX_PASSWORD: ${{ secrets.SIGN_PFX_PASSWORD }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      AZURE_SIGNING_ENDPOINT: ${{ secrets.AZURE_SIGNING_ENDPOINT }}
+      AZURE_SIGNING_ACCOUNT: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
+      AZURE_SIGNING_PROFILE: ${{ secrets.AZURE_SIGNING_PROFILE }}
+      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,6 +57,30 @@ jobs:
             -p:Version=${{ steps.ver.outputs.version }} -o publish
           (Get-Item publish\Scour.exe).VersionInfo | Format-List ProductVersion, FileVersion
 
+      # Signed builds stop SmartScreen's "unknown publisher" warning. Either a .pfx certificate or Azure Trusted Signing.
+      - name: Sign Scour.exe
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        run: |
+          $exe = Resolve-Path publish\Scour.exe
+          if ($env:SIGN_PFX_BASE64) {
+            $pfx = Join-Path $env:RUNNER_TEMP 'sign.pfx'
+            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:SIGN_PFX_BASE64))
+            $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+            & $signtool.FullName sign /f $pfx /p $env:SIGN_PFX_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $exe
+            Remove-Item $pfx
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } elseif ($env:AZURE_SIGNING_ACCOUNT) {
+            dotnet tool install --global sign --prerelease
+            sign code trusted-signing --trusted-signing-endpoint $env:AZURE_SIGNING_ENDPOINT `
+              --trusted-signing-account $env:AZURE_SIGNING_ACCOUNT --trusted-signing-certificate-profile $env:AZURE_SIGNING_PROFILE `
+              --base-directory (Split-Path $exe) Scour.exe
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } else {
+            'No signing secrets configured - Scour.exe stays unsigned.'
+          }
+          Get-AuthenticodeSignature $exe | Format-List Status, SignerCertificate
+
       - uses: actions/upload-artifact@v4
         with:
           name: Scour
@@ -60,6 +95,26 @@ jobs:
           name: Scour ${{ steps.ver.outputs.version }}
           body_path: docs/release-notes.md
           files: publish/Scour.exe
+
+      # winget manifests for every release; submitted to microsoft/winget-pkgs when WINGET_TOKEN is set.
+      - name: winget manifests
+        if: steps.ver.outputs.release == 'true'
+        shell: pwsh
+        run: |
+          $sha = (Get-FileHash publish\Scour.exe -Algorithm SHA256).Hash
+          ./packaging/winget/New-WingetManifest.ps1 -Version '${{ steps.ver.outputs.version }}' -Sha256 $sha -OutDir winget
+          if ($env:WINGET_TOKEN) {
+            Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+            .\wingetcreate.exe submit --token $env:WINGET_TOKEN (Get-ChildItem winget -Recurse -Filter *.installer.yaml | Select-Object -First 1).DirectoryName
+          } else {
+            'WINGET_TOKEN not set - manifests are attached to this run as an artifact.'
+          }
+
+      - uses: actions/upload-artifact@v4
+        if: steps.ver.outputs.release == 'true'
+        with:
+          name: winget-manifests
+          path: winget
 
       # Run the real app on this Windows machine and render every page for the README.
       - name: Capture screenshots

@@ -16,6 +16,8 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 | ![App updates](docs/screenshots/app-updates.png) **App updates** (winget) | ![Registry cleaner](docs/screenshots/registry-cleaner.png) **Registry cleaner** |
 | ![Bloatware remover](docs/screenshots/bloatware.png) **Bloatware remover** | ![Privacy tweaks](docs/screenshots/privacy-tweaks.png) **Privacy tweaks** |
 | ![Command palette](docs/screenshots/command-palette.png) **Command palette** (Ctrl+K) | ![Reinstall kit](docs/screenshots/reinstall-kit.png) **Reinstall kit** |
+| ![Network](docs/screenshots/network.png) **Network** — DNS switcher, speed test, Wi-Fi, hosts | ![Drivers](docs/screenshots/drivers.png) **Drivers** — old versions, backup & restore |
+| ![Context menu](docs/screenshots/context-menu.png) **Context menu** manager | ![Browser extensions](docs/screenshots/browser-extensions.png) **Browser extensions** |
 | ![USB tools](docs/screenshots/usb-tools.png) **USB tools** | ![Settings](docs/screenshots/settings.png) **Settings** — themes, sounds, automatic cleaning |
 | ![Light theme dashboard](docs/screenshots/dashboard-light.png) **Light theme** | ![Light theme disk analyzer](docs/screenshots/disk-analyzer-light.png) **Light theme** |
 
@@ -44,6 +46,9 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 - **Browser privacy** — history, cookies, form entries and sessions per browser/profile, edited inside the
   browsers' SQLite databases so bookmarks, passwords and payment methods are untouched
 - **Duplicates & large files** — duplicates confirmed by SHA-256 (size → partial hash → full hash)
+- **Browser extensions** — every extension in every Chrome, Edge, Firefox, Brave, Opera and Vivaldi profile, with what
+  it may do in plain words and a risk level; finds extensions forced in through policies or the registry (the
+  "Managed by your organization" kind adware uses) and removes those entries with a backup
 - **Registry cleaner** — only entries that point at files that *definitely* no longer exist (never Windows
   folders, disconnected drives or unresolvable commands); everything is backed up first
 
@@ -71,10 +76,16 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 - **System information** — CPU, every RAM module (type, speed, part number, slot), GPU (true VRAM), motherboard,
   BIOS/UEFI, Secure Boot, TPM, drives with health/temperature/wear, displays, network, audio, battery, OS; export a report
 - **Startup programs** — enable/disable with the same switches Task Manager uses
+- **Context menu** — switch off right-click menu entries and shell extensions programs added, reversibly
+- **Network** — DNS switcher (Cloudflare, Google, Quad9, AdGuard, …) with live latency for each, internet speed test,
+  saved Wi-Fi passwords and a hosts file editor
+- **Drivers** — finds old driver versions left in the driver store after updates (Windows refuses to remove any in
+  use), plus one-click backup and restore of all drivers for a Windows reset
 
 **Disks**
 - **Disk space analyzer** — reads the NTFS Master File Table directly (like WizTree) for whole-drive scans in seconds;
-  treemap, folder tree, file-type breakdown, 1000 largest files, delete from the view
+  treemap, folder tree, file-type breakdown, 1000 largest files, delete from the view; every scan is remembered and the
+  **What changed** tab shows which folders grew since the last one
 - **USB tools** — format FAT32/exFAT/NTFS (FAT32 on drives over 32 GB using Scour's own formatter), or create
   bootable sticks: Windows setup (splits `install.wim` over 4 GB, adds BIOS boot code), ISO file copy, or raw image (DD)
 
@@ -101,7 +112,8 @@ The WPF app (`src/Scour.App`) can be compiled on Linux/macOS too (`EnableWindows
 
 **Releasing:** bump `<Version>` in `src/Scour.App/Scour.App.csproj` and update `docs/release-notes.md`. When that reaches
 `main`, CI tags `v<version>` and publishes the GitHub Release with `Scour.exe`, which installed copies pick up through
-the built-in updater.
+the built-in updater. Code signing and winget publishing switch on with repository secrets — see
+[docs/publishing.md](docs/publishing.md).
 
 ## Project layout
 
@@ -120,7 +132,7 @@ the built-in updater.
 
 ## Status
 
-Unit-tested (127 tests) and exercised on Windows by CI, which runs the real app and captures the screenshots above.
+Unit-tested (141 tests) and exercised on Windows by CI, which runs the real app and captures the screenshots above.
 Please report anything that misbehaves.
 The process-sampling, network-per-process, file-unlocking and services code exists in `Platform/` but the task manager
 screen is not part of this version.
