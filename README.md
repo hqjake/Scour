@@ -99,6 +99,10 @@ The engine (`src/Scour.Core`) is platform-neutral and fully unit-tested, includi
 image (`tests/Scour.Tests/Fixtures`) and FAT32 volumes verified with `fsck.fat`/mtools when those tools are installed.
 The WPF app (`src/Scour.App`) can be compiled on Linux/macOS too (`EnableWindowsTargeting`), but only runs on Windows.
 
+**Releasing:** bump `<Version>` in `src/Scour.App/Scour.App.csproj` and update `docs/release-notes.md`. When that reaches
+`main`, CI tags `v<version>` and publishes the GitHub Release with `Scour.exe`, which installed copies pick up through
+the built-in updater.
+
 ## Project layout
 
 | Path | What's there |
