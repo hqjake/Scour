@@ -68,7 +68,11 @@ public sealed partial class ContextMenuViewModel : PageViewModel
     [ObservableProperty] private bool _showWindows;
     [ObservableProperty] private string _searchText = "";
 
-    partial void OnShowWindowsChanged(bool value) => View.Refresh();
+    partial void OnShowWindowsChanged(bool value)
+    {
+        View.Refresh();
+        UpdateStatus();
+    }
     partial void OnSearchTextChanged(string value) => View.Refresh();
 
     protected override Task LoadAsync() => RefreshAsync();
@@ -80,7 +84,7 @@ public sealed partial class ContextMenuViewModel : PageViewModel
         StatusText = "Reading right-click menu entries…";
         try
         {
-            var list = await Task.Run(() => _menu.Scan().Select(e => (Entry: e, Program: Describe(e.Target))).ToList());
+            var list = await Task.Run(() => _menu.Scan().Select(e => (Entry: e, Program: Describe(e))).ToList());
             Entries.Clear();
             foreach (var (e, program) in list) Entries.Add(new MenuEntryViewModel(e, program, Toggle));
             UpdateStatus();
@@ -119,16 +123,17 @@ public sealed partial class ContextMenuViewModel : PageViewModel
     private void UpdateStatus()
     {
         int programs = Entries.Count(e => !e.IsWindows);
-        int off = Entries.Count(e => !e.IsEnabled);
+        int off = Entries.Count(e => !e.IsEnabled && (ShowWindows || !e.IsWindows));
         StatusText = $"{Format.Plural(programs, "entry", "entries")} added by programs" + (off > 0 ? $", {off} switched off" : "") + ". " +
                      (_explorerRestartNeeded ? "Restart Explorer to see shell extension changes." : "Switch an entry off to hide it; switch it back on any time.");
     }
 
     /// <summary>"C:\…\7-zip.dll" → "7-Zip" (from the file's version info).</summary>
-    private static string Describe(string? target)
+    private static string Describe(ContextMenuEntry entry)
     {
+        var target = entry.Target;
         if (string.IsNullOrWhiteSpace(target)) return "";
-        var path = Scour.Core.Programs.CommandLine.Split(target).Executable;
+        var path = entry.Kind == MenuEntryKind.Handler || File.Exists(target) ? target : Scour.Core.Programs.CommandLine.Split(target).Executable;
         try
         {
             if (File.Exists(path))

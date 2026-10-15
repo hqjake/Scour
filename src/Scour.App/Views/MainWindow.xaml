@@ -29,6 +29,7 @@
         <DataTemplate DataType="{x:Type vm:ReinstallKitViewModel}"><v:ReinstallKitView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:BrowserExtensionsViewModel}"><v:BrowserExtensionsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ContextMenuViewModel}"><v:ContextMenuView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NetworkViewModel}"><v:NetworkView /></DataTemplate>
     </Window.Resources>
 
     <Window.InputBindings>

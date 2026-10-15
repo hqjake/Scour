@@ -40,6 +40,7 @@ public sealed partial class MainViewModel : ObservableObject
             new RepairViewModel(services),
             new AutorunViewModel(services),
             new ContextMenuViewModel(services),
+            new NetworkViewModel(),
             new DiskAnalyzerViewModel(services),
             new UsbViewModel(),
         ];

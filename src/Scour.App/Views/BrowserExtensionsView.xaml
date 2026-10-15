@@ -55,6 +55,16 @@
                     </StackPanel>
                 </Border>
 
+                <Border Style="{StaticResource Card}" Padding="24,28" Visibility="{Binding Extensions.Count, Converter={StaticResource FalsyToVisibility}}">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xEA86;" FontSize="34" HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource Scour.AccentHiBrush}" Effect="{StaticResource SoftGlow}" />
+                        <TextBlock Text="No browser extensions installed" FontWeight="SemiBold" FontSize="15" HorizontalAlignment="Center" Margin="0,12,0,4" />
+                        <TextBlock Style="{StaticResource Caption}" HorizontalAlignment="Center" TextAlignment="Center"
+                                   Text="Scour checked every Chrome, Edge, Firefox, Brave, Opera and Vivaldi profile on this PC.&#x0a;Nothing can read your browsing through an add-on." />
+                    </StackPanel>
+                </Border>
+
                 <ItemsControl ItemsSource="{Binding Extensions}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>

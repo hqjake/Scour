@@ -69,7 +69,9 @@ public sealed class ContextMenu(IRegistry registry, KnownFolders folders, Func<s
                     if (ReadHandler(handlers.Child(name), label, blocked) is { } e) list.Add(e);
             }
         }
-        return list.OrderBy(e => e.IsWindows).ThenBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+        // "Directory" and "Folder" often register the same handler; blocking works per handler, so show it once.
+        return list.DistinctBy(e => e.Kind == MenuEntryKind.Handler ? $"{e.Clsid}|{e.AppliesTo}" : e.Id)
+                   .OrderBy(e => e.IsWindows).ThenBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
     }
 
     private ContextMenuEntry? ReadVerb(RegKeyPath key, string label)
@@ -100,7 +102,8 @@ public sealed class ContextMenu(IRegistry registry, KnownFolders folders, Func<s
             IsEnabled: !blocked.Contains(clsid), IsWindows(dll), ShiftOnly: false);
     }
 
-    private bool IsWindows(string? dll) => dll is null || IsWindowsTarget(dll);
+    // A handler's target is a bare file path (often unquoted with spaces), never a command line.
+    private bool IsWindows(string? dll) => dll is null || (WinPath.IsRooted(dll) ? WinPath.IsSameOrUnder(dll, folders.WindowsDir) : !dll.Contains('\\'));
 
     /// <summary>Switches an entry on or off. Handlers are blocked by CLSID, so every place that handler appears changes.</summary>
     public void SetEnabled(ContextMenuEntry entry, bool enabled)

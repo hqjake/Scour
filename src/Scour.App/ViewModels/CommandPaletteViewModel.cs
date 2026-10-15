@@ -90,6 +90,7 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
         [typeof(DiskAnalyzerViewModel)] = ["disk", "space", "wiztree", "treemap", "folder size", "storage"],
         [typeof(BrowserExtensionsViewModel)] = ["extensions", "add-ons", "addons", "plugins", "managed by your organization", "hijack"],
         [typeof(ContextMenuViewModel)] = ["right click", "right-click", "context menu", "shell extensions", "explorer menu"],
+        [typeof(NetworkViewModel)] = ["dns", "wifi", "wi-fi password", "hosts", "speed test", "internet", "ip address", "cloudflare"],
         [typeof(UsbViewModel)] = ["usb", "format", "bootable", "iso", "rufus", "flash drive"],
     };
 
@@ -117,6 +118,10 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
             RunOn<AppUpdatesViewModel>(p => p.RefreshCommand.ExecuteAsync(null))));
         list.Add(Entry("Apply recommended privacy protections", "Turn off telemetry, ads and tracking", "Action", "", ["privacy", "telemetry", "tracking"],
             RunOn<PrivacyViewModel>(p => { p.ApplyRecommendedCommand.Execute(null); return Task.CompletedTask; })));
+        list.Add(Entry("Test internet speed", "Download, upload and ping", "Action", "\uEC4A", ["speed", "internet", "bandwidth", "ping"],
+            RunOn<NetworkViewModel>(p => p.RunSpeedTestCommand.ExecuteAsync(null))));
+        list.Add(Entry("Show saved Wi-Fi passwords", "Networks this PC remembers", "Action", "\uE701", ["wifi", "wi-fi", "password", "wlan"],
+            RunOn<NetworkViewModel>(p => p.LoadWifiCommand.ExecuteAsync(null))));
         list.Add(Entry("Save a reinstall kit", "Save your app list for a new PC", "Action", "", ["backup", "export", "kit", "migrate"],
             RunOn<ReinstallKitViewModel>(p => p.SaveKitCommand.ExecuteAsync(null))));
         list.Add(Entry("Empty the Recycle Bin", "Permanently delete what's in it", "Action", "", ["recycle", "trash", "bin"], () =>
