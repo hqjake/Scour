@@ -91,6 +91,7 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
         [typeof(BrowserExtensionsViewModel)] = ["extensions", "add-ons", "addons", "plugins", "managed by your organization", "hijack"],
         [typeof(ContextMenuViewModel)] = ["right click", "right-click", "context menu", "shell extensions", "explorer menu"],
         [typeof(NetworkViewModel)] = ["dns", "wifi", "wi-fi password", "hosts", "speed test", "internet", "ip address", "cloudflare"],
+        [typeof(DriversViewModel)] = ["drivers", "driver store", "pnputil", "backup drivers", "old drivers", "device"],
         [typeof(UsbViewModel)] = ["usb", "format", "bootable", "iso", "rufus", "flash drive"],
     };
 
@@ -122,6 +123,8 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
             RunOn<NetworkViewModel>(p => p.RunSpeedTestCommand.ExecuteAsync(null))));
         list.Add(Entry("Show saved Wi-Fi passwords", "Networks this PC remembers", "Action", "\uE701", ["wifi", "wi-fi", "password", "wlan"],
             RunOn<NetworkViewModel>(p => p.LoadWifiCommand.ExecuteAsync(null))));
+        list.Add(Entry("Back up drivers", "Save every driver before a reset", "Action", "\uE950", ["drivers", "backup", "export"],
+            RunOn<DriversViewModel>(p => p.BackupCommand.ExecuteAsync(null))));
         list.Add(Entry("Save a reinstall kit", "Save your app list for a new PC", "Action", "", ["backup", "export", "kit", "migrate"],
             RunOn<ReinstallKitViewModel>(p => p.SaveKitCommand.ExecuteAsync(null))));
         list.Add(Entry("Empty the Recycle Bin", "Permanently delete what's in it", "Action", "", ["recycle", "trash", "bin"], () =>

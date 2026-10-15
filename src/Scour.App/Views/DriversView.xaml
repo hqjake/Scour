@@ -1,0 +1,103 @@
+<UserControl x:Class="Scour.App.Views.DriversView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="Drivers" Style="{StaticResource PageTitle}" />
+            <TextBlock Style="{StaticResource Caption}"
+                       Text="Windows keeps every old driver version after an update. Clear out the copies nothing uses, and back up your drivers before resetting Windows." />
+        </StackPanel>
+
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,16,0,12">
+            <Border Style="{StaticResource Card}" Padding="16,12" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="Driver store" Style="{StaticResource Caption}" />
+                    <TextBlock Text="{Binding TotalText}" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Padding="16,12" Margin="4,0">
+                <Grid>
+                    <StackPanel>
+                        <TextBlock Text="Old versions" Style="{StaticResource Caption}" />
+                        <TextBlock Text="{Binding OldText}" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0" Foreground="{DynamicResource Scour.AccentHiBrush}" />
+                    </StackPanel>
+                    <Button Command="{Binding RemoveOldCommand}" Style="{DynamicResource AccentButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Glyph}" Text="&#xE74D;" FontSize="14" />
+                            <TextBlock Text="Remove selected" Margin="8,0,0,0" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+            <Border Style="{StaticResource Card}" Padding="16,12" Margin="8,0,0,0">
+                <Grid>
+                    <StackPanel>
+                        <TextBlock Text="Backup" Style="{StaticResource Caption}" />
+                        <TextBlock Text="Save all drivers" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="Back up…" Command="{Binding BackupCommand}" Margin="0,0,6,0" />
+                        <Button Content="Restore…" Command="{Binding RestoreCommand}" Style="{StaticResource ToolButton}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </UniformGrid>
+
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <DataGrid ItemsSource="{Binding Drivers}" AutoGenerateColumns="False" HeadersVisibility="Column" GridLinesVisibility="None"
+                      CanUserAddRows="False" SelectionMode="Single" RowHeight="40">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Width="44">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" MinWidth="0"
+                                          IsEnabled="{Binding CanRemove}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Driver" Binding="{Binding Name}" Width="2*" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Type" Binding="{Binding Class}" Width="110" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="130" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Date" Binding="{Binding Date}" Width="100" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="90" IsReadOnly="True" />
+                    <DataGridTemplateColumn Header="Status" Width="2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Name="St" Text="{Binding StateText}" FontSize="12" />
+                                    <TextBlock Text="{Binding UsedBy}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis"
+                                               Visibility="{Binding UsedBy, Converter={StaticResource TruthyToVisibility}}" />
+                                    <TextBlock Text="{Binding Result}" Style="{StaticResource Caption}" Foreground="{DynamicResource Scour.AccentHiBrush}"
+                                               Visibility="{Binding Result, Converter={StaticResource TruthyToVisibility}}" />
+                                </StackPanel>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding CanRemove}" Value="True">
+                                        <Setter TargetName="St" Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Expander Grid.Row="1" Header="pnputil output" Margin="0,10,0,0" Visibility="{Binding Log.Count, Converter={StaticResource TruthyToVisibility}}">
+                <ListBox ItemsSource="{Binding Log}" Height="140" FontFamily="Consolas" FontSize="12" />
+            </Expander>
+        </Grid>
+
+        <StackPanel Grid.Row="3" Margin="2,10,0,0">
+            <ProgressBar IsIndeterminate="True" Height="4" Margin="0,0,0,6" Visibility="{Binding IsLoading, Converter={StaticResource TruthyToVisibility}}" />
+            <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -30,6 +30,7 @@
         <DataTemplate DataType="{x:Type vm:BrowserExtensionsViewModel}"><v:BrowserExtensionsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ContextMenuViewModel}"><v:ContextMenuView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:NetworkViewModel}"><v:NetworkView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DriversViewModel}"><v:DriversView /></DataTemplate>
     </Window.Resources>
 
     <Window.InputBindings>

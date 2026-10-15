@@ -59,6 +59,7 @@ public static class ScreenshotRunner
             await Shot<AutorunViewModel>(window, vm, dir, "startup", null);
             await Shot<ContextMenuViewModel>(window, vm, dir, "context-menu", null);
             await Shot<NetworkViewModel>(window, vm, dir, "network", null, 90);
+            await Shot<DriversViewModel>(window, vm, dir, "drivers", null, 180);
             await Shot<DiskAnalyzerViewModel>(window, vm, dir, "disk-analyzer", p => p.ScanCommand.ExecuteAsync(null), 600);
             await Shot<UsbViewModel>(window, vm, dir, "usb-tools", null);
             await Shot(window, dir, "settings", vm.Settings, null);
