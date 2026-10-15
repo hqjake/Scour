@@ -26,6 +26,7 @@ public sealed partial class MainViewModel : ObservableObject
             new AppUpdatesViewModel(services),
             new BloatwareViewModel(services),
             new WindowsAppsViewModel(services),
+            new ReinstallKitViewModel(services),
             new TracesViewModel(services),
             Forced,
             new BackupsViewModel(services),
@@ -47,7 +48,82 @@ public sealed partial class MainViewModel : ObservableObject
         _selectedNavPage = Dashboard;
         _ = Dashboard.ActivateAsync();
         _ = Programs.ActivateAsync(); // loads the program list other pages rely on
+        Palette = new CommandPaletteViewModel(this, services);
+        Settings.CheckForUpdates = () => CheckForUpdatesAsync(silent: false);
     }
+
+    public CommandPaletteViewModel Palette { get; }
+
+    /// <summary>Runs the tray's quick clean (set by the app).</summary>
+    public Action? QuickClean { get; set; }
+
+    // ---- Scour's own updates
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(UpdateTitle), nameof(UpdateNotes))]
+    private Scour.Core.Updates.ReleaseInfo? _availableUpdate;
+
+    [ObservableProperty] private bool _isInstallingUpdate;
+    [ObservableProperty] private double _updateProgress;
+    [ObservableProperty] private string _updateStatus = "";
+
+    public string UpdateTitle => AvailableUpdate is { } r ? $"Scour {r.Version.ToString(3)} is available" : "";
+
+    /// <summary>First meaningful line of the release notes.</summary>
+    public string UpdateNotes => AvailableUpdate?.Notes.Split('\n').Select(l => l.Trim().TrimStart('#', '-', '*', ' ')).FirstOrDefault(l => l.Length > 0)
+                                 ?? "";
+
+    /// <summary>Asks GitHub for a newer release; returns a sentence describing the result.</summary>
+    public async Task<string> CheckForUpdatesAsync(bool silent)
+    {
+        try
+        {
+            var release = await UpdateService.CheckAsync();
+            if (release is null) return $"You're up to date — Scour {UpdateService.CurrentVersion.ToString(3)} is the latest version.";
+            AvailableUpdate = release;
+            UpdateStatus = "";
+            if (!silent) SoundService.Play(UiSound.Scan);
+            return $"Scour {release.Version.ToString(3)} is available. Use Update now in the banner at the top of the window.";
+        }
+        catch (Exception e)
+        {
+            return "Couldn't check for updates: " + e.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task InstallUpdateAsync()
+    {
+        if (AvailableUpdate is not { } release || IsInstallingUpdate) return;
+        if (!UpdateService.CanSelfUpdate(release))
+        {
+            Shell.OpenUrl(release.PageUrl);
+            return;
+        }
+        if (!Dialogs.Confirm($"Update Scour to {release.Version.ToString(3)} now?\n\nScour downloads the new version, closes and restarts. Anything running in Scour will stop.")) return;
+        IsInstallingUpdate = true;
+        UpdateStatus = "Downloading…";
+        try
+        {
+            await UpdateService.InstallAsync(release, new Progress<double>(p => { UpdateProgress = p; UpdateStatus = $"Downloading… {p:0}%"; }), CancellationToken.None);
+            UpdateStatus = "Restarting…";
+            (System.Windows.Application.Current as App)?.QuitForUpdate();
+        }
+        catch (Exception e)
+        {
+            UpdateStatus = "Update failed: " + e.Message;
+            IsInstallingUpdate = false;
+        }
+    }
+
+    [RelayCommand]
+    private void ViewReleaseNotes()
+    {
+        if (AvailableUpdate is { } r) Shell.OpenUrl(r.PageUrl);
+    }
+
+    [RelayCommand]
+    private void DismissUpdate() => AvailableUpdate = null;
 
     public DashboardViewModel Dashboard { get; }
     public ProgramsViewModel Programs { get; }
@@ -108,7 +184,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     public HuntResult? Hunt() => Hunter.Identify(_s.LastKnownPrograms);
 
-    public void UninstallFromHunter(InstalledProgram program)
+    public void UninstallFromHunter(InstalledProgram program) => UninstallProgram(program);
+
+    public void UninstallProgram(InstalledProgram program)
     {
         CurrentPage = Programs;
         _ = Programs.UninstallProgramAsync(program);

@@ -25,11 +25,16 @@ jobs:
       - name: Test
         run: dotnet test tests/Scour.Tests -c Release
 
+      # Tag builds (v1.2.3) stamp that version into Scour.exe so the built-in updater can compare it.
       - name: Publish single-file Scour.exe
-        run: >
-          dotnet publish src/Scour.App -c Release -r win-x64 --self-contained true
-          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
-          -o publish
+        shell: pwsh
+        run: |
+          $version = @()
+          if ($env:GITHUB_REF_TYPE -eq 'tag') { $version = @("-p:Version=$($env:GITHUB_REF_NAME.TrimStart('v'))") }
+          dotnet publish src/Scour.App -c Release -r win-x64 --self-contained true `
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
+            @version -o publish
+          (Get-Item publish\Scour.exe).VersionInfo | Format-List ProductVersion, FileVersion
 
       - uses: actions/upload-artifact@v4
         with:
@@ -67,4 +72,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          name: Scour ${{ github.ref_name }}
+          body_path: docs/release-notes.md
           files: publish/Scour.exe

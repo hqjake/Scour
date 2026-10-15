@@ -15,6 +15,7 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 | ![System information](docs/screenshots/system-info.png) **System information** | ![Repair center](docs/screenshots/repair-center.png) **Repair center** |
 | ![App updates](docs/screenshots/app-updates.png) **App updates** (winget) | ![Registry cleaner](docs/screenshots/registry-cleaner.png) **Registry cleaner** |
 | ![Bloatware remover](docs/screenshots/bloatware.png) **Bloatware remover** | ![Privacy tweaks](docs/screenshots/privacy-tweaks.png) **Privacy tweaks** |
+| ![Command palette](docs/screenshots/command-palette.png) **Command palette** (Ctrl+K) | ![Reinstall kit](docs/screenshots/reinstall-kit.png) **Reinstall kit** |
 | ![USB tools](docs/screenshots/usb-tools.png) **USB tools** | ![Settings](docs/screenshots/settings.png) **Settings** — themes, sounds, automatic cleaning |
 | ![Light theme dashboard](docs/screenshots/dashboard-light.png) **Light theme** | ![Light theme disk analyzer](docs/screenshots/disk-analyzer-light.png) **Light theme** |
 
@@ -55,6 +56,14 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 - **Bloatware remover** — pre-installed Store apps, games, promotions and PC-maker trialware rated *Safe* or *Optional*;
   core Windows apps are never listed; optionally removes for all accounts and stops reinstalls
 - **App updates** — finds outdated apps with winget and updates them all silently, with an ignore list
+- **Reinstall kit** — save the apps on this PC to a small file (winget's own export format, so `winget import` reads it
+  too), then on a new or reset PC open it, see what's missing and install everything silently with per-app status
+
+**Everywhere**
+- **Command palette** — press **Ctrl+K** (or the search box in the sidebar) and type a few letters to open any page,
+  run an action (quick clean, health check, disk scan, repairs, theme…) or uninstall any program
+- **Automatic updates** — Scour checks GitHub Releases on start, shows a banner when a new version is out and updates
+  itself in place (downloads, verifies the SHA-256 checksum, swaps the exe and restarts); can be turned off in Settings
 
 **System**
 - **Repair center** — SFC, DISM, chkdsk scan, network/DNS reset, Windows Update reset, icon cache, Store and Start menu
@@ -71,8 +80,9 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 
 ## Download
 
-Every push builds `Scour.exe` (single file, no .NET install needed) — see the **Actions** tab → latest run →
-*Scour* artifact. Tagged versions (`v1.0.0`, …) are attached to GitHub Releases.
+Get the latest `Scour.exe` (single file, no .NET install needed) from
+[**Releases**](https://github.com/hqjake/Scour/releases/latest). Once installed, Scour keeps itself up to date.
+Every push also builds a preview exe — see the **Actions** tab → latest run → *Scour* artifact.
 
 Scour asks for administrator rights at start; uninstalling and cleaning system locations need them.
 
@@ -106,6 +116,7 @@ The WPF app (`src/Scour.App`) can be compiled on Linux/macOS too (`EnableWindows
 
 ## Status
 
-Built and unit-tested (109 tests) but **not yet run on a real Windows machine** — please report anything that misbehaves.
+Unit-tested (125 tests) and exercised on Windows by CI, which runs the real app and captures the screenshots above.
+Please report anything that misbehaves.
 The process-sampling, network-per-process, file-unlocking and services code exists in `Platform/` but the task manager
 screen is not part of this version.

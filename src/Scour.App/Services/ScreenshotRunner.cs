@@ -44,7 +44,9 @@ public static class ScreenshotRunner
                                        ?? vm.Programs.Programs.FirstOrDefault();
                 return Task.Delay(1500); // icon loads
             });
+            await PaletteShot(window, vm, dir);
             await Shot<AppUpdatesViewModel>(window, vm, dir, "app-updates", null, 180);
+            await Shot<ReinstallKitViewModel>(window, vm, dir, "reinstall-kit", null, 240);
             await Shot<JunkViewModel>(window, vm, dir, "junk-cleaner", p => p.ScanCommand.ExecuteAsync(null), 180);
             await Shot<BloatwareViewModel>(window, vm, dir, "bloatware", null, 120);
             await Shot<PrivacyViewModel>(window, vm, dir, "privacy-tweaks", null);
@@ -111,6 +113,31 @@ public static class ScreenshotRunner
         catch (Exception e)
         {
             Log($"{name}: ERROR {e}");
+        }
+    }
+
+    /// <summary>The Ctrl+K palette with a search typed in.</summary>
+    private static async Task PaletteShot(MainWindow w, MainViewModel vm, string dir)
+    {
+        try
+        {
+            Log("command-palette: opening");
+            vm.Navigate(vm.Dashboard);
+            vm.Palette.Open();
+            await Task.Delay(400);
+            vm.Palette.Query = "disk";
+            await Task.Delay(1000);
+            await CaptureAsync(w, Path.Combine(dir, "command-palette.png"));
+            Log($"command-palette: saved ({vm.Palette.Results.Count} results)");
+        }
+        catch (Exception e)
+        {
+            Log($"command-palette: ERROR {e}");
+        }
+        finally
+        {
+            vm.Palette.Close();
+            await Task.Delay(300);
         }
     }
 

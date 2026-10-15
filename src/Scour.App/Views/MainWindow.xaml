@@ -26,7 +26,13 @@
         <DataTemplate DataType="{x:Type vm:AppUpdatesViewModel}"><v:AppUpdatesView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:BloatwareViewModel}"><v:BloatwareView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:PrivacyViewModel}"><v:PrivacyView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ReinstallKitViewModel}"><v:ReinstallKitView /></DataTemplate>
     </Window.Resources>
+
+    <Window.InputBindings>
+        <KeyBinding Key="K" Modifiers="Control" Command="{Binding Palette.OpenCommand}" />
+        <KeyBinding Key="F" Modifiers="Control+Shift" Command="{Binding Palette.OpenCommand}" />
+    </Window.InputBindings>
 
     <Grid>
         <c:CyberBackground />
@@ -42,6 +48,7 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
@@ -55,7 +62,37 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <ListBox x:Name="Nav" Grid.Row="1" ItemsSource="{Binding NavView}" SelectedItem="{Binding SelectedNavPage}"
+                    <!-- Opens the command palette. -->
+                    <Button Grid.Row="1" Command="{Binding Palette.OpenCommand}" Margin="12,0,12,6" Padding="12,8" HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch" ToolTip="Search pages, actions and programs (Ctrl+K)" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Bd" Background="{DynamicResource Scour.CardBrush}" BorderBrush="{DynamicResource Scour.EdgeBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Scour.AccentBrush}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource Glyph}" Text="&#xE721;" FontSize="13" Foreground="{DynamicResource Scour.Text2Brush}" />
+                            <TextBlock Grid.Column="1" Text="Search or run…" Margin="10,0,0,0" Foreground="{DynamicResource Scour.Text3Brush}" VerticalAlignment="Center" />
+                            <Border Grid.Column="2" BorderBrush="{DynamicResource Scour.EdgeBrush}" BorderThickness="1" CornerRadius="4" Padding="5,1">
+                                <TextBlock Text="Ctrl K" FontSize="10" Foreground="{DynamicResource Scour.Text3Brush}" />
+                            </Border>
+                        </Grid>
+                    </Button>
+
+                    <ListBox x:Name="Nav" Grid.Row="2" ItemsSource="{Binding NavView}" SelectedItem="{Binding SelectedNavPage}"
                              ItemContainerStyle="{StaticResource NavItem}" Background="Transparent" BorderThickness="0"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.GroupStyle>
@@ -78,7 +115,7 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
 
-                    <StackPanel Grid.Row="2" Margin="10,6,10,14">
+                    <StackPanel Grid.Row="3" Margin="10,6,10,14">
                         <!-- Hunter mode: press on the target and release it over any window. -->
                         <Border x:Name="HunterTarget" Style="{StaticResource Card}" Padding="12,10" Margin="0,0,0,10" Cursor="Cross"
                                 ToolTip="Press and drag this target onto any window, then release to see which program it belongs to."
@@ -114,9 +151,130 @@
                 </Grid>
             </Border>
 
-            <ContentControl x:Name="PageHost" Grid.Column="1" Content="{Binding CurrentPage}" Focusable="False">
-                <ContentControl.RenderTransform><TranslateTransform /></ContentControl.RenderTransform>
-            </ContentControl>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- A newer Scour is on GitHub. -->
+                <Border Margin="24,14,24,0" CornerRadius="10" Padding="16,10" BorderThickness="1" BorderBrush="{DynamicResource Scour.AccentBrush}"
+                        Background="{DynamicResource Scour.CardBrush}" Effect="{StaticResource SoftGlow}"
+                        Visibility="{Binding AvailableUpdate, Converter={StaticResource TruthyToVisibility}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE777;" FontSize="22" Foreground="{DynamicResource Scour.AccentHiBrush}" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Margin="14,0,12,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding UpdateTitle}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding UpdateNotes}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding UpdateStatus}" Style="{StaticResource Caption}" Foreground="{DynamicResource Scour.AccentHiBrush}"
+                                       Visibility="{Binding UpdateStatus, Converter={StaticResource TruthyToVisibility}}" />
+                            <ProgressBar Value="{Binding UpdateProgress}" Maximum="100" Height="3" Margin="0,4,0,0"
+                                         Visibility="{Binding IsInstallingUpdate, Converter={StaticResource TruthyToVisibility}}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Command="{Binding InstallUpdateCommand}" Style="{DynamicResource AccentButtonStyle}" Content="Update now" />
+                            <Button Command="{Binding ViewReleaseNotesCommand}" Style="{StaticResource ToolButton}" Content="What's new" Margin="8,0,0,0" />
+                            <Button Command="{Binding DismissUpdateCommand}" Style="{StaticResource ToolButton}" Content="Later"
+                                    IsEnabled="{Binding IsInstallingUpdate, Converter={StaticResource InverseBool}}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <ContentControl x:Name="PageHost" Grid.Row="1" Content="{Binding CurrentPage}" Focusable="False">
+                    <ContentControl.RenderTransform><TranslateTransform /></ContentControl.RenderTransform>
+                </ContentControl>
+            </Grid>
+        </Grid>
+
+        <!-- Command palette (Ctrl+K). -->
+        <Grid x:Name="PaletteLayer" DataContext="{Binding Palette}" Visibility="Collapsed">
+            <Border Background="#99000000" MouseLeftButtonDown="PaletteBackdrop_MouseDown" />
+            <Border x:Name="PaletteCard" Width="640" VerticalAlignment="Top" Margin="0,90,0,0" CornerRadius="14" Padding="0,0,0,8"
+                    Background="{DynamicResource Scour.NavBrush}" BorderBrush="{DynamicResource Scour.AccentBrush}" BorderThickness="1"
+                    Effect="{StaticResource NeonGlow}" RenderTransformOrigin="0.5,0">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform />
+                        <TranslateTransform />
+                    </TransformGroup>
+                </Border.RenderTransform>
+                <StackPanel>
+                    <Grid Margin="18,14,18,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE721;" FontSize="18" Foreground="{DynamicResource Scour.AccentHiBrush}" VerticalAlignment="Center" />
+                        <TextBox x:Name="PaletteBox" Grid.Column="1" Margin="12,0" FontSize="17" BorderThickness="0" Background="Transparent"
+                                 Text="{Binding Query, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="PaletteBox_PreviewKeyDown"
+                                 VerticalContentAlignment="Center" />
+                        <TextBlock x:Name="PaletteHint" Grid.Column="1" Margin="22,0" FontSize="17" IsHitTestVisible="False" VerticalAlignment="Center"
+                                   Text="Type a page, an action or a program to uninstall…" Foreground="{DynamicResource Scour.Text3Brush}"
+                                   Visibility="{Binding Query, Converter={StaticResource FalsyToVisibility}}" />
+                        <Border Grid.Column="2" BorderBrush="{DynamicResource Scour.EdgeBrush}" BorderThickness="1" CornerRadius="4" Padding="6,1" VerticalAlignment="Center">
+                            <TextBlock Text="Esc" FontSize="10" Foreground="{DynamicResource Scour.Text3Brush}" />
+                        </Border>
+                    </Grid>
+                    <Border Height="1" Background="{DynamicResource Scour.EdgeBrush}" />
+                    <ListBox x:Name="PaletteList" ItemsSource="{Binding Results}" SelectedItem="{Binding Selected}" Background="Transparent" BorderThickness="0"
+                             Margin="8,6,8,0" MaxHeight="460" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Focusable="False"
+                             PreviewMouseLeftButtonUp="PaletteList_MouseUp">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Focusable" Value="False" />
+                                <Setter Property="Cursor" Value="Hand" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="Bd" CornerRadius="8" Padding="12,8" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
+                                                <ContentPresenter />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Scour.CardBrush}" />
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Scour.SelectionBrush}" />
+                                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Scour.AccentBrush}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="32" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{StaticResource Glyph}" Text="{Binding Glyph}" FontSize="16" Foreground="{DynamicResource Scour.AccentHiBrush}" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Subtitle}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Style="{StaticResource Badge}" VerticalAlignment="Center" Margin="10,0,0,0"
+                                            Background="{DynamicResource Scour.CardBrush}" BorderBrush="{DynamicResource Scour.EdgeBrush}" BorderThickness="1">
+                                        <TextBlock Text="{Binding Category}" FontSize="10" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock Text="No matches. Try another word." Style="{StaticResource Caption}" Margin="22,12,0,6"
+                               Visibility="{Binding Results.Count, Converter={StaticResource FalsyToVisibility}}" />
+                    <TextBlock Margin="22,8,18,2" Style="{StaticResource Caption}" Text="↑ ↓ to move  ·  Enter to run  ·  Esc to close" />
+                </StackPanel>
+            </Border>
         </Grid>
 
         <!-- Intro: glowing logo that fades away. -->

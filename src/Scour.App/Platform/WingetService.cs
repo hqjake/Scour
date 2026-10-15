@@ -69,6 +69,21 @@ public static class WingetService
         return RunAsync(winget, WingetParser.UpgradeArguments(package), output, ct);
     }
 
+    /// <summary>Writes every winget-installable app on this PC to a reinstall kit (winget export JSON).</summary>
+    public static async Task<List<KitApp>> ExportAsync(string path, Action<string> output, CancellationToken ct)
+    {
+        var winget = WingetPath() ?? throw new InvalidOperationException("winget isn't installed. Install \"App Installer\" from the Microsoft Store.");
+        int code = await RunAsync(winget, ReinstallKit.ExportArguments(path), output, ct);
+        if (!File.Exists(path)) throw new InvalidOperationException("winget couldn't export the app list: " + WingetParser.DescribeExitCode(code));
+        return ReinstallKit.Parse(await File.ReadAllTextAsync(path, ct));
+    }
+
+    public static Task<int> InstallAsync(KitApp app, Action<string> output, CancellationToken ct)
+    {
+        var winget = WingetPath() ?? throw new InvalidOperationException("winget isn't installed.");
+        return RunAsync(winget, ReinstallKit.InstallArguments(app), output, ct);
+    }
+
     private static async Task<int> RunAsync(string exe, string args, Action<string> output, CancellationToken ct)
     {
         var psi = new ProcessStartInfo(exe, args)

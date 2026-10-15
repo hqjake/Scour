@@ -18,8 +18,16 @@ public partial class MainWindow : Window
         Loaded += (_, _) => PlayIntro();
         DataContextChanged += (_, e) =>
         {
-            if (e.OldValue is INotifyPropertyChanged old) old.PropertyChanged -= OnVmPropertyChanged;
-            if (e.NewValue is INotifyPropertyChanged now) now.PropertyChanged += OnVmPropertyChanged;
+            if (e.OldValue is MainViewModel old)
+            {
+                old.PropertyChanged -= OnVmPropertyChanged;
+                old.Palette.PropertyChanged -= OnPalettePropertyChanged;
+            }
+            if (e.NewValue is MainViewModel now)
+            {
+                now.PropertyChanged += OnVmPropertyChanged;
+                now.Palette.PropertyChanged += OnPalettePropertyChanged;
+            }
         };
     }
 
@@ -63,6 +71,62 @@ public partial class MainWindow : Window
         PageHost.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(320)) { EasingFunction = ease });
         ((TranslateTransform)PageHost.RenderTransform).BeginAnimation(TranslateTransform.YProperty,
             new DoubleAnimation(18, 0, TimeSpan.FromMilliseconds(380)) { EasingFunction = ease });
+    }
+
+    // ---- command palette
+
+    private void OnPalettePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CommandPaletteViewModel.Selected) && Vm.Palette.Selected is { } selected)
+            PaletteList.ScrollIntoView(selected);
+        if (e.PropertyName != nameof(CommandPaletteViewModel.IsOpen)) return;
+        if (Vm.Palette.IsOpen) ShowPalette();
+        else HidePalette();
+    }
+
+    private void ShowPalette()
+    {
+        PaletteLayer.Visibility = Visibility.Visible;
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        var group = (TransformGroup)PaletteCard.RenderTransform;
+        var scale = (ScaleTransform)group.Children[0];
+        var move = (TranslateTransform)group.Children[1];
+        PaletteLayer.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(160)) { EasingFunction = ease });
+        scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(220)) { EasingFunction = ease });
+        scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(220)) { EasingFunction = ease });
+        move.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-12, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = ease });
+        SoundService.Play(UiSound.Nav);
+        Dispatcher.BeginInvoke(() => { PaletteBox.Focus(); Keyboard.Focus(PaletteBox); }, System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    private void HidePalette()
+    {
+        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(120));
+        fade.Completed += (_, _) => { if (!Vm.Palette.IsOpen) PaletteLayer.Visibility = Visibility.Collapsed; };
+        PaletteLayer.BeginAnimation(OpacityProperty, fade);
+    }
+
+    private void PaletteBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Key.Down: Vm.Palette.Move(1); break;
+            case Key.Up: Vm.Palette.Move(-1); break;
+            case Key.PageDown: Vm.Palette.Move(5); break;
+            case Key.PageUp: Vm.Palette.Move(-5); break;
+            case Key.Enter: Vm.Palette.Run(null); break;
+            case Key.Escape: Vm.Palette.Close(); break;
+            default: return;
+        }
+        e.Handled = true;
+    }
+
+    private void PaletteBackdrop_MouseDown(object sender, MouseButtonEventArgs e) => Vm.Palette.Close();
+
+    private void PaletteList_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        var item = ItemsControl.ContainerFromElement(PaletteList, (DependencyObject)e.OriginalSource) as ListBoxItem;
+        if (item?.DataContext is Scour.Core.Search.CommandEntry entry) Vm.Palette.Run(entry);
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e) => Vm.CurrentPage = Vm.Settings;

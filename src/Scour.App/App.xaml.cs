@@ -49,6 +49,7 @@ public partial class App : Application
 
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
         _vm = new MainViewModel(_services);
+        _vm.QuickClean = () => _ = QuickCleanAsync();
         _window = new MainWindow { DataContext = _vm, SkipIntro = screenshots };
         MainWindow = _window;
         _window.Closing += OnMainWindowClosing;
@@ -75,10 +76,21 @@ public partial class App : Application
         if (!startHidden) _window.Show();
 
         StartDiskWatch();
+        _ = UpdateService.CleanUpAsync();
+        if (_services.Settings.CheckForUpdates) _ = CheckForUpdatesLaterAsync();
         // Re-register scheduled tasks so they follow Scour if its exe was moved.
         if (_services.Settings.AutoClean != CleaningSchedule.Off || _services.Settings.StartInTray)
             _ = ScheduleService.ApplyAsync(_services.Settings);
     }
+
+    private async Task CheckForUpdatesLaterAsync()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(8)); // don't compete with startup work
+        if (_vm is not null) await _vm.CheckForUpdatesAsync(silent: true);
+    }
+
+    /// <summary>The new version has started; get out of its way.</summary>
+    public void QuitForUpdate() => Quit();
 
     public void EnsureTray()
     {
@@ -137,7 +149,9 @@ public partial class App : Application
         s.Settings.LastCleanupUtc = DateTime.UtcNow;
         s.Settings.Save();
         SoundService.Play(UiSound.Success);
-        _tray?.Notify("Quick clean finished", result.BytesFreed > 0 ? $"Freed {Format.Bytes(result.BytesFreed)}." : "Nothing to clean — already tidy.");
+        var message = result.BytesFreed > 0 ? $"Freed {Format.Bytes(result.BytesFreed)}." : "Nothing to clean — already tidy.";
+        if (_tray is not null && _window?.IsVisible != true) _tray.Notify("Quick clean finished", message);
+        else Dialogs.Info("Quick clean finished. " + message);
     }
 
     private static async Task RunScheduledCleanAsync(AppServices s)

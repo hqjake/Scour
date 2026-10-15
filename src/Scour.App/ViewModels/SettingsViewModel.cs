@@ -141,8 +141,32 @@ public sealed partial class SettingsViewModel(AppServices services) : PageViewMo
     /// <summary>Re-reads every setting (after changes made elsewhere, e.g. the sidebar toggles).</summary>
     public void Refresh() => OnPropertyChanged(string.Empty);
 
+    // ---- updates
+
+    /// <summary>Set by the main view model; returns a sentence describing the result.</summary>
+    public Func<Task<string>>? CheckForUpdates { get; set; }
+
+    [ObservableProperty] private string _updateCheckStatus = "";
+    [ObservableProperty] private bool _isCheckingForUpdates;
+
+    public bool AutoCheckForUpdates
+    {
+        get => S.CheckForUpdates;
+        set { S.CheckForUpdates = value; Save(); }
+    }
+
+    [RelayCommand]
+    private async Task CheckNowAsync()
+    {
+        if (CheckForUpdates is null) return;
+        IsCheckingForUpdates = true;
+        UpdateCheckStatus = "Checking…";
+        UpdateCheckStatus = await CheckForUpdates();
+        IsCheckingForUpdates = false;
+    }
+
     public string DataFolder => services.Folders.AppDataDir;
-    public string Version => typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3) ?? "";
+    public string Version => UpdateService.CurrentVersion.ToString(3);
 
     private void Save()
     {

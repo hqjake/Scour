@@ -92,12 +92,29 @@
             <Border Style="{StaticResource Panel}">
                 <StackPanel>
                     <TextBlock>
-                        <Run Text="Scour Uninstaller " FontWeight="SemiBold" /><Run Text="{Binding Version, Mode=OneWay}" />
+                        <Run Text="Scour " FontWeight="SemiBold" /><Run Text="{Binding Version, Mode=OneWay}" />
                     </TextBlock>
                     <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0">
                         <Run Text="Backups and trace logs are stored in " /><Run Text="{Binding DataFolder, Mode=OneWay}" />
                     </TextBlock>
                     <Button Content="Open data folder" Command="{Binding OpenDataFolderCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
+
+                    <CheckBox IsChecked="{Binding AutoCheckForUpdates}" Margin="0,18,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Check for Scour updates automatically" />
+                            <TextBlock Style="{StaticResource Caption}" Text="Looks for a new release on GitHub when Scour starts. Nothing is installed without asking." />
+                        </StackPanel>
+                    </CheckBox>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Command="{Binding CheckNowCommand}" IsEnabled="{Binding IsCheckingForUpdates, Converter={StaticResource InverseBool}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Glyph}" Text="&#xE777;" FontSize="14" />
+                                <TextBlock Text="Check now" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                        <TextBlock Text="{Binding UpdateCheckStatus}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="12,0,0,0"
+                                   TextWrapping="Wrap" MaxWidth="520" Foreground="{DynamicResource Scour.AccentHiBrush}" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </StackPanel>

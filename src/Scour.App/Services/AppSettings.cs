@@ -29,6 +29,7 @@ public sealed class AppSettings
     public bool LowDiskAlerts { get; set; } = true;
     public DateTime? LastLowDiskAlertUtc { get; set; }
     public bool TrayHintShown { get; set; }
+    public bool CheckForUpdates { get; set; } = true;
 
     private static readonly JsonSerializerOptions Options = new()
     {
