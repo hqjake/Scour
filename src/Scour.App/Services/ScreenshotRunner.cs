@@ -51,11 +51,13 @@ public static class ScreenshotRunner
             await Shot<BloatwareViewModel>(window, vm, dir, "bloatware", null, 120);
             await Shot<PrivacyViewModel>(window, vm, dir, "privacy-tweaks", null);
             await Shot<BrowserPrivacyViewModel>(window, vm, dir, "browser-privacy", null);
+            await Shot<BrowserExtensionsViewModel>(window, vm, dir, "browser-extensions", null);
             await Shot<FileFinderViewModel>(window, vm, dir, "duplicates", null);
             await Shot<RegistryCleanerViewModel>(window, vm, dir, "registry-cleaner", p => p.ScanCommand.ExecuteAsync(null), 180);
             await Shot<SystemInfoViewModel>(window, vm, dir, "system-info", null, 120);
             await Shot<RepairViewModel>(window, vm, dir, "repair-center", null);
             await Shot<AutorunViewModel>(window, vm, dir, "startup", null);
+            await Shot<ContextMenuViewModel>(window, vm, dir, "context-menu", null);
             await Shot<DiskAnalyzerViewModel>(window, vm, dir, "disk-analyzer", p => p.ScanCommand.ExecuteAsync(null), 600);
             await Shot<UsbViewModel>(window, vm, dir, "usb-tools", null);
             await Shot(window, dir, "settings", vm.Settings, null);

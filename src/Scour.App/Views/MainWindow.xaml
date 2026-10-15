@@ -27,6 +27,8 @@
         <DataTemplate DataType="{x:Type vm:BloatwareViewModel}"><v:BloatwareView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:PrivacyViewModel}"><v:PrivacyView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ReinstallKitViewModel}"><v:ReinstallKitView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BrowserExtensionsViewModel}"><v:BrowserExtensionsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ContextMenuViewModel}"><v:ContextMenuView /></DataTemplate>
     </Window.Resources>
 
     <Window.InputBindings>

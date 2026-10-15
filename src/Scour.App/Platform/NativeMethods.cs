@@ -52,6 +52,17 @@ internal static partial class NativeMethods
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     public static extern int SHEmptyRecycleBin(IntPtr hwnd, string? pszRootPath, uint dwFlags);
 
+    [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+    public static extern int SHLoadIndirectString(string pszSource, System.Text.StringBuilder pszOutBuf, int cchOutBuf, IntPtr ppvReserved);
+
+    /// <summary>"@shell32.dll,-8506" → the localised text, or null.</summary>
+    public static string? LoadIndirectString(string source)
+    {
+        var sb = new System.Text.StringBuilder(512);
+        try { return SHLoadIndirectString(source, sb, sb.Capacity, IntPtr.Zero) == 0 ? sb.ToString() : null; }
+        catch { return null; }
+    }
+
     [DllImport("shell32.dll")]
     public static extern int SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags, IntPtr hToken, out IntPtr ppszPath);
 

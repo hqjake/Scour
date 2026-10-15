@@ -88,6 +88,8 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
         [typeof(RepairViewModel)] = ["fix", "sfc", "dism", "chkdsk", "network reset", "repair"],
         [typeof(AutorunViewModel)] = ["startup", "autorun", "boot", "sign in", "scheduled tasks"],
         [typeof(DiskAnalyzerViewModel)] = ["disk", "space", "wiztree", "treemap", "folder size", "storage"],
+        [typeof(BrowserExtensionsViewModel)] = ["extensions", "add-ons", "addons", "plugins", "managed by your organization", "hijack"],
+        [typeof(ContextMenuViewModel)] = ["right click", "right-click", "context menu", "shell extensions", "explorer menu"],
         [typeof(UsbViewModel)] = ["usb", "format", "bootable", "iso", "rufus", "flash drive"],
     };
 
