@@ -126,8 +126,10 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
             RunOn<AppUpdatesViewModel>(p => p.RefreshCommand.ExecuteAsync(null))));
         list.Add(Entry("Apply recommended privacy protections", "Turn off telemetry, ads and tracking", "Action", "", ["privacy", "telemetry", "tracking"],
             RunOn<PrivacyViewModel>(p => { p.ApplyRecommendedCommand.Execute(null); return Task.CompletedTask; })));
-        list.Add(Entry(main.GameMode.IsOn ? "Turn off Game mode" : "Turn on Game mode", "Give the PC to your game · " + GameModeHotkey.Description,
+        list.Add(Entry(main.GameMode.IsOn ? "Turn off Game mode" : "Turn on Game mode", "Give the PC to your game · " + GlobalHotkeys.GameModeShortcut,
             "Action", "\uE7FC", ["game", "gaming", "fps", "boost", "performance"], (Func<Task>)(() => main.GameMode.ToggleCommand.ExecuteAsync(null))));
+        list.Add(Entry(services.Overlay.IsVisible ? "Hide the in-game overlay" : "Show the in-game overlay", "FPS, CPU, GPU and memory · " + GlobalHotkeys.OverlayShortcut,
+            "Action", "\uE7F4", ["overlay", "fps", "frame rate", "counter", "osd"], () => services.Overlay.Toggle()));
         list.Add(Entry("Create a problem report", "Zip logs and system info to send when something doesn't work", "Action", "\uEBE8",
             ["bug", "report", "logs", "support", "help", "error"],
             (Func<Task>)(() => { main.Navigate(main.Settings); return main.Settings.CreateProblemReportCommand.ExecuteAsync(null); })));

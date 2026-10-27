@@ -43,6 +43,11 @@ public sealed class AppSettings
     /// <summary>Folders the user added as games (anything a launcher doesn't report).</summary>
     public List<string> CustomGameFolders { get; set; } = [];
 
+    public Scour.App.Views.OverlayCorner OverlayCorner { get; set; } = Scour.App.Views.OverlayCorner.TopLeft;
+
+    /// <summary>Show the in-game overlay whenever Game mode is on.</summary>
+    public bool OverlayWithGameMode { get; set; }
+
     private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,

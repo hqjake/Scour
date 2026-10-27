@@ -19,7 +19,7 @@ public partial class App : Application
     private MainWindow? _window;
     private MainViewModel? _vm;
     private DispatcherTimer? _diskTimer;
-    private GameModeHotkey? _hotkey;
+    private GlobalHotkeys? _hotkeys;
     private bool _sessionEnding;
 
     /// <summary>Set when the user really wants to quit (tray "Exit"), so closing the window doesn't just hide it.</summary>
@@ -96,7 +96,9 @@ public partial class App : Application
 
         StartDiskWatch();
         _vm.GameMode.Changed += on => _tray?.SetGameMode(on);
-        _hotkey = new GameModeHotkey(ToggleGameMode);
+        _hotkeys = new GlobalHotkeys();
+        _hotkeys.Register('G', ToggleGameMode);
+        _hotkeys.Register('O', () => _services.Overlay.Toggle());
         _vm.GameMode.StartWatching();
         UpdateService.CleanUpAsync().Forget("Removing the previous version", report: false);
         if (_services.Settings.CheckForUpdates) CheckForUpdatesLaterAsync().Forget("Checking for updates", report: false);
@@ -182,7 +184,8 @@ public partial class App : Application
     {
         if (ExitRequested) return;
         ExitRequested = true;
-        _hotkey?.Dispose();
+        _hotkeys?.Dispose();
+        _services?.Overlay.Dispose();
         _vm?.GameMode.StopWatching();
         _diskTimer?.Stop();
         RemoveTray();

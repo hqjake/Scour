@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Scour.App.Platform;
 using Scour.App.Services;
+using Scour.App.Views;
 using Scour.Core.Gaming;
 
 namespace Scour.App.ViewModels;
@@ -85,6 +86,9 @@ public sealed partial class GameModeViewModel : PageViewModel
         _watcher = new GameWatcher(FindGames);
         _watcher.GameStarted += OnGameStarted;
         _watcher.GameStopped += OnGameStopped;
+        _overlayWithGameMode = services.Settings.OverlayWithGameMode;
+        _overlayCorner = services.Settings.OverlayCorner;
+        services.Overlay.Changed += on => OnPropertyChanged(nameof(OverlayVisible));
         Refresh();
     }
 
@@ -104,7 +108,36 @@ public sealed partial class GameModeViewModel : PageViewModel
 
     public bool CanChooseBoosts => !IsOn;
     public string ToggleText => IsOn ? "Turn off Game mode" : "Turn on Game mode";
-    public string HotkeyText => GameModeHotkey.Description;
+    public string HotkeyText => GlobalHotkeys.GameModeShortcut;
+    public string OverlayHotkeyText => GlobalHotkeys.OverlayShortcut;
+    public OverlayCorner[] OverlayCorners { get; } = Enum.GetValues<OverlayCorner>();
+
+    [ObservableProperty] private bool _overlayWithGameMode;
+    [ObservableProperty] private OverlayCorner _overlayCorner;
+
+    /// <summary>The in-game overlay (FPS, CPU, GPU, RAM) is on screen.</summary>
+    public bool OverlayVisible
+    {
+        get => _s.Overlay.IsVisible;
+        set
+        {
+            if (value) _s.Overlay.Show();
+            else _s.Overlay.Hide();
+        }
+    }
+
+    partial void OnOverlayWithGameModeChanged(bool value)
+    {
+        _s.Settings.OverlayWithGameMode = value;
+        _s.Settings.Save();
+    }
+
+    partial void OnOverlayCornerChanged(OverlayCorner value)
+    {
+        _s.Settings.OverlayCorner = value;
+        _s.Settings.Save();
+        _s.Overlay.Corner = value;
+    }
 
     /// <summary>Raised after Game mode was switched (tray menu and sidebar follow it).</summary>
     public event Action<bool>? Changed;
@@ -162,6 +195,7 @@ public sealed partial class GameModeViewModel : PageViewModel
                                  new Scour.Core.Removal.UndoInfo(ChangeHistory.GameModeOn, ""));
             foreach (var l in lines) Log.Add(l);
             StatusText = game is null ? "Game mode is on. Have a good game!" : $"Game mode switched on for {game.Name}. It switches off when the game closes.";
+            if (OverlayWithGameMode) _s.Overlay.Show();
             SoundService.Play(UiSound.Success);
         });
     }
@@ -172,6 +206,7 @@ public sealed partial class GameModeViewModel : PageViewModel
         ChangeHistory.Record("Game mode", "Turned Game mode off", errors.Count == 0 ? "Every setting was put back." : string.Join(" ", errors));
         foreach (var e in errors) Log.Add(e);
         StatusText = errors.Count == 0 ? "Game mode is off; everything is back as it was." : "Game mode is off, but some settings couldn't be put back (see below).";
+        if (OverlayWithGameMode) _s.Overlay.Hide();
         SoundService.Play(errors.Count == 0 ? UiSound.Click : UiSound.Warning);
     });
 

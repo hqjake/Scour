@@ -96,6 +96,7 @@ public static class ThemeService
     /// <summary>Colours the native title bar to match the theme and gives the window a neon border.</summary>
     public static void StyleWindow(Window window)
     {
+        if (window is Views.OverlayWindow) return; // borderless and see-through by design
         var hwnd = new WindowInteropHelper(window).Handle;
         if (hwnd == IntPtr.Zero)
         {

@@ -61,6 +61,29 @@
 
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
             <StackPanel>
+                <TextBlock Text="In-game overlay" Style="{StaticResource SectionTitle}" Margin="2,0,0,8" />
+                <Border Style="{StaticResource Card}" Margin="0,0,0,16" Padding="16,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" FontSize="14">
+                                <Run Text="FPS, CPU, GPU and memory over your game · " /><Run Text="{Binding OverlayHotkeyText, Mode=OneWay}" />
+                            </TextBlock>
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,2,0,6"
+                                       Text="Shows in windowed and borderless full-screen games (most games' default). Exclusive full-screen hides every other window, including this one." />
+                            <CheckBox Content="Show it whenever Game mode is on" IsChecked="{Binding OverlayWithGameMode}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                            <CheckBox Content="Show now" IsChecked="{Binding OverlayVisible}" />
+                            <ComboBox ItemsSource="{Binding OverlayCorners}" SelectedItem="{Binding OverlayCorner}" Margin="0,8,0,0" MinWidth="130"
+                                      ToolTip="Which corner of the screen" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
                 <TextBlock Text="Boosts" Style="{StaticResource SectionTitle}" Margin="2,0,0,8" />
                 <TextBlock Style="{StaticResource Caption}" Margin="2,0,0,8" Text="Turn Game mode off to change which boosts it uses."
                            Visibility="{Binding IsOn, Converter={StaticResource TruthyToVisibility}}" />

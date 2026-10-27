@@ -26,6 +26,7 @@ public sealed class AppServices
     public IconCache Icons { get; }
     public IServiceController ServiceController { get; }
     public GameModeService GameMode { get; }
+    public OverlayService Overlay { get; }
 
     /// <summary>Apps with updates at the last check (null until App updates has run).</summary>
     public int? LastUpdatesCount { get; set; }
@@ -49,6 +50,7 @@ public sealed class AppServices
         ServiceController = new WindowsServiceController();
         GameMode = GameModeService.Create(Folders.AppDataDir, Registry, FileSystem);
         ChangeHistory.Initialize(FileSystem, Folders.AppDataDir);
+        Overlay = new OverlayService { Corner = Settings.OverlayCorner };
     }
 
     /// <summary>Raised when something outside the programs page installed or removed software.</summary>
