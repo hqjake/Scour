@@ -157,9 +157,9 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
 
         // Pages.
         foreach (var page in main.Pages)
-            list.Add(Entry(page.Title, $"Open · {page.Group}", "Page", page.Glyph,
-                PageKeywords.GetValueOrDefault(page.GetType(), []), () => main.Navigate(page)));
-        list.Add(Entry("Settings", "Open · Scour", "Page", main.Settings.Glyph, ["options", "preferences", "configure"], () => main.Navigate(main.Settings)));
+            list.Add(Entry(Loc.T(page.Title), $"{Loc.T("Open")} · {Loc.T(page.Group)}", "Page", page.Glyph,
+                [.. PageKeywords.GetValueOrDefault(page.GetType(), []), page.Title.ToLowerInvariant()], () => main.Navigate(page)));
+        list.Add(Entry(Loc.T("Settings"), Loc.T("Open") + " · Scour", "Page", main.Settings.Glyph, ["options", "preferences", "configure"], () => main.Navigate(main.Settings)));
 
         // Repairs.
         if (main.Pages.OfType<RepairViewModel>().FirstOrDefault() is { } repair)

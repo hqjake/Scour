@@ -85,6 +85,13 @@ public static class ScreenshotRunner
             await Shot(window, dir, "dashboard-light", vm.Dashboard, null);
             await Shot<DiskAnalyzerViewModel>(window, vm, dir, "disk-analyzer-light", null);
             ThemeService.Apply(dark: true);
+
+            // Every page again with a translation loaded, to catch problems the translator causes.
+            Log("Switching to German");
+            Loc.Initialize("de");
+            if (Loc.Current != "de") Problem("The German translation didn't load");
+            Visited.Clear();
+            foreach (var page in vm.Pages.ToList()) await Visit(window, page);
             Log("Done");
         }
         catch (Exception e)

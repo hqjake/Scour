@@ -31,6 +31,9 @@ public sealed class AppSettings
     public bool TrayHintShown { get; set; }
     public bool CheckForUpdates { get; set; } = true;
 
+    /// <summary>Interface language code; "" follows Windows.</summary>
+    public string Language { get; set; } = "";
+
     /// <summary>Game mode boosts the user picked; null until they change the defaults.</summary>
     public List<string>? GameModeBoosts { get; set; }
 

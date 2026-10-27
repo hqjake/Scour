@@ -30,6 +30,7 @@
     <Resource Include="Assets\scour.png" />
     <Resource Include="Assets\scour.ico" />
     <Resource Include="Assets\Sounds\*.wav" />
+    <Resource Include="Assets\Lang\*.json" />
   </ItemGroup>
 
   <ItemGroup>

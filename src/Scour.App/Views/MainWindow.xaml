@@ -110,7 +110,7 @@
                             <GroupStyle>
                                 <GroupStyle.HeaderTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" FontSize="10" FontWeight="SemiBold" Margin="22,14,0,4"
+                                        <TextBlock Text="{Binding Name, Converter={StaticResource Tr}}" FontSize="10" FontWeight="SemiBold" Margin="22,14,0,4"
                                                    Foreground="{DynamicResource Scour.Text3Brush}" Typography.Capitals="AllSmallCaps" />
                                     </DataTemplate>
                                 </GroupStyle.HeaderTemplate>
@@ -120,7 +120,7 @@
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Style="{StaticResource Glyph}" Text="{Binding Glyph}" Width="20" FontSize="15" />
-                                    <TextBlock Text="{Binding Title}" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding Title, Converter={StaticResource Tr}}" Margin="12,0,0,0" VerticalAlignment="Center" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

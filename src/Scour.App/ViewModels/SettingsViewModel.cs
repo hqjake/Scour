@@ -167,6 +167,31 @@ public sealed partial class SettingsViewModel(AppServices services) : PageViewMo
         IsCheckingForUpdates = false;
     }
 
+    public Loc.LanguageOption[] Languages => Loc.Languages;
+
+    [ObservableProperty] private bool _languageChanged;
+
+    public string Language
+    {
+        get => S.Language;
+        set
+        {
+            if (S.Language == value) return;
+            S.Language = value ?? "";
+            S.Save();
+            LanguageChanged = true;
+        }
+    }
+
+    /// <summary>Starts a fresh copy of Scour (to switch language) and closes this one.</summary>
+    [RelayCommand]
+    private void Restart()
+    {
+        if (Environment.ProcessPath is not { } exe) return;
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = true });
+        ((App)System.Windows.Application.Current).QuitForUpdate();
+    }
+
     public string DataFolder => services.Folders.AppDataDir;
     public string Version => UpdateService.CurrentVersion.ToString(3);
 

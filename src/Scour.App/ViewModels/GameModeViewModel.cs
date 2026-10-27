@@ -100,14 +100,15 @@ public sealed partial class GameModeViewModel : PageViewModel
     public ObservableCollection<string> Log { get; } = [];
     public ObservableCollection<GameItemViewModel> Games { get; } = [];
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanChooseBoosts), nameof(ToggleText))] private bool _isOn;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanChooseBoosts), nameof(ToggleText), nameof(HeroTitle))] private bool _isOn;
     [ObservableProperty] private string _onSinceText = "";
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(ToggleCommand))] private bool _isBusy;
     [ObservableProperty] private bool _autoGameMode;
     [ObservableProperty] private string _gamesStatus = "";
 
     public bool CanChooseBoosts => !IsOn;
-    public string ToggleText => IsOn ? "Turn off Game mode" : "Turn on Game mode";
+    public string ToggleText => Loc.T(IsOn ? "Turn off Game mode" : "Turn on Game mode");
+    public string HeroTitle => Loc.T(IsOn ? "Game mode is on" : "Game mode is off");
     public string HotkeyText => GlobalHotkeys.GameModeShortcut;
     public string OverlayHotkeyText => GlobalHotkeys.OverlayShortcut;
     public OverlayCorner[] OverlayCorners { get; } = Enum.GetValues<OverlayCorner>();

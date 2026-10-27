@@ -45,6 +45,7 @@ public partial class App : Application
             new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
         Scour.Core.Shortcuts.LnkParser.AnsiEncoding = ProcessRunner.AnsiEncoding;
         _services = new AppServices();
+        if (!e.Args.Contains("--screenshots", StringComparer.OrdinalIgnoreCase)) Loc.Initialize(_services.Settings.Language);
 
         if (e.Args.Contains("--autoclean", StringComparer.OrdinalIgnoreCase))
         {
