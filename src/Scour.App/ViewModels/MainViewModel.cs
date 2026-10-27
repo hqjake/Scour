@@ -41,6 +41,7 @@ public sealed partial class MainViewModel : ObservableObject
             new FileFinderViewModel(services),
             new RegistryCleanerViewModel(services),
             new TaskManagerViewModel(),
+            new SensorsViewModel(),
             new BootTimeViewModel(Navigate),
             new WindowsUpdateViewModel(services),
             new SystemInfoViewModel(),
