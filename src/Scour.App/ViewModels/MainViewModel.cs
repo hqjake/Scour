@@ -41,6 +41,7 @@ public sealed partial class MainViewModel : ObservableObject
             new RegistryCleanerViewModel(services),
             new TaskManagerViewModel(),
             new BootTimeViewModel(Navigate),
+            new WindowsUpdateViewModel(services),
             new SystemInfoViewModel(),
             new RepairViewModel(services),
             new AutorunViewModel(services),
