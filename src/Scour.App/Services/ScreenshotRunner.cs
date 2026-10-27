@@ -74,6 +74,12 @@ public static class ScreenshotRunner
             await Shot<DriversViewModel>(window, vm, dir, "drivers", null, 180);
             await Shot<DiskAnalyzerViewModel>(window, vm, dir, "disk-analyzer", p => p.ScanCommand.ExecuteAsync(null), 600);
             await Shot<UsbViewModel>(window, vm, dir, "usb-tools", null);
+            await Shot<TaskManagerViewModel>(window, vm, dir, "task-manager", null);
+            await Shot<SensorsViewModel>(window, vm, dir, "sensors", _ => Task.Delay(4500)); // a few samples for the readings
+            await Shot<BootTimeViewModel>(window, vm, dir, "boot-time", null);
+            await Shot<WindowsUpdateViewModel>(window, vm, dir, "windows-update", null, 180);
+            await Shot<DeviceAccessViewModel>(window, vm, dir, "camera-microphone", null);
+            await Shot<ChangeHistoryViewModel>(window, vm, dir, "change-history", null);
             await Shot(window, dir, "settings", vm.Settings, null);
 
             // Every other page must at least open and load cleanly.

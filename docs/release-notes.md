@@ -1,20 +1,17 @@
-Game mode, plus fixes for features that failed or showed empty pages on many PCs, especially non-English Windows.
+Task manager, sensors, an in-game overlay, automatic Game mode, change history with undo, and Scour in five more languages.
 
-**New in 1.3.0: Game mode**
+**New in 1.4.0**
 
-- One switch (on its own page, in the tray menu, or **Ctrl+Alt+G** from inside a game) that hands the PC to your game: maximum performance power plan, Windows Game Mode on, Xbox Game Bar background recording off, notifications silenced, launchers/sync clients/updaters slowed down, and optionally raw mouse movement.
-- Every original setting is saved first and put back exactly when you turn it off, even after a restart. Scour's own cleaning and alerts pause while it's on.
-
-**Fixed in 1.3.0**
-
-- **Non-English Windows** — messages from Windows tools (repairs, drivers, DISM, services) were garbled; restore-point cleanup always said "nothing to remove"; removing Windows.old failed; number boxes rejected decimal commas; valid shortcuts with non-English folder names were flagged as broken.
-- **Pages no longer stay empty** — if a page can't load, it says why and tries again next time; errors are saved to `%ProgramData%\Scour\error.log`.
-- **Standard user accounts** — when Windows starts Scour with another administrator's password, Scour now works on the signed-in user's browsers, junk, startup apps, settings and Store apps instead of the administrator's. App updates find winget in that case too.
-- **Antivirus-friendly PowerShell** — PowerShell tasks run from a protected script file instead of a hidden encoded command, which security software often blocked (Windows apps, USB tools, DNS, restore points).
-- **Windows tools are always started from System32**, so a damaged PATH no longer breaks Windows apps, DNS switching, USB tools and restore points.
-- **App updates** work with older winget versions on Windows 10.
-- **OneDrive folders** (Desktop, Documents with Files On-Demand) are included in disk analysis, large files and duplicates; online-only files aren't downloaded just to compare them.
-- **Browsers** — newer Opera profile layouts, Firefox profiles kept elsewhere or installed from the Store, clearer "close the browser" messages, and one broken extension no longer hides the rest.
-- The dashboard no longer freezes with a sleeping external disk or card reader; the uninstall wizard can always be closed after an error; Explorer restarts no longer open a second window; Sync the clock retries; privacy-tweak undo restores non-standard original values exactly; re-enabling a context-menu entry no longer fails; registry entries Windows protects are reported as not removed instead of removed; "Manage" on a browser extension opens your normal browser window instead of a second administrator copy; the dashboard stops sampling while it isn't on screen.
+- **Task manager** — live CPU, memory, disk and network use per program; end tasks, change priority, check a program on VirusTotal. A **Services** tab and **Unlock files**: see which program is holding a file that won't delete, and release it.
+- **Automatic Game mode** — Scour finds your Steam, Epic, GOG, Ubisoft, EA, Riot and Xbox games and switches Game mode on while one runs. Each game can have its own boosts.
+- **In-game overlay** — FPS, CPU, GPU and memory in a corner of the screen; **Ctrl+Alt+O** shows or hides it.
+- **Sensors** — GPU temperature, fan speed, power and load (NVIDIA, AMD and Intel), motherboard and drive temperatures. No driver is installed.
+- **Boot time** — how long every start of Windows took, and which apps, drivers and services slowed it down.
+- **Windows Update** — pause updates, see what was installed and what failed, and hide an update you don't want.
+- **Camera & microphone** — which apps used your camera, microphone and location, and when; block the ones that shouldn't.
+- **Battery health** — how much charge a laptop battery still holds, and its charge cycles.
+- **Change history** — everything Scour changed, with one-click undo where it can be reversed.
+- **Problem report** — Settings → Create problem report zips the details onto your Desktop to send when something doesn't work.
+- **Languages** — Deutsch, Español, Français, Italiano and Português, following your Windows language (Settings → Language).
 
 Download `Scour.exe` below — a single file, no installation or .NET runtime needed. Installed copies of Scour offer this update automatically.
