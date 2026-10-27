@@ -92,6 +92,66 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+
+                <!-- Automatic Game mode and per-game choices. -->
+                <TextBlock Text="Your games" Style="{StaticResource SectionTitle}" Margin="2,18,0,8" />
+                <Border Style="{StaticResource Card}" Margin="0,0,0,8" Padding="16,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Switch on automatically when I play" FontWeight="SemiBold" FontSize="14" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,2,0,0"
+                                       Text="Game mode turns itself on when one of the games below starts, and off again when it closes. Games from Steam, Epic, GOG, Ubisoft, EA, Riot and Xbox are found automatically." />
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding AutoGameMode}" MinWidth="0" VerticalAlignment="Center" Margin="16,0,0,0" />
+                    </Grid>
+                </Border>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
+                    <Button Style="{StaticResource ToolButton}" Command="{Binding AddGameFolderCommand}" Content="Add a game folder…" />
+                    <Button Style="{StaticResource ToolButton}" Command="{Binding RescanGamesCommand}" Content="Look for games again" />
+                    <TextBlock Text="{Binding GamesStatus}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding Games}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,6" Padding="14,8">
+                                <Expander>
+                                    <Expander.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding Details}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1" Content="Automatic" IsChecked="{Binding Auto}" VerticalAlignment="Center" Margin="12,0,0,0"
+                                                      ToolTip="Switch Game mode on when this game starts" />
+                                        </Grid>
+                                    </Expander.Header>
+                                    <StackPanel Margin="4,8,0,4">
+                                        <CheckBox Content="Use its own boosts instead of the ones above" IsChecked="{Binding UseOwnBoosts}" />
+                                        <ItemsControl ItemsSource="{Binding Boosts}" Margin="22,6,0,0" IsEnabled="{Binding UseOwnBoosts}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" Margin="0,2" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Button Style="{StaticResource ToolButton}" Content="Remove from the list" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                                Command="{Binding DataContext.RemoveGameFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Visibility="{Binding IsCustom, Converter={StaticResource TruthyToVisibility}}" />
+                                    </StackPanel>
+                                </Expander>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
         </ScrollViewer>
 

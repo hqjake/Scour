@@ -97,6 +97,7 @@ public partial class App : Application
         StartDiskWatch();
         _vm.GameMode.Changed += on => _tray?.SetGameMode(on);
         _hotkey = new GameModeHotkey(ToggleGameMode);
+        _vm.GameMode.StartWatching();
         UpdateService.CleanUpAsync().Forget("Removing the previous version", report: false);
         if (_services.Settings.CheckForUpdates) CheckForUpdatesLaterAsync().Forget("Checking for updates", report: false);
         // Re-register scheduled tasks so they follow Scour if its exe was moved.
@@ -182,6 +183,7 @@ public partial class App : Application
         if (ExitRequested) return;
         ExitRequested = true;
         _hotkey?.Dispose();
+        _vm?.GameMode.StopWatching();
         _diskTimer?.Stop();
         RemoveTray();
         if (closeWindow) _window?.Close();

@@ -34,6 +34,15 @@ public sealed class AppSettings
     /// <summary>Game mode boosts the user picked; null until they change the defaults.</summary>
     public List<string>? GameModeBoosts { get; set; }
 
+    /// <summary>Switch Game mode on while an installed game runs, and off when it exits.</summary>
+    public bool AutoGameMode { get; set; }
+
+    /// <summary>Per-game choices, keyed by <see cref="Scour.Core.Gaming.GameInfo.Id"/>.</summary>
+    public Dictionary<string, GameProfile> GameProfiles { get; set; } = [];
+
+    /// <summary>Folders the user added as games (anything a launcher doesn't report).</summary>
+    public List<string> CustomGameFolders { get; set; } = [];
+
     private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
@@ -63,4 +72,13 @@ public sealed class AppSettings
         }
         catch { /* settings are a convenience */ }
     }
+}
+
+public sealed class GameProfile
+{
+    /// <summary>False: this game never switches Game mode on by itself.</summary>
+    public bool Auto { get; set; } = true;
+
+    /// <summary>Boosts for this game; null uses the ones chosen on the Game mode page.</summary>
+    public List<string>? Boosts { get; set; }
 }

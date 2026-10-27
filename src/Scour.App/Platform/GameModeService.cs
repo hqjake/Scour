@@ -22,10 +22,10 @@ public sealed class GameModeService(GameMode engine, IRegistry registry)
     public bool IsOn => State is not null;
 
     /// <summary>Turns Game mode on with the chosen boosts. Returns one line per boost describing what happened.</summary>
-    public List<string> Enable(IReadOnlyCollection<string> boostIds)
+    public List<string> Enable(IReadOnlyCollection<string> boostIds, string? forGameId = null)
     {
         var boosts = GameMode.All.Where(b => boostIds.Contains(b.Id)).ToList();
-        var state = engine.Load() ?? new GameModeState { StartedUtc = DateTime.UtcNow };
+        var state = engine.Load() ?? new GameModeState { StartedUtc = DateTime.UtcNow, StartedForGame = forGameId };
         state.Boosts = boosts.Select(b => b.Id).Union(state.Boosts).ToList();
         var log = new List<string>();
 

@@ -31,6 +31,9 @@ public sealed class GameModeState
     public Guid? PreviousPowerScheme { get; set; }
     public Guid? PreviousPowerOverlay { get; set; }
     public List<LoweredProcess> Lowered { get; set; } = [];
+
+    /// <summary>Set when Game mode switched itself on for this game; it then switches off when the game exits.</summary>
+    public string? StartedForGame { get; set; }
 }
 
 /// <summary>A running process, as far as choosing what to slow down is concerned.</summary>
