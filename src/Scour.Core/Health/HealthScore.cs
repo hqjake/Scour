@@ -10,6 +10,7 @@ public enum HealthFix
     Antivirus,
     Updates,
     DriveHealth,
+    Battery,
 }
 
 public enum Severity
@@ -35,6 +36,7 @@ public sealed class HealthInputs
     public TimeSpan Uptime { get; init; }
     public DateTime? LastCleanupUtc { get; init; }
     public int? UpdatesAvailable { get; init; }
+    public BatteryHealth? Battery { get; init; }
     public DateTime NowUtc { get; init; } = DateTime.UtcNow;
 }
 
@@ -74,6 +76,11 @@ public static class HealthScore
             int p = startup switch { > 15 => 10, > 8 => 5, _ => 0 };
             if (p > 0) Add("Many programs start with Windows", $"{startup} programs launch at sign-in, slowing startup.", p, HealthFix.Startup, Severity.Info, "Review startup");
         }
+
+        // Battery: worth knowing, but only a worn-out one costs points (it's not something cleaning fixes).
+        if (i.Battery is { HealthPercent: < 60 } battery)
+            Add($"Battery holds {battery.HealthPercent}% of its original charge", "It runs out much sooner than when new. A replacement battery restores the running time.",
+                battery.HealthPercent < 40 ? 8 : 4, HealthFix.Battery, battery.HealthPercent < 40 ? Severity.Warning : Severity.Info, "See battery details");
 
         // Registry
         if (i.RegistryProblems is { } reg)

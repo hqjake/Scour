@@ -106,6 +106,7 @@ public sealed partial class DashboardViewModel : PageViewModel
             HealthFix.Registry => typeof(RegistryCleanerViewModel),
             HealthFix.Updates => typeof(AppUpdatesViewModel),
             HealthFix.DriveHealth => typeof(SystemInfoViewModel),
+            HealthFix.Battery => typeof(SystemInfoViewModel),
             _ => null,
         };
         if (page is not null)

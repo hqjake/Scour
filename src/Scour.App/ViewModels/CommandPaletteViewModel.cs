@@ -72,6 +72,8 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
     {
         [typeof(DashboardViewModel)] = ["home", "overview", "health", "score"],
         [typeof(TaskManagerViewModel)] = ["task manager", "processes", "end task", "kill", "services", "unlock", "file in use", "locked", "cpu usage"],
+        [typeof(DeviceAccessViewModel)] = ["camera", "webcam", "microphone", "mic", "location", "gps", "spying", "permissions"],
+        [typeof(BootTimeViewModel)] = ["boot", "startup time", "slow startup", "slow boot", "boot time"],
         [typeof(GameModeViewModel)] = ["game", "gaming", "fps", "performance", "boost", "turbo", "power plan"],
         [typeof(ProgramsViewModel)] = ["uninstall", "remove", "programs", "apps", "revo", "installed"],
         [typeof(AppUpdatesViewModel)] = ["update", "upgrade", "winget", "outdated"],

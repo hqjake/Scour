@@ -36,9 +36,11 @@ public sealed partial class MainViewModel : ObservableObject
             new BrowserPrivacyViewModel(services),
             new BrowserExtensionsViewModel(services),
             new PrivacyViewModel(services),
+            new DeviceAccessViewModel(services),
             new FileFinderViewModel(services),
             new RegistryCleanerViewModel(services),
             new TaskManagerViewModel(),
+            new BootTimeViewModel(Navigate),
             new SystemInfoViewModel(),
             new RepairViewModel(services),
             new AutorunViewModel(services),
@@ -170,6 +172,12 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     public void Navigate(PageViewModel page) => CurrentPage = page;
+
+    public void Navigate(Type pageType)
+    {
+        var page = Pages.FirstOrDefault(p => p.GetType() == pageType);
+        if (page is not null) CurrentPage = page;
+    }
 
     public void Navigate<T>() where T : PageViewModel
     {

@@ -419,18 +419,34 @@ public static class SystemInfoCollector
             s.Group("Battery").Add("Status", "No battery installed");
             return;
         }
-        var design = Query("SELECT DesignedCapacity FROM BatteryStaticData", @"root\wmi").Select(b => L(b, "DesignedCapacity")).FirstOrDefault();
-        var full = Query("SELECT FullChargedCapacity FROM BatteryFullChargedCapacity", @"root\wmi").Select(b => L(b, "FullChargedCapacity")).FirstOrDefault();
+        var health = Battery();
         foreach (var b in batteries)
         {
             var g = s.Group(S(b, "Name"))
                 .Add("Charge", $"{L(b, "EstimatedChargeRemaining")}%")
                 .Add("Status", H.BatteryStatus((int)L(b, "BatteryStatus")))
                 .Add("Chemistry", L(b, "Chemistry") switch { 6 => "Lithium-ion", 8 => "Lithium polymer", 3 => "Lead acid", 4 => "Nickel cadmium", 5 => "Nickel metal hydride", _ => "" });
-            if (design > 0 && full > 0)
-                g.Add("Design capacity", $"{design:N0} mWh").Add("Full charge capacity", $"{full:N0} mWh").Add("Health", $"{Math.Min(100, 100.0 * full / design):0}%");
             s.Summary = $"{L(b, "EstimatedChargeRemaining")}% · {H.BatteryStatus((int)L(b, "BatteryStatus"))}";
         }
+        if (health is not null)
+        {
+            s.Group("Battery health")
+                .Add("Health", $"{health.HealthPercent}% · {health.Rating}")
+                .Add("Design capacity", $"{health.DesignCapacityMWh:N0} mWh")
+                .Add("Full charge capacity", $"{health.FullChargeCapacityMWh:N0} mWh")
+                .Add("Charge cycles", health.CycleCount?.ToString("N0"));
+            s.Summary += $" · health {health.HealthPercent}%";
+        }
+    }
+
+    /// <summary>Battery wear from the firmware's own figures; null on desktops or when they aren't reported.</summary>
+    public static Scour.Core.Health.BatteryHealth? Battery()
+    {
+        if (Query("SELECT DeviceID FROM Win32_Battery").Count == 0) return null;
+        var design = Query("SELECT DesignedCapacity FROM BatteryStaticData", @"root\wmi").Select(b => L(b, "DesignedCapacity")).ToList();
+        var full = Query("SELECT FullChargedCapacity FROM BatteryFullChargedCapacity", @"root\wmi").Select(b => L(b, "FullChargedCapacity")).ToList();
+        var cycles = Query("SELECT CycleCount FROM BatteryCycleCount", @"root\wmi").Select(b => L(b, "CycleCount")).ToList();
+        return Scour.Core.Health.BatteryHealth.From(design, full, cycles);
     }
 
     private static void OperatingSystem(InfoSection s)
