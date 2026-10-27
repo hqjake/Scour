@@ -199,6 +199,7 @@ public partial class App : Application
         s.Settings.Save();
         SoundService.Play(UiSound.Success);
         var message = result.BytesFreed > 0 ? $"Freed {Format.Bytes(result.BytesFreed)}." : "Nothing to clean — already tidy.";
+        ChangeHistory.Record("Cleaning", "Quick clean", message);
         if (_tray is not null && _window?.IsVisible != true) _tray.Notify("Quick clean finished", message);
         else Dialogs.Info("Quick clean finished. " + message);
     }
@@ -217,6 +218,7 @@ public partial class App : Application
             }
             s.Settings.LastCleanupUtc = DateTime.UtcNow;
             s.Settings.Save();
+            ChangeHistory.Record("Cleaning", "Automatic cleaning", $"Freed {Format.BytesOrZero(freed)}.");
             if (freed > 0) await TrayService.NotifyOnceAsync("Scour cleaned your PC", $"Freed {Format.Bytes(freed)} of junk.");
         }
         catch { /* scheduled runs stay silent on failure */ }

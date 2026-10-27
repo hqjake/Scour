@@ -137,6 +137,7 @@ public sealed partial class AppUpdatesViewModel(AppServices services) : PageView
                 if (WingetParser.IsSuccess(code))
                 {
                     ok++;
+                    ChangeHistory.Record("App updates", $"Updated {item.Name}", $"{item.Version} → {item.Available}");
                     item.IsChecked = false;
                 }
                 else

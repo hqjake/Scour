@@ -76,6 +76,8 @@ public sealed partial class WindowsUpdateViewModel(AppServices services) : PageV
         {
             var until = _pause.Pause(PauseDays, DateTime.UtcNow);
             ShowPause();
+            ChangeHistory.Record("Windows Update", $"Paused updates until {until.ToLocalTime():g}", null,
+                                 new Scour.Core.Removal.UndoInfo(ChangeHistory.UpdatePause, ""));
             StatusText = $"Paused until {until.ToLocalTime():f}. Security updates wait too, so don't leave it paused for long.";
         }
         catch (Exception e)
@@ -91,6 +93,7 @@ public sealed partial class WindowsUpdateViewModel(AppServices services) : PageV
         {
             _pause.Resume();
             ShowPause();
+            ChangeHistory.Record("Windows Update", "Resumed updates");
             StatusText = "Updates resumed.";
         }
         catch (Exception e)
@@ -160,6 +163,8 @@ public sealed partial class WindowsUpdateViewModel(AppServices services) : PageV
         {
             await WindowsUpdateService.SetHiddenAsync(row.Update.Id, hidden);
             row.IsHidden = hidden;
+            ChangeHistory.Record("Windows Update", $"{(hidden ? "Hid" : "Showed again")} update \"{row.Title}\"",
+                                 hidden ? "Show it again from the Windows Update page." : null);
             StatusText = hidden ? $"Hidden: Windows won't install \"{row.Title}\" until you show it again." : $"\"{row.Title}\" will be installed again.";
         }
         catch (Exception e)

@@ -75,6 +75,7 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
         [typeof(DeviceAccessViewModel)] = ["camera", "webcam", "microphone", "mic", "location", "gps", "spying", "permissions"],
         [typeof(BootTimeViewModel)] = ["boot", "startup time", "slow startup", "slow boot", "boot time"],
         [typeof(WindowsUpdateViewModel)] = ["windows update", "pause updates", "update history", "hide update", "failed update", "kb"],
+        [typeof(ChangeHistoryViewModel)] = ["history", "undo", "log", "what changed", "activity", "revert"],
         [typeof(GameModeViewModel)] = ["game", "gaming", "fps", "performance", "boost", "turbo", "power plan"],
         [typeof(ProgramsViewModel)] = ["uninstall", "remove", "programs", "apps", "revo", "installed"],
         [typeof(AppUpdatesViewModel)] = ["update", "upgrade", "winget", "outdated"],

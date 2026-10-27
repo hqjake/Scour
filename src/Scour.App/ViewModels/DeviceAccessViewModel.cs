@@ -75,21 +75,24 @@ public sealed partial class CapabilityViewModel : ObservableObject
     }
 
     partial void OnAllowedChanged(bool value) => Write(() => _access.SetAllowed(Capability, value),
-        value ? $"Apps can ask to use the {Title.ToLowerInvariant()} again." : $"No app can use the {Title.ToLowerInvariant()} now.");
+        value ? $"Apps can ask to use the {Title.ToLowerInvariant()} again." : $"No app can use the {Title.ToLowerInvariant()} now.", "all", value);
 
     partial void OnDesktopAppsAllowedChanged(bool value) => Write(() => _access.SetDesktopAppsAllowed(Capability, value),
-        value ? $"Desktop apps can use the {Title.ToLowerInvariant()} again." : $"Desktop apps can no longer use the {Title.ToLowerInvariant()}.");
+        value ? $"Desktop apps can use the {Title.ToLowerInvariant()} again." : $"Desktop apps can no longer use the {Title.ToLowerInvariant()}.", "desktop", value);
 
     private void SetAppAllowed(DeviceUseViewModel app, bool allowed) => Write(() => _access.SetAppAllowed(Capability, app.Use.Id, allowed),
-        $"{app.Name} {(allowed ? "can use" : "is blocked from")} the {Title.ToLowerInvariant()}.");
+        $"{app.Name} {(allowed ? "can use" : "is blocked from")} the {Title.ToLowerInvariant()}.", "app:" + app.Use.Id, allowed);
 
-    private void Write(Action action, string done)
+    private void Write(Action action, string done, string target, bool allowed)
     {
         if (_suppress) return;
         try
         {
             action();
             _report(done);
+            // Undo data: capability|target|value to restore.
+            ChangeHistory.Record("Camera & microphone", done, null,
+                                 new Scour.Core.Removal.UndoInfo(ChangeHistory.DeviceAccess, $"{Capability}|{target}|{(!allowed ? "allow" : "deny")}"));
         }
         catch (Exception e)
         {

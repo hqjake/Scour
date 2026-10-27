@@ -221,6 +221,7 @@ public sealed partial class ProgramsViewModel : PageViewModel
         var item = Scour.Core.Leftovers.LeftoverItem.ForKey(p.RegistryKey, Scour.Core.Leftovers.Confidence.Safe, "Uninstall entry removed by user");
         var report = _s.CreateRemover().Remove(p.DisplayName, [item], new RemovalOptions { BackupRegistry = true }, DateTime.UtcNow);
         if (report.Failed.Count > 0) Dialogs.Error("Could not remove the entry: " + report.Failed[0].Error);
+        else ChangeHistory.Record("Programs", $"Removed {p.DisplayName} from the program list", null, ChangeHistory.ForBackup(report.Backup));
         await RefreshAsync();
     }
 

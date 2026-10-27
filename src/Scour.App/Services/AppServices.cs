@@ -48,6 +48,7 @@ public sealed class AppServices
         Icons = new IconCache(Folders);
         ServiceController = new WindowsServiceController();
         GameMode = GameModeService.Create(Folders.AppDataDir, Registry, FileSystem);
+        ChangeHistory.Initialize(FileSystem, Folders.AppDataDir);
     }
 
     /// <summary>Raised when something outside the programs page installed or removed software.</summary>

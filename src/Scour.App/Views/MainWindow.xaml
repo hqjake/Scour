@@ -31,6 +31,7 @@
         <DataTemplate DataType="{x:Type vm:DeviceAccessViewModel}"><v:DeviceAccessView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:BootTimeViewModel}"><v:BootTimeView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:WindowsUpdateViewModel}"><v:WindowsUpdateView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ChangeHistoryViewModel}"><v:ChangeHistoryView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ReinstallKitViewModel}"><v:ReinstallKitView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:BrowserExtensionsViewModel}"><v:BrowserExtensionsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ContextMenuViewModel}"><v:ContextMenuView /></DataTemplate>

@@ -158,6 +158,8 @@ public sealed partial class GameModeViewModel : PageViewModel
         await Run(async () =>
         {
             var lines = await Task.Run(() => _s.GameMode.Enable(ids, game?.Id));
+            ChangeHistory.Record("Game mode", game is null ? "Turned Game mode on" : $"Game mode switched on for {game.Name}", string.Join(" ", lines),
+                                 new Scour.Core.Removal.UndoInfo(ChangeHistory.GameModeOn, ""));
             foreach (var l in lines) Log.Add(l);
             StatusText = game is null ? "Game mode is on. Have a good game!" : $"Game mode switched on for {game.Name}. It switches off when the game closes.";
             SoundService.Play(UiSound.Success);
@@ -167,6 +169,7 @@ public sealed partial class GameModeViewModel : PageViewModel
     private Task SwitchOffAsync() => Run(async () =>
     {
         var errors = await Task.Run(_s.GameMode.Disable);
+        ChangeHistory.Record("Game mode", "Turned Game mode off", errors.Count == 0 ? "Every setting was put back." : string.Join(" ", errors));
         foreach (var e in errors) Log.Add(e);
         StatusText = errors.Count == 0 ? "Game mode is off; everything is back as it was." : "Game mode is off, but some settings couldn't be put back (see below).";
         SoundService.Play(errors.Count == 0 ? UiSound.Click : UiSound.Warning);

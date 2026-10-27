@@ -34,6 +34,7 @@ public sealed partial class AutorunEntryViewModel : ObservableObject
         try
         {
             _manager.SetEnabled(Entry, value, DateTime.UtcNow);
+            ChangeHistory.Record("Startup", $"{(value ? "Enabled" : "Disabled")} startup entry {Name}", "Switch it back on the Startup programs page.");
         }
         catch (Exception e)
         {
@@ -82,6 +83,7 @@ public sealed partial class AutorunViewModel(AppServices services) : PageViewMod
         try
         {
             services.Autorun.Delete(e.Entry);
+            ChangeHistory.Record("Startup", $"Deleted startup entry {e.Name}");
             Refresh();
         }
         catch (Exception ex)

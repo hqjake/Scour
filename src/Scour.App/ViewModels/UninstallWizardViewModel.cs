@@ -382,6 +382,8 @@ public sealed partial class UninstallWizardViewModel : ObservableObject
         if (report.BytesFreed > 0) summary += $" and freed {Format.Bytes(report.BytesFreed)}";
         summary += ".";
         if (report.Failed.Count > 0) summary += $" {report.Failed.Count} could not be deleted (probably in use).";
+        ChangeHistory.Record("Uninstall", $"Removed leftovers of {job.Title}", summary + (_s.Settings.FilesToRecycleBin ? " Files went to the Recycle Bin." : ""),
+                             ChangeHistory.ForBackup(report.Backup));
         SoundService.Play(report.Failed.Count == 0 ? UiSound.Success : UiSound.Warning);
         Finish(summary);
     }

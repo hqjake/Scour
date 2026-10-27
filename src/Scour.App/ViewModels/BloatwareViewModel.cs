@@ -147,6 +147,9 @@ public sealed partial class BloatwareViewModel : PageViewModel
                 _s.NotifyProgramsChanged();
             }
             int removed = store.Count(i => i.Status == "Removed");
+            if (removed > 0)
+                ChangeHistory.Record("Bloatware", $"Removed {Format.Plural(removed, "pre-installed app")}",
+                                     string.Join(", ", store.Where(i => i.Status == "Removed").Select(i => i.Name)));
             StatusText = $"Removed {Format.Plural(removed, "Store app")}" + (store.Count > removed ? $"; {store.Count - removed} could not be removed (see status)." : ".");
             foreach (var i in store.Where(i => i.Status == "Removed")) Items.Remove(i);
             SoundService.Play(removed == store.Count ? UiSound.Success : UiSound.Warning);

@@ -32,6 +32,7 @@ public sealed partial class MainViewModel : ObservableObject
             new TracesViewModel(services),
             Forced,
             new BackupsViewModel(services),
+            new ChangeHistoryViewModel(services, GameMode),
             new JunkViewModel(services),
             new BrowserPrivacyViewModel(services),
             new BrowserExtensionsViewModel(services),

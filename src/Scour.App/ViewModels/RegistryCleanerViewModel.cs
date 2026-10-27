@@ -124,6 +124,7 @@ public sealed partial class RegistryCleanerViewModel : PageViewModel
             StatusText = $"Fixed {Format.Plural(report.Removed.Count, "problem")}." +
                          (report.Failed.Count > 0 ? $" {report.Failed.Count} could not be fixed (access denied)." : "") +
                          " Backup saved.";
+            ChangeHistory.Record("Registry", $"Fixed {Format.Plural(report.Removed.Count, "registry problem")}", null, ChangeHistory.ForBackup(report.Backup));
             _s.NotifyProgramsChanged();
             SoundService.Play(report.Failed.Count == 0 ? UiSound.Success : UiSound.Warning);
         }
