@@ -1,58 +1,141 @@
-15:48:21  Display 1920x1080: ok
-15:48:22  Window 1440x900
-15:48:22  Scour screenshot run on Microsoft Windows NT 10.0.26100.0, 4 CPUs, elevated=True
-15:48:24  dashboard: opening
-15:48:24  dashboard: running action
-15:48:26  dashboard: saved ()
-15:48:26  uninstaller: opening
-15:48:26  uninstaller: running action
-15:48:30  uninstaller: saved (59 programs · 22.2 GB)
-15:48:30  command-palette: opening
-15:48:32  command-palette: saved (2 results)
-15:48:32  game-mode: opening
-15:48:34  game-mode: saved ()
-15:48:34  app-updates: opening
-15:48:43  app-updates: saved (26 updates available.)
-15:48:43  reinstall-kit: opening
-15:48:51  reinstall-kit: saved (Untick anything you don't want, then press Save kit. Apps winget doesn't know (and their settings) aren't included.)
-15:48:51  junk-cleaner: opening
-15:48:51  junk-cleaner: running action
-15:48:53  junk-cleaner: saved (Found 354.9 MB of junk.)
-15:48:53  bloatware: opening
-15:48:58  bloatware: saved (Found 1 pre-installed app; 1 is safe to remove.)
-15:48:58  privacy-tweaks: opening
-15:49:00  privacy-tweaks: saved (0 of 17 protections on. Every change is saved first and can be switched back.)
-15:49:00  browser-privacy: opening
-15:49:02  browser-privacy: saved (1 browser profile found.)
-15:49:02  browser-extensions: opening
-15:49:04  browser-extensions: saved (To remove a normal extension, open it in its browser. Extensions with powerful access are fine when you trust who made them.)
-15:49:04  duplicates: opening
-15:49:06  duplicates: saved ()
-15:49:06  registry-cleaner: opening
-15:49:06  registry-cleaner: running action
-15:49:08  registry-cleaner: saved (Found 3 problems.)
-15:49:08  system-info: opening
-15:49:12  system-info: saved ()
-15:49:12  repair-center: opening
-15:49:14  repair-center: saved (Each fix uses Windows' own repair tools. Pick one to run it.)
-15:49:14  startup: opening
-15:49:15  startup: saved (3 startup entries)
-15:49:15  context-menu: opening
-15:49:17  context-menu: saved (4 entries added by programs. Switch an entry off to hide it; switch it back on any time.)
-15:49:17  network: opening
-15:49:20  network: saved (Connected through Ethernet 4 (Ethernet).)
-15:49:20  drivers: opening
-15:49:31  drivers: saved (Your driver store is tidy. Back up your drivers before resetting Windows so you don't have to hunt for them again.)
-15:49:31  disk-analyzer: opening
-15:49:32  disk-analyzer: running action
-15:49:46  disk-analyzer: saved (MFT scan: 1,142,630 files in 209,936 folders, 142.5 GB, in 10.9 s.)
-15:49:46  usb-tools: opening
-15:49:47  usb-tools: saved ()
-15:49:47  settings: opening
-15:49:49  settings: saved ()
-15:49:49  Switching to the light theme
-15:49:49  dashboard-light: opening
-15:49:51  dashboard-light: saved ()
-15:49:51  disk-analyzer-light: opening
-15:49:53  disk-analyzer-light: saved (MFT scan: 1,142,630 files in 209,936 folders, 142.5 GB, in 10.9 s.)
-15:49:53  Done
+17:44:56  Display 1920x1080: ok
+17:44:57  Window 1440x900
+17:44:57  Scour screenshot run on Microsoft Windows NT 10.0.26100.0, 4 CPUs, elevated=True
+17:44:58  dashboard: opening
+17:44:58  dashboard: running action
+17:45:01  dashboard: saved ()
+17:45:01  uninstaller: opening
+17:45:01  uninstaller: running action
+17:45:04  uninstaller: saved (59 programs · 22.2 GB)
+17:45:04  command-palette: opening
+17:45:06  command-palette: saved (2 results)
+17:45:07  game-mode: opening
+17:45:08  game-mode: saved ()
+17:45:08  app-updates: opening
+17:45:19  app-updates: saved (26 updates available.)
+17:45:19  reinstall-kit: opening
+17:45:31  reinstall-kit: saved (Untick anything you don't want, then press Save kit. Apps winget doesn't know (and their settings) aren't included.)
+17:45:31  junk-cleaner: opening
+17:45:31  junk-cleaner: running action
+17:45:33  junk-cleaner: saved (Found 354.9 MB of junk.)
+17:45:33  bloatware: opening
+17:45:38  bloatware: saved (Found 1 pre-installed app; 1 is safe to remove.)
+17:45:38  privacy-tweaks: opening
+17:45:40  privacy-tweaks: saved (0 of 17 protections on. Every change is saved first and can be switched back.)
+17:45:40  browser-privacy: opening
+17:45:42  browser-privacy: saved (1 browser profile found.)
+17:45:42  browser-extensions: opening
+17:45:44  browser-extensions: saved (To remove a normal extension, open it in its browser. Extensions with powerful access are fine when you trust who made them.)
+17:45:44  duplicates: opening
+17:45:46  duplicates: saved ()
+17:45:46  registry-cleaner: opening
+17:45:46  registry-cleaner: running action
+17:45:48  registry-cleaner: saved (Found 3 problems.)
+17:45:48  system-info: opening
+17:45:52  system-info: saved ()
+17:45:52  repair-center: opening
+17:45:54  repair-center: saved (Each fix uses Windows' own repair tools. Pick one to run it.)
+17:45:54  startup: opening
+17:45:55  startup: saved (3 startup entries)
+17:45:55  context-menu: opening
+17:45:58  context-menu: saved (4 entries added by programs. Switch an entry off to hide it; switch it back on any time.)
+17:45:58  network: opening
+17:46:00  network: saved (Connected through Ethernet 4 (Ethernet).)
+17:46:00  drivers: opening
+17:46:09  drivers: saved (Your driver store is tidy. Back up your drivers before resetting Windows so you don't have to hunt for them again.)
+17:46:09  disk-analyzer: opening
+17:46:10  disk-analyzer: running action
+17:46:24  disk-analyzer: saved (MFT scan: 1,142,923 files in 209,982 folders, 142.8 GB, in 11.4 s.)
+17:46:24  usb-tools: opening
+17:46:26  usb-tools: saved ()
+17:46:26  task-manager: opening
+17:46:28  task-manager: saved ()
+17:46:28  sensors: opening
+17:46:29  sensors: running action
+17:46:36  sensors: saved (CPU core temperatures need a kernel driver, which Scour doesn't install (security software rightly distrusts them). GPU, drive and motherboard (ACPI) readings come straight from Windows.)
+17:46:36  boot-time: opening
+17:46:37  boot-time: saved (Windows isn't recording boot times on this PC (its Diagnostics-Performance log is missing).)
+17:46:37  windows-update: opening
+17:46:40  windows-update: saved ()
+17:46:40  camera-microphone: opening
+17:46:41  camera-microphone: saved (Windows records when each app last used these. Switches here are the same ones as in Settings → Privacy.)
+17:46:41  change-history: opening
+17:46:43  change-history: saved (1 change. 0 can be undone here; files deleted to the Recycle Bin can be restored from there.)
+17:46:43  settings: opening
+17:46:45  settings: saved ()
+17:46:45  Windows apps: visiting
+17:46:47  Windows apps: ok (5 apps)
+17:46:47  Traced programs: visiting
+17:46:48  Traced programs: ok (No traced programs yet. Use "Install and trace" to record everything an installer does.)
+17:46:48  Forced uninstall: visiting
+17:46:49  Forced uninstall: ok ()
+17:46:49  Backups: visiting
+17:46:51  Backups: ok (No backups yet. Scour backs up registry entries every time it removes leftovers.)
+17:46:51  Switching to the light theme
+17:46:51  dashboard-light: opening
+17:46:53  dashboard-light: saved ()
+17:46:53  disk-analyzer-light: opening
+17:46:54  disk-analyzer-light: saved (MFT scan: 1,142,923 files in 209,982 folders, 142.8 GB, in 11.4 s.)
+17:46:55  Switching to German
+17:46:55  Dashboard: visiting
+17:46:56  Dashboard: ok ()
+17:46:56  Game mode: visiting
+17:46:57  Game mode: ok ()
+17:46:57  Uninstaller: visiting
+17:46:58  Uninstaller: ok (59 programs · 22.2 GB)
+17:46:58  App updates: visiting
+17:46:59  App updates: ok (26 updates available.)
+17:46:59  Bloatware remover: visiting
+17:47:00  Bloatware remover: ok (Found 1 pre-installed app; 1 is safe to remove.)
+17:47:00  Windows apps: visiting
+17:47:01  Windows apps: ok (5 apps)
+17:47:01  Reinstall kit: visiting
+17:47:02  Reinstall kit: ok (Untick anything you don't want, then press Save kit. Apps winget doesn't know (and their settings) aren't included.)
+17:47:02  Traced programs: visiting
+17:47:03  Traced programs: ok (No traced programs yet. Use "Install and trace" to record everything an installer does.)
+17:47:03  Forced uninstall: visiting
+17:47:05  Forced uninstall: ok ()
+17:47:05  Backups: visiting
+17:47:06  Backups: ok (No backups yet. Scour backs up registry entries every time it removes leftovers.)
+17:47:06  Change history: visiting
+17:47:07  Change history: ok (1 change. 0 can be undone here; files deleted to the Recycle Bin can be restored from there.)
+17:47:07  Junk cleaner: visiting
+17:47:08  Junk cleaner: ok (Found 354.9 MB of junk.)
+17:47:08  Browser privacy: visiting
+17:47:09  Browser privacy: ok (1 browser profile found.)
+17:47:09  Browser extensions: visiting
+17:47:10  Browser extensions: ok (To remove a normal extension, open it in its browser. Extensions with powerful access are fine when you trust who made them.)
+17:47:10  Privacy tweaks: visiting
+17:47:11  Privacy tweaks: ok (0 of 17 protections on. Every change is saved first and can be switched back.)
+17:47:11  Camera & microphone: visiting
+17:47:12  Camera & microphone: ok (Windows records when each app last used these. Switches here are the same ones as in Settings → Privacy.)
+17:47:12  Duplicates & large files: visiting
+17:47:13  Duplicates & large files: ok ()
+17:47:13  Registry cleaner: visiting
+17:47:15  Registry cleaner: ok (Found 3 problems.)
+17:47:15  Task manager: visiting
+17:47:16  Task manager: ok ()
+17:47:16  Sensors: visiting
+17:47:17  Sensors: ok (CPU core temperatures need a kernel driver, which Scour doesn't install (security software rightly distrusts them). GPU, drive and motherboard (ACPI) readings come straight from Windows.)
+17:47:17  Boot time: visiting
+17:47:18  Boot time: ok (Windows isn't recording boot times on this PC (its Diagnostics-Performance log is missing).)
+17:47:18  Windows Update: visiting
+17:47:19  Windows Update: ok ()
+17:47:19  System information: visiting
+17:47:20  System information: ok ()
+17:47:20  Repair center: visiting
+17:47:21  Repair center: ok (Each fix uses Windows' own repair tools. Pick one to run it.)
+17:47:21  Startup programs: visiting
+17:47:22  Startup programs: ok (3 startup entries)
+17:47:22  Context menu: visiting
+17:47:23  Context menu: ok (4 entries added by programs. Switch an entry off to hide it; switch it back on any time.)
+17:47:23  Network: visiting
+17:47:25  Network: ok (Connected through Ethernet 4 (Ethernet).)
+17:47:25  Drivers: visiting
+17:47:26  Drivers: ok (Your driver store is tidy. Back up your drivers before resetting Windows so you don't have to hunt for them again.)
+17:47:26  Disk space analyzer: visiting
+17:47:28  Disk space analyzer: ok (MFT scan: 1,142,923 files in 209,982 folders, 142.8 GB, in 11.4 s.)
+17:47:28  USB tools: visiting
+17:47:29  USB tools: ok (No USB drives found. Plug one in and press refresh.)
+17:47:29  Done
+17:47:29  Self-test passed
