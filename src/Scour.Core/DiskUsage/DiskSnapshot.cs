@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO.Compression;
 using System.Text.Json;
 using Scour.Core.Platform;
@@ -86,7 +87,7 @@ public sealed class DiskSnapshot
     }
 
     /// <summary>A file name that sorts by time: "20261015-091500.json.gz".</summary>
-    public string FileName => TakenUtc.ToString("yyyyMMdd-HHmmss") + ".json.gz";
+    public string FileName => TakenUtc.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + ".json.gz";
 
     /// <summary>Folder name for a scan root: "C:\" → "C", "D:\Games" → "D_Games".</summary>
     public static string KeyFor(string root)

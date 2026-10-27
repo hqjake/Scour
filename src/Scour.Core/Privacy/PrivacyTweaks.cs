@@ -18,7 +18,42 @@ public enum TweakState
 }
 
 /// <summary>What a setting looked like before Scour touched it.</summary>
-public sealed record SavedValue(string Key, string Name, bool Existed, uint? Value);
+/// <summary>
+/// A value as it was before a tweak. <see cref="Kind"/> and <see cref="Raw"/> keep values that weren't a
+/// DWORD (a string or QWORD some program wrote) so undo restores them exactly; older backups lack them.
+/// </summary>
+public sealed record SavedValue(string Key, string Name, bool Existed, uint? Value, RegValueKind? Kind = null, string? Raw = null)
+{
+    public static SavedValue From(RegKeyPath key, string name, RegValue? v)
+    {
+        if (v is null) return new(key.ToString(), name, false, null);
+        if (v.Kind == RegValueKind.DWord) return new(key.ToString(), name, true, (uint)v.AsInteger()!.Value);
+        string raw = v.Data switch
+        {
+            byte[] b => Convert.ToHexString(b),
+            string[] arr => string.Join("\0", arr),
+            ulong u => u.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            _ => v.AsString() ?? "",
+        };
+        return new(key.ToString(), name, true, null, v.Kind, raw);
+    }
+
+    /// <summary>The saved value, or null if it didn't exist (or an old backup only knew it wasn't a DWORD).</summary>
+    public RegValue? ToRegValue()
+    {
+        if (!Existed) return null;
+        if (Value is { } n) return RegValue.DWord(n);
+        return (Kind, Raw) switch
+        {
+            (RegValueKind.String, { } r) => RegValue.String(r),
+            (RegValueKind.ExpandString, { } r) => RegValue.Expand(r),
+            (RegValueKind.MultiString, { } r) => RegValue.Multi(r.Length == 0 ? [] : r.Split('\0')),
+            (RegValueKind.QWord, { } r) when ulong.TryParse(r, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var q) => RegValue.QWord(q),
+            (RegValueKind.Binary or RegValueKind.None, { } r) => new RegValue(Kind!.Value, Convert.FromHexString(r)),
+            _ => null,
+        };
+    }
+}
 
 /// <summary>
 /// Windows privacy settings switched through documented registry values and policies. Before a
@@ -127,11 +162,7 @@ public sealed class PrivacyTweaks(IRegistry registry, IFileSystem fs, string bac
         var backups = LoadBackups();
         if (!backups.ContainsKey(t.Id))
         {
-            backups[t.Id] = t.Settings.Select(s =>
-            {
-                var v = registry.GetValue(s.Key, s.Name);
-                return new SavedValue(s.Key.ToString(), s.Name, v is not null, v?.AsInteger() is { } n ? (uint)n : null);
-            }).ToList();
+            backups[t.Id] = t.Settings.Select(s => SavedValue.From(s.Key, s.Name, registry.GetValue(s.Key, s.Name))).ToList();
             SaveBackups(backups);
         }
         foreach (var s in t.Settings) registry.SetValue(s.Key, s.Name, RegValue.DWord(s.Value));
@@ -146,7 +177,7 @@ public sealed class PrivacyTweaks(IRegistry registry, IFileSystem fs, string bac
             foreach (var v in saved)
             {
                 var key = RegKeyPath.Parse(v.Key);
-                if (v.Existed && v.Value is { } n) registry.SetValue(key, v.Name, RegValue.DWord(n));
+                if (v.ToRegValue() is { } original) registry.SetValue(key, v.Name, original);
                 else if (registry.GetValue(key, v.Name) is not null) registry.DeleteValue(key, v.Name);
             }
             backups.Remove(t.Id);

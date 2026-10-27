@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using Scour.Core.Programs;
+using Scour.Core.Repair;
 
 namespace Scour.App.Platform;
 
@@ -49,20 +51,56 @@ public static class ProcessRunner
         catch { return null; }
     }
 
-    /// <summary>Runs a console tool hidden and returns (exit code, stdout+stderr).</summary>
-    public static async Task<(int ExitCode, string Output)> RunHiddenAsync(string exe, string args, TimeSpan timeout, CancellationToken ct = default)
+    /// <summary>
+    /// The console code page Windows tools (sc, netsh, dism, vssadmin, pnputil…) write in when redirected.
+    /// On a German PC that's cp850, on a Russian one cp866 — reading it as UTF-8 garbles every message.
+    /// </summary>
+    public static Encoding OemEncoding => _oem.Value;
+
+    private static readonly Lazy<Encoding> _oem = new(() => CodePage(NativeMethods.GetOEMCP()));
+
+    /// <summary>The system ANSI code page, used by old file formats (.lnk strings, INF files).</summary>
+    public static Encoding AnsiEncoding => _ansi.Value;
+
+    private static readonly Lazy<Encoding> _ansi = new(() => CodePage(NativeMethods.GetACP()));
+
+    private static Encoding CodePage(uint codePage)
     {
-        var psi = new ProcessStartInfo(exe, args)
+        try
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            return Encoding.GetEncoding((int)codePage);
+        }
+        catch { return Encoding.UTF8; }
+    }
+
+    /// <summary>
+    /// Full path of a Windows tool. Bare names are looked up through PATH, which installers and "PATH
+    /// cleaner" tools regularly break — and the app folder comes first, so a stray dism.exe in Downloads
+    /// would win. System tools are always taken from System32.
+    /// </summary>
+    public static string ToolPath(string exe)
+    {
+        if (Path.IsPathRooted(exe)) return exe;
+        if (string.Equals(exe, "powershell.exe", StringComparison.OrdinalIgnoreCase))
+            exe = @"WindowsPowerShell\v1.0\powershell.exe";
+        var full = Path.Combine(Environment.SystemDirectory, exe);
+        return File.Exists(full) ? full : exe;
+    }
+
+    /// <summary>Runs a console tool hidden. Deconstructs to (exit code, stdout+stderr).</summary>
+    public static async Task<ToolResult> RunHiddenAsync(string exe, string args, TimeSpan timeout, CancellationToken ct = default)
+    {
+        var psi = new ProcessStartInfo(ToolPath(exe), args)
         {
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            StandardOutputEncoding = System.Text.Encoding.UTF8,
         };
         using var p = Process.Start(psi) ?? throw new InvalidOperationException($"Could not start {exe}.");
-        var stdout = p.StandardOutput.ReadToEndAsync(ct);
-        var stderr = p.StandardError.ReadToEndAsync(ct);
+        var stdout = ReadAllAsync(p.StandardOutput.BaseStream);
+        var stderr = ReadAllAsync(p.StandardError.BaseStream);
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeoutCts.CancelAfter(timeout);
         try
@@ -72,15 +110,30 @@ public static class ProcessRunner
         catch (OperationCanceledException)
         {
             try { p.Kill(entireProcessTree: true); } catch { /* already gone */ }
+            ct.ThrowIfCancellationRequested();
             throw new TimeoutException($"{Path.GetFileName(exe)} did not finish in time.");
         }
-        return (p.ExitCode, (await stdout) + (await stderr));
+        return new ToolResult(p.ExitCode,
+            OutputDecoder.Decode(await stdout, OemEncoding),
+            OutputDecoder.Decode(await stderr, OemEncoding));
     }
 
-    public static Task<(int ExitCode, string Output)> PowerShellAsync(string script, TimeSpan timeout, CancellationToken ct = default)
+    private static async Task<byte[]> ReadAllAsync(Stream stream)
     {
-        var encoded = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(
-            "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $ProgressPreference = 'SilentlyContinue'; " + script));
+        using var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer);
+        return buffer.ToArray();
+    }
+
+    /// <summary>
+    /// Runs a PowerShell script. Its stdout is UTF-8; parse <see cref="ToolResult.StdOut"/> (errors and
+    /// warnings go to stderr, so they can't corrupt JSON output).
+    /// </summary>
+    public static Task<ToolResult> PowerShellAsync(string script, TimeSpan timeout, CancellationToken ct = default)
+    {
+        var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(
+            "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $ProgressPreference = 'SilentlyContinue'; " +
+            "$WarningPreference = 'SilentlyContinue'; $InformationPreference = 'SilentlyContinue'; " + script));
         return RunHiddenAsync("powershell.exe", $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {encoded}", timeout, ct);
     }
 
@@ -124,5 +177,18 @@ public static class ProcessRunner
             return NativeMethods.QueryFullProcessImageName(h, 0, sb, ref size) ? sb.ToString() : null;
         }
         finally { NativeMethods.CloseHandle(h); }
+    }
+}
+
+/// <summary>A console tool's exit code and output.</summary>
+public sealed record ToolResult(int ExitCode, string StdOut, string StdErr)
+{
+    /// <summary>Everything the tool printed, stdout first.</summary>
+    public string Output => StdErr.Length == 0 ? StdOut : StdOut.Length == 0 ? StdErr : StdOut.TrimEnd() + "\n" + StdErr;
+
+    public void Deconstruct(out int exitCode, out string output)
+    {
+        exitCode = ExitCode;
+        output = Output;
     }
 }

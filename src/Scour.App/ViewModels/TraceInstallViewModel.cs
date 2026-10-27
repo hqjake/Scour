@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -67,7 +68,7 @@ public sealed partial class TraceInstallViewModel(AppServices services) : Observ
             _startedUtc = DateTime.UtcNow;
 
             var psi = InstallerPath.EndsWith(".msi", StringComparison.OrdinalIgnoreCase)
-                ? new ProcessStartInfo("msiexec.exe", $"/i \"{InstallerPath}\" {Arguments}".Trim())
+                ? new ProcessStartInfo(Platform.ProcessRunner.ToolPath("msiexec.exe"), $"/i \"{InstallerPath}\" {Arguments}".Trim())
                 : new ProcessStartInfo(InstallerPath, Arguments);
             psi.UseShellExecute = true;
             psi.WorkingDirectory = Path.GetDirectoryName(InstallerPath) ?? "";
@@ -141,7 +142,7 @@ public sealed partial class TraceInstallViewModel(AppServices services) : Observ
         var program = uninstallKey is { } k ? services.Inventory.TryRead(k) : null;
         var log = new TraceLog
         {
-            Id = _startedUtc.ToString("yyyyMMdd-HHmmss") + "-" + Guid.NewGuid().ToString("N")[..6],
+            Id = _startedUtc.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N")[..6],
             Name = string.IsNullOrWhiteSpace(Name) ? Path.GetFileNameWithoutExtension(InstallerPath) : Name.Trim(),
             CreatedUtc = _startedUtc,
             InstallerPath = InstallerPath,

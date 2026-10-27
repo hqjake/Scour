@@ -26,10 +26,12 @@ public static class AppxService
             "Get-AppxPackage -PackageTypeFilter Main | Where-Object { -not $_.IsFramework } | " +
             "Select-Object Name, PackageFullName, PackageFamilyName, Publisher, @{n='Version';e={$_.Version.ToString()}}, " +
             "InstallLocation, NonRemovable, @{n='SignatureKind';e={$_.SignatureKind.ToString()}} | ConvertTo-Json -Depth 2 -Compress";
-        var (code, output) = await ProcessRunner.PowerShellAsync(script, TimeSpan.FromMinutes(2), ct);
-        if (code != 0) throw new InvalidOperationException("Could not list Windows apps: " + output.Trim());
+        var result = await ProcessRunner.PowerShellAsync(script, TimeSpan.FromMinutes(2), ct);
+        // PowerShell exits 1 when one package can't be read even though the rest were listed fine.
+        var json = result.StdOut.Trim();
+        if (result.ExitCode != 0 && !json.StartsWith('[') && !json.StartsWith('{'))
+            throw new InvalidOperationException("Could not list Windows apps: " + result.Output.Trim());
 
-        var json = output.Trim();
         if (json.Length == 0) return [];
         using var doc = JsonDocument.Parse(json);
         var items = doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement.EnumerateArray().ToList() : [doc.RootElement];
@@ -80,7 +82,7 @@ public static class AppxService
                 sb.Append($"Get-AppxProvisionedPackage -Online | Where-Object {{ $_.DisplayName -eq '{n}' }} | Remove-AppxProvisionedPackage -Online | Out-Null; ");
             sb.Append($"\"OK|{n}\" }} catch {{ \"FAIL|{n}|$($_.Exception.Message -replace '[\\r\\n]+', ' ')\" }}\n");
         }
-        var (_, output) = await ProcessRunner.PowerShellAsync(sb.ToString(), TimeSpan.FromMinutes(15), ct);
+        var output = (await ProcessRunner.PowerShellAsync(sb.ToString(), TimeSpan.FromMinutes(15), ct)).StdOut;
         var result = list.ToDictionary(p => p.Name, _ => (string?)"No result reported", StringComparer.OrdinalIgnoreCase);
         foreach (var line in output.Split('\n').Select(l => l.Trim()))
         {

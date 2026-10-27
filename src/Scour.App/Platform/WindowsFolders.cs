@@ -18,6 +18,8 @@ public static class WindowsFolders
         var vars = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (DictionaryEntry e in Environment.GetEnvironmentVariables())
             if (e.Key is string k && e.Value is string v) vars[k] = v;
+        foreach (var name in new[] { "TEMP", "TMP" })
+            if (vars.TryGetValue(name, out var t)) vars[name] = LongPath(t);
 
         var programData = F(Environment.SpecialFolder.CommonApplicationData);
         return new KnownFolders
@@ -35,7 +37,7 @@ public static class WindowsFolders
             LocalAppData = local,
             LocalLowAppData = GetKnownFolder(LocalAppDataLow) ?? Path.Combine(profile, @"AppData\LocalLow"),
             UserPrograms = Path.Combine(local, "Programs"),
-            UserTemp = Path.GetTempPath().TrimEnd('\\'),
+            UserTemp = LongPath(Path.GetTempPath()).TrimEnd('\\'),
             Documents = F(Environment.SpecialFolder.MyDocuments),
             UserDesktop = F(Environment.SpecialFolder.DesktopDirectory),
             CommonDesktop = F(Environment.SpecialFolder.CommonDesktopDirectory),
@@ -46,6 +48,22 @@ public static class WindowsFolders
             AppDataDir = Path.Combine(programData, "Scour"),
             Variables = vars,
         };
+    }
+
+    /// <summary>
+    /// "C:\Users\JOHNSM~1\AppData\Local\Temp" → the long form. TEMP is often stored in 8.3 form, and
+    /// short paths never match the long ones found by listing folders.
+    /// </summary>
+    public static string LongPath(string path)
+    {
+        if (!path.Contains('~')) return path;
+        try
+        {
+            var buffer = new System.Text.StringBuilder(1024);
+            uint n = NativeMethods.GetLongPathName(path, buffer, (uint)buffer.Capacity);
+            return n > 0 && n < buffer.Capacity ? buffer.ToString() : path;
+        }
+        catch { return path; }
     }
 
     private static string? GetKnownFolder(Guid id)

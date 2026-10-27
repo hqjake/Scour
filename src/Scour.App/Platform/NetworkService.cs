@@ -142,7 +142,7 @@ public static class NetworkService
         var backup = HostsPath + ".scour-backup";
         if (File.Exists(HostsPath) && !File.Exists(backup)) File.Copy(HostsPath, backup);
         File.WriteAllText(HostsPath, text);
-        try { Process.Start(new ProcessStartInfo("ipconfig.exe", "/flushdns") { CreateNoWindow = true, UseShellExecute = false }); } catch { /* cache expires anyway */ }
+        try { Process.Start(new ProcessStartInfo(ProcessRunner.ToolPath("ipconfig.exe"), "/flushdns") { CreateNoWindow = true, UseShellExecute = false }); } catch { /* cache expires anyway */ }
     }
 
     // ---- speed test (Cloudflare's public speed test endpoints)

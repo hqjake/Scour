@@ -21,7 +21,7 @@ public static class DriverService
             ct.ThrowIfCancellationRequested();
             var published = Path.GetFileName(inf);
             InfInfo info;
-            try { info = InfParser.Parse(File.ReadAllText(inf)); }
+            try { info = InfParser.Parse(File.ReadAllText(inf, ProcessRunner.AnsiEncoding)); } // BOMs (UTF-16 INFs) still win
             catch (IOException) { continue; }
 
             var packageId = byPublished.GetValueOrDefault(published) ?? PackageId(published);
@@ -112,6 +112,6 @@ public static class DriverService
         return map;
     }
 
-    public static Task<(int ExitCode, string Output)> PnpUtilAsync(string args, TimeSpan timeout, CancellationToken ct = default) =>
+    public static Task<ToolResult> PnpUtilAsync(string args, TimeSpan timeout, CancellationToken ct = default) =>
         ProcessRunner.RunHiddenAsync(Path.Combine(Environment.SystemDirectory, "pnputil.exe"), args, timeout, ct);
 }

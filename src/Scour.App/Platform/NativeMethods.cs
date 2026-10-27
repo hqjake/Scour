@@ -4,7 +4,30 @@ namespace Scour.App.Platform;
 
 internal static partial class NativeMethods
 {
+    // ---- console
+
+    [DllImport("kernel32.dll")]
+    public static extern uint GetOEMCP();
+
+    [DllImport("kernel32.dll")]
+    public static extern uint GetACP();
+
+    // ---- sessions
+
+    public const int WTSUserName = 5;
+    public const int WTSDomainName = 7;
+
+    [DllImport("wtsapi32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "WTSQuerySessionInformationW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool WTSQuerySessionInformation(IntPtr hServer, int sessionId, int wtsInfoClass, out IntPtr ppBuffer, out int pBytesReturned);
+
+    [DllImport("wtsapi32.dll")]
+    public static extern void WTSFreeMemory(IntPtr pMemory);
+
     // ---- files
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "GetLongPathNameW")]
+    public static extern uint GetLongPathName(string lpszShortPath, System.Text.StringBuilder lpszLongPath, uint cchBuffer);
 
     public const uint MOVEFILE_DELAY_UNTIL_REBOOT = 0x4;
 

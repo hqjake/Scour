@@ -148,13 +148,9 @@ public sealed partial class ContextMenuViewModel : PageViewModel
     }
 
     [RelayCommand]
-    private void RestartExplorer()
+    private async Task RestartExplorerAsync()
     {
-        foreach (var p in Process.GetProcessesByName("explorer"))
-        {
-            try { p.Kill(); } catch { /* already gone */ }
-        }
-        Process.Start(new ProcessStartInfo("explorer.exe") { UseShellExecute = true });
+        await Shell.RestartExplorerAsync();
         _explorerRestartNeeded = false;
         UpdateStatus();
     }

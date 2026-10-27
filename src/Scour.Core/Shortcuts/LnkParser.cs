@@ -36,6 +36,13 @@ public static class LnkParser
     private const uint IsUnicode = 0x80;
     private const uint EnvironmentVariableBlock = 0xA0000001;
 
+    /// <summary>
+    /// The code page of the ANSI strings older shortcuts store (the system's ANSI code page — cp1251 on a
+    /// Russian PC, cp1250 in Poland…). Set by the app at start; Latin-1 elsewhere. A wrong guess turned every
+    /// shortcut with a non-English folder name into a "broken" one.
+    /// </summary>
+    public static Encoding AnsiEncoding { get; set; } = Encoding.Latin1;
+
     public static LnkInfo? TryParse(byte[] data)
     {
         try { return Parse(data); }
@@ -90,7 +97,7 @@ public static class LnkParser
             int count = BitConverter.ToUInt16(data, pos);
             pos += 2;
             int bytes = unicode ? count * 2 : count;
-            var s = unicode ? Encoding.Unicode.GetString(data, pos, bytes) : Encoding.Latin1.GetString(data, pos, bytes);
+            var s = unicode ? Encoding.Unicode.GetString(data, pos, bytes) : AnsiEncoding.GetString(data, pos, bytes);
             pos += bytes;
             return s;
         }
@@ -122,7 +129,7 @@ public static class LnkParser
     {
         int end = offset;
         while (end < data.Length && data[end] != 0) end++;
-        return Encoding.Latin1.GetString(data, offset, end - offset);
+        return AnsiEncoding.GetString(data, offset, end - offset);
     }
 
     private static string ReadNullTerminatedUnicode(byte[] data, int offset)

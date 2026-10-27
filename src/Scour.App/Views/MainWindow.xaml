@@ -161,6 +161,21 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
+                <StackPanel>
+                <!-- Running as another account than the signed-in one (standard user + admin password at UAC). -->
+                <Border Margin="24,14,24,0" CornerRadius="10" Padding="16,10" BorderThickness="1" BorderBrush="{DynamicResource Scour.WarnBrush}"
+                        Background="{DynamicResource Scour.CardBrush}"
+                        Visibility="{Binding OtherUserWarning, Converter={StaticResource TruthyToVisibility}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE7BA;" FontSize="22" Foreground="{DynamicResource Scour.WarnBrush}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Margin="14,0,0,0" Text="{Binding OtherUserWarning}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+
                 <!-- A newer Scour is on GitHub. -->
                 <Border Margin="24,14,24,0" CornerRadius="10" Padding="16,10" BorderThickness="1" BorderBrush="{DynamicResource Scour.AccentBrush}"
                         Background="{DynamicResource Scour.CardBrush}" Effect="{StaticResource SoftGlow}"
@@ -188,6 +203,7 @@
                         </StackPanel>
                     </Grid>
                 </Border>
+                </StackPanel>
 
                 <ContentControl x:Name="PageHost" Grid.Row="1" Content="{Binding CurrentPage}" Focusable="False">
                     <ContentControl.RenderTransform><TranslateTransform /></ContentControl.RenderTransform>

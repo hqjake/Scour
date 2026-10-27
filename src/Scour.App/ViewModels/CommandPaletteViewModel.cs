@@ -49,7 +49,7 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
         {
             switch (entry.Action)
             {
-                case Func<Task> asyncAction: _ = asyncAction(); break;
+                case Func<Task> asyncAction: asyncAction().Forget(entry.Title); break;
                 case Action action: action(); break;
             }
         }
@@ -127,13 +127,13 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
             RunOn<DriversViewModel>(p => p.BackupCommand.ExecuteAsync(null))));
         list.Add(Entry("Save a reinstall kit", "Save your app list for a new PC", "Action", "", ["backup", "export", "kit", "migrate"],
             RunOn<ReinstallKitViewModel>(p => p.SaveKitCommand.ExecuteAsync(null))));
-        list.Add(Entry("Empty the Recycle Bin", "Permanently delete what's in it", "Action", "", ["recycle", "trash", "bin"], () =>
+        list.Add(Entry("Empty the Recycle Bin", "Permanently delete what's in it", "Action", "", ["recycle", "trash", "bin"], (Func<Task>)(async () =>
         {
-            var (bytes, count) = RecycleBin.Query();
+            var (bytes, count) = await Task.Run(RecycleBin.Query); // can take seconds with a full bin
             if (count == 0) { Dialogs.Info("The Recycle Bin is already empty."); return; }
             if (Dialogs.Confirm($"Permanently delete {Format.Plural((int)count, "item")} ({Format.Bytes(bytes)}) from the Recycle Bin?") && RecycleBin.Empty())
                 SoundService.Play(UiSound.Success);
-        }));
+        })));
         list.Add(Entry(ThemeService.IsDark ? "Switch to light mode" : "Switch to dark mode", "Change the theme", "Action",
             ThemeService.IsDark ? "" : "", ["theme", "dark", "light", "mode"], () => main.ToggleThemeCommand.Execute(null)));
         list.Add(Entry(SoundService.Enabled ? "Turn sounds off" : "Turn sounds on", "Interface sounds", "Action",
@@ -169,7 +169,12 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
         var page = main.Pages.OfType<T>().FirstOrDefault();
         if (page is null) return;
         main.Navigate(page);
-        await Task.Delay(50); // first visit starts loading the page
-        if (!page.IsLoading) await action(page);
+        await page.ActivateAsync(); // the first visit loads the page; wait for it rather than skipping the action
+        if (page.IsLoading)
+        {
+            Dialogs.Info($"{page.Title} is still busy. Try again when it has finished.");
+            return;
+        }
+        await action(page);
     };
 }

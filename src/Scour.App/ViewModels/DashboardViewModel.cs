@@ -116,7 +116,7 @@ public sealed partial class DashboardViewModel : PageViewModel
         if (issue.Fix == HealthFix.Antivirus)
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("windowsdefender:") { UseShellExecute = true });
         else if (issue.Fix == HealthFix.Restart && Dialogs.Confirm("Restart the PC now? Save your work in other programs first."))
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("shutdown.exe", "/r /t 5") { CreateNoWindow = true, UseShellExecute = false });
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(ProcessRunner.ToolPath("shutdown.exe"), "/r /t 5") { CreateNoWindow = true, UseShellExecute = false });
     }
 
     public IReadOnlyList<QuickAction> Actions { get; } =
@@ -177,29 +177,58 @@ public sealed partial class DashboardViewModel : PageViewModel
         var up = TimeSpan.FromMilliseconds(Environment.TickCount64);
         Uptime = up.TotalDays >= 1 ? $"{(int)up.TotalDays}d {up.Hours}h {up.Minutes}m" : $"{up.Hours}h {up.Minutes}m";
 
-        var systemRoot = Path.GetPathRoot(Environment.SystemDirectory);
+        // Drives are read off the UI thread and less often: a sleeping external disk or a card reader can
+        // take seconds to answer, which froze the whole window on every tick.
+        if (_tick++ % 10 == 0 && !_drivesBusy) SampleDrivesAsync().Forget("Reading drives", report: false);
+    }
+
+    private int _tick;
+    private bool _drivesBusy;
+
+    private async Task SampleDrivesAsync()
+    {
+        _drivesBusy = true;
+        try
+        {
+            var systemRoot = Path.GetPathRoot(Environment.SystemDirectory);
+            var (drives, system) = await Task.Run(() => ReadDrives(systemRoot));
+            if (system is { } sys)
+            {
+                DiskPercent = sys.Percent;
+                DiskText = sys.Text;
+            }
+            if (drives.Count != Drives.Count || drives.Zip(Drives).Any(p => p.First != p.Second))
+            {
+                Drives.Clear();
+                foreach (var d in drives) Drives.Add(d);
+            }
+        }
+        finally
+        {
+            _drivesBusy = false;
+        }
+    }
+
+    private static (List<DriveUsage> Drives, (double Percent, string Text)? System) ReadDrives(string? systemRoot)
+    {
         var drives = new List<DriveUsage>();
-        foreach (var d in DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveType is DriveType.Fixed or DriveType.Removable))
+        (double, string)? system = null;
+        foreach (var d in DriveInfo.GetDrives())
         {
             try
             {
-                var used = d.TotalSize - d.TotalFreeSpace;
-                var pct = d.TotalSize == 0 ? 0 : 100.0 * used / d.TotalSize;
+                if (d.DriveType is not (DriveType.Fixed or DriveType.Removable) || !d.IsReady) continue;
+                long total = d.TotalSize, free = d.TotalFreeSpace;
+                var used = total - free;
+                var pct = total == 0 ? 0 : 100.0 * used / total;
                 var label = string.IsNullOrWhiteSpace(d.VolumeLabel) ? (d.DriveType == DriveType.Removable ? "USB drive" : "Local disk") : d.VolumeLabel;
-                drives.Add(new DriveUsage(d.Name.TrimEnd('\\'), label, pct, $"{Format.Bytes(d.TotalFreeSpace)} free of {Format.Bytes(d.TotalSize)}"));
+                drives.Add(new DriveUsage(d.Name.TrimEnd('\\'), label, pct, $"{Format.Bytes(free)} free of {Format.Bytes(total)}"));
                 if (string.Equals(d.Name, systemRoot, StringComparison.OrdinalIgnoreCase))
-                {
-                    DiskPercent = pct;
-                    DiskText = $"{Format.Bytes(d.TotalFreeSpace)} free";
-                }
+                    system = (pct, $"{Format.Bytes(free)} free");
             }
-            catch { /* drive went away */ }
+            catch { /* drive went away, or is locked (BitLocker) */ }
         }
-        if (drives.Count != Drives.Count || drives.Zip(Drives).Any(p => p.First != p.Second))
-        {
-            Drives.Clear();
-            foreach (var d in drives) Drives.Add(d);
-        }
+        return (drives, system);
     }
 
     private static string ReadOsName()

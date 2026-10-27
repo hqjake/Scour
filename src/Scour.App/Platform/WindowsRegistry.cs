@@ -23,8 +23,10 @@ public sealed class WindowsRegistry : IRegistry
             var b = _bases[path.Hive];
             return path.SubPath.Length == 0 ? b : b.OpenSubKey(path.SubPath, writable);
         }
-        catch (Exception e) when (e is SecurityException or UnauthorizedAccessException or IOException)
+        catch (Exception e) when (e is SecurityException or UnauthorizedAccessException or IOException
+                                      or ArgumentException or ObjectDisposedException)
         {
+            // ArgumentException: a key name over 255 characters, built from registry data.
             return null;
         }
     }
@@ -111,13 +113,25 @@ public sealed class WindowsRegistry : IRegistry
     public void DeleteKeyTree(RegKeyPath key)
     {
         if (key.Parent is not { } parent) throw new InvalidOperationException("Refusing to delete a registry hive.");
-        using var p = Open(parent, writable: true) ?? throw new IOException($"Cannot open {parent} for writing.");
+        using var p = Open(parent, writable: true);
+        if (p is null)
+        {
+            if (!KeyExists(parent)) return; // nothing to delete, same as a missing subkey
+            throw new IOException($"Cannot open {parent} for writing.");
+        }
         p.DeleteSubKeyTree(key.Name, throwOnMissingSubKey: false);
     }
 
     public void DeleteValue(RegKeyPath key, string name)
     {
-        var k = Open(key, writable: true) ?? throw new IOException($"Cannot open {key} for writing.");
+        var k = Open(key, writable: true);
+        if (k is null)
+        {
+            // A missing key has no values to delete (e.g. re-enabling a context-menu entry when the
+            // "Blocked" key was never created).
+            if (!KeyExists(key)) return;
+            throw new IOException($"Cannot open {key} for writing.");
+        }
         try { k.DeleteValue(name, throwOnMissingValue: false); }
         finally { Release(key, k); }
     }

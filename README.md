@@ -132,7 +132,8 @@ the built-in updater. Code signing and winget publishing switch on with reposito
 
 ## Status
 
-Unit-tested (141 tests) and exercised on Windows by CI, which runs the real app and captures the screenshots above.
-Please report anything that misbehaves.
+Unit-tested (154 tests) and exercised on Windows by CI, which runs the real app and captures the screenshots above.
+Please report anything that misbehaves, and attach `%ProgramData%\Scour\error.log`, where Scour records every error
+with its details (Settings → Open data folder).
 The process-sampling, network-per-process, file-unlocking and services code exists in `Platform/` but the task manager
 screen is not part of this version.

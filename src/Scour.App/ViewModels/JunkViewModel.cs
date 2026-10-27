@@ -105,7 +105,7 @@ public sealed partial class JunkViewModel : PageViewModel
                 }
                 else
                 {
-                    var (bytes, count) = RecycleBin.Query();
+                    var (bytes, count) = await Task.Run(RecycleBin.Query);
                     c.Bytes = bytes;
                     c.SizeText = count == 0 ? "Empty" : $"{Format.BytesOrZero(bytes)} · {Format.Plural((int)count, "item")}";
                 }

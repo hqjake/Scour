@@ -60,7 +60,7 @@ public static class RepairRunner
 
     private static async Task Pump(Stream stream, Action<string> output)
     {
-        var decoder = new OutputDecoder();
+        var decoder = new OutputDecoder(ProcessRunner.OemEncoding);
         var buffer = new byte[4096];
         int n;
         while ((n = await stream.ReadAsync(buffer)) > 0)
@@ -95,6 +95,11 @@ public static class RepairRunner
     private static bool StartDetached(RepairStep step, Action<string> output)
     {
         output($"> Starting {Path.GetFileName(step.Path)}");
+        if (Path.GetFileName(step.Path).Equals("explorer.exe", StringComparison.OrdinalIgnoreCase) && Shell.IsExplorerRunning())
+        {
+            output("  Windows already restarted it");
+            return true;
+        }
         Process.Start(new ProcessStartInfo(step.Path, step.Args) { UseShellExecute = true });
         return true;
     }

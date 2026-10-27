@@ -50,13 +50,19 @@ public sealed partial class MainViewModel : ObservableObject
         NavView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(PageViewModel.Group)));
         _currentPage = Dashboard;
         _selectedNavPage = Dashboard;
-        _ = Dashboard.ActivateAsync();
-        _ = Programs.ActivateAsync(); // loads the program list other pages rely on
+        Dashboard.ActivateAsync().Forget("Loading the dashboard", report: false);
+        Programs.ActivateAsync().Forget("Loading the program list", report: false); // other pages rely on it
         Palette = new CommandPaletteViewModel(this, services);
         Settings.CheckForUpdates = () => CheckForUpdatesAsync(silent: false);
     }
 
     public CommandPaletteViewModel Palette { get; }
+
+    /// <summary>Set when Scour runs as another account than the signed-in one (see <see cref="SessionUser"/>).</summary>
+    public string? OtherUserWarning { get; } = SessionUser.OtherSignedInUser() is { } other
+        ? $"Scour is running as {Environment.UserDomainName}\\{Environment.UserName}, but {other} is signed in. Browser, junk, startup and " +
+          "Windows app tools only see this account's files. To clean your own account, sign in as an administrator, or make your account one."
+        : null;
 
     /// <summary>Runs the tray's quick clean (set by the app).</summary>
     public Action? QuickClean { get; set; }
@@ -143,7 +149,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     partial void OnCurrentPageChanged(PageViewModel value)
     {
-        _ = value.ActivateAsync();
+        value.ActivateAsync().Forget("Opening " + value.Title, report: false); // failures show on the page
         SelectedNavPage = Pages.Contains(value) ? value : null;
     }
 
@@ -193,7 +199,7 @@ public sealed partial class MainViewModel : ObservableObject
     public void UninstallProgram(InstalledProgram program)
     {
         CurrentPage = Programs;
-        _ = Programs.UninstallProgramAsync(program);
+        Programs.UninstallProgramAsync(program).Forget("Uninstalling " + program.DisplayName);
     }
 
     public void ForcedFromHunter(HuntResult hit)

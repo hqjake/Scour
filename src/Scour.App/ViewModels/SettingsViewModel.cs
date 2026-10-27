@@ -134,7 +134,9 @@ public sealed partial class SettingsViewModel(AppServices services) : PageViewMo
     private async Task ApplyScheduleAsync()
     {
         ScheduleStatus = "Updating Windows Task Scheduler…";
-        var error = await ScheduleService.ApplyAsync(S);
+        string? error;
+        try { error = await ScheduleService.ApplyAsync(S); }
+        catch (Exception e) { error = e.Message; }
         ScheduleStatus = error is null ? "Saved." : "Couldn't update the schedule: " + error;
     }
 

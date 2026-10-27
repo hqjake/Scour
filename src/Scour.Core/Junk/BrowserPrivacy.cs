@@ -52,28 +52,94 @@ public sealed class BrowserPrivacy(IFileSystem fs, KnownFolders folders)
             if (!fs.DirectoryExists(dir)) continue;
             if (profileIsRoot)
             {
-                list.Add(new BrowserProfile(name, "Default", dir, BrowserEngine.Chromium, process));
+                // Older Opera keeps the profile in the root; newer builds in "Default", with extra profiles in
+                // "_side_profiles".
+                var main = WinPath.Combine(dir, "Default");
+                list.Add(new BrowserProfile(name, "Default", IsChromiumProfile(main) ? main : dir, BrowserEngine.Chromium, process));
+                var side = WinPath.Combine(dir, "_side_profiles");
+                if (fs.DirectoryExists(side))
+                    foreach (var p in fs.EnumerateDirectories(side).Where(IsChromiumProfile))
+                        list.Add(new BrowserProfile(name, WinPath.GetFileName(p), p, BrowserEngine.Chromium, process));
                 continue;
             }
             foreach (var p in fs.EnumerateDirectories(dir))
             {
                 var leaf = WinPath.GetFileName(p);
                 bool isProfile = leaf == "Default" || leaf.StartsWith("Profile ", StringComparison.Ordinal);
-                if (isProfile && (fs.FileExists(WinPath.Combine(p, "Preferences")) || fs.FileExists(WinPath.Combine(p, "History"))))
+                if (isProfile && IsChromiumProfile(p))
                     list.Add(new BrowserProfile(name, leaf == "Default" ? "Default" : leaf, p, BrowserEngine.Chromium, process));
             }
         }
 
-        var ff = WinPath.Combine(folders.RoamingAppData, @"Mozilla\Firefox\Profiles");
-        if (fs.DirectoryExists(ff))
-            foreach (var p in fs.EnumerateDirectories(ff))
-                if (fs.FileExists(WinPath.Combine(p, "places.sqlite")) || fs.FileExists(WinPath.Combine(p, "cookies.sqlite")))
-                {
-                    var leaf = WinPath.GetFileName(p);
-                    int dot = leaf.IndexOf('.');
-                    list.Add(new BrowserProfile("Mozilla Firefox", dot >= 0 ? leaf[(dot + 1)..] : leaf, p, BrowserEngine.Firefox, "firefox"));
-                }
+        foreach (var p in FirefoxProfileDirs())
+            if (fs.FileExists(WinPath.Combine(p, "places.sqlite")) || fs.FileExists(WinPath.Combine(p, "cookies.sqlite")))
+            {
+                var leaf = WinPath.GetFileName(p);
+                int dot = leaf.IndexOf('.');
+                list.Add(new BrowserProfile("Mozilla Firefox", dot >= 0 ? leaf[(dot + 1)..] : leaf, p, BrowserEngine.Firefox, "firefox"));
+            }
         return list;
+    }
+
+    private bool IsChromiumProfile(string dir) =>
+        fs.FileExists(WinPath.Combine(dir, "Preferences")) || fs.FileExists(WinPath.Combine(dir, "History"));
+
+    /// <summary>
+    /// Firefox profile folders: the usual Profiles folder, any profile profiles.ini places elsewhere, and the
+    /// Microsoft Store build's folder.
+    /// </summary>
+    private IEnumerable<string> FirefoxProfileDirs()
+    {
+        var seen = new HashSet<string>(WinPath.Comparer);
+        var roots = new List<string> { WinPath.Combine(folders.RoamingAppData, @"Mozilla\Firefox") };
+        var packages = WinPath.Combine(folders.LocalAppData, "Packages");
+        if (fs.DirectoryExists(packages))
+            roots.AddRange(fs.EnumerateDirectories(packages)
+                .Where(d => WinPath.GetFileName(d).StartsWith("Mozilla.Firefox", StringComparison.OrdinalIgnoreCase))
+                .Select(d => WinPath.Combine(d, @"LocalCache\Roaming\Mozilla\Firefox")));
+
+        foreach (var root in roots.Where(fs.DirectoryExists))
+        {
+            var profiles = WinPath.Combine(root, "Profiles");
+            if (fs.DirectoryExists(profiles))
+                foreach (var p in fs.EnumerateDirectories(profiles))
+                    if (seen.Add(p)) yield return p;
+
+            var ini = WinPath.Combine(root, "profiles.ini");
+            if (!fs.FileExists(ini)) continue;
+            string text;
+            try { text = fs.ReadAllText(ini); }
+            catch { continue; }
+            foreach (var p in ParseProfilesIni(text, root))
+                if (fs.DirectoryExists(p) && seen.Add(p)) yield return p;
+        }
+    }
+
+    /// <summary>Profile paths from Firefox's profiles.ini ("Path=Profiles/x.default", IsRelative=1 or 0).</summary>
+    internal static List<string> ParseProfilesIni(string text, string root)
+    {
+        var result = new List<string>();
+        string? path = null;
+        bool relative = true;
+        void Flush()
+        {
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                var p = path.Trim().Replace('/', '\\');
+                result.Add(relative ? WinPath.Combine(root, p) : p);
+            }
+            path = null;
+            relative = true;
+        }
+        foreach (var raw in text.Split('\n'))
+        {
+            var line = raw.Trim();
+            if (line.StartsWith('[')) Flush();
+            else if (line.StartsWith("Path=", StringComparison.OrdinalIgnoreCase)) path = line[5..];
+            else if (line.StartsWith("IsRelative=", StringComparison.OrdinalIgnoreCase)) relative = line[11..].Trim() != "0";
+        }
+        Flush();
+        return result;
     }
 
     /// <param name="toNativePath">Maps the engine's Windows path to a path the SQLite library can open (identity on Windows).</param>
@@ -91,7 +157,9 @@ public sealed class BrowserPrivacy(IFileSystem fs, KnownFolders folders)
                 action();
                 cleared |= item;
             }
-            catch (SqliteException e) when (e.SqliteErrorCode == 5) // SQLITE_BUSY
+            // BUSY, LOCKED, IOERR, CANTOPEN: Chrome and Edge hold some files with an exclusive lock, and Edge
+            // keeps running in the background after its window closes.
+            catch (SqliteException e) when (e.SqliteErrorCode is 5 or 6 or 10 or 14)
             {
                 errors.Add($"{item}: the database is in use — close {profile.Browser} and try again.");
             }

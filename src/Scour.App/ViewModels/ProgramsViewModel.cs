@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows.Data;
@@ -226,12 +227,12 @@ public sealed partial class ProgramsViewModel : PageViewModel
     [RelayCommand]
     private void ExportList()
     {
-        var path = Dialogs.SaveFile("Export program list", "CSV file (*.csv)|*.csv", $"Installed programs {DateTime.Now:yyyy-MM-dd}.csv");
+        var path = Dialogs.SaveFile("Export program list", "CSV file (*.csv)|*.csv", $"Installed programs {DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}.csv");
         if (path is null) return;
         static string Q(string? s) => "\"" + (s ?? "").Replace("\"", "\"\"") + "\"";
         var sb = new StringBuilder("Name,Version,Publisher,Install date,Size (MB),Type,Architecture,Scope,Install location,Uninstall string\r\n");
         foreach (var p in View.Cast<ProgramItemViewModel>())
-            sb.Append(string.Join(",", Q(p.Name), Q(p.Version), Q(p.Publisher), Q(p.InstallDate?.ToString("yyyy-MM-dd")),
+            sb.Append(string.Join(",", Q(p.Name), Q(p.Version), Q(p.Publisher), Q(p.InstallDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
                                   p.SizeBytes > 0 ? (p.SizeBytes / 1048576.0).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "",
                                   Q(p.Type), Q(p.Architecture), Q(p.Scope), Q(p.InstallLocation), Q(p.Program.UninstallString))).Append("\r\n");
         try { File.WriteAllText(path, sb.ToString(), new UTF8Encoding(true)); }

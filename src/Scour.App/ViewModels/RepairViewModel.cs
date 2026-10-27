@@ -94,6 +94,6 @@ public sealed partial class RepairViewModel : PageViewModel
     private void RestartNow()
     {
         if (Dialogs.Confirm("Restart the PC now? Save your work in other programs first."))
-            Process.Start(new ProcessStartInfo("shutdown.exe", "/r /t 5") { CreateNoWindow = true, UseShellExecute = false });
+            Process.Start(new ProcessStartInfo(ProcessRunner.ToolPath("shutdown.exe"), "/r /t 5") { CreateNoWindow = true, UseShellExecute = false });
     }
 }

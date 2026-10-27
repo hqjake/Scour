@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -101,6 +102,11 @@ public sealed partial class DriversViewModel : PageViewModel
             }
             SoundService.Play(ok == chosen.Count ? UiSound.Success : UiSound.Warning);
         }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            ErrorLog.Write("Removing old drivers", e);
+            Log.Add("Stopped: " + e.Message);
+        }
         finally
         {
             IsBusy = IsLoading = false;
@@ -114,12 +120,12 @@ public sealed partial class DriversViewModel : PageViewModel
     {
         var root = Dialogs.PickFolder("Choose where to save the driver backup (a USB stick or another drive is best)");
         if (root is null) return;
-        var folder = Path.Combine(root, $"Drivers - {Environment.MachineName} - {DateTime.Now:yyyy-MM-dd}");
-        Directory.CreateDirectory(folder);
+        var folder = Path.Combine(root, $"Drivers - {Environment.MachineName} - {DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
         IsBusy = IsLoading = true;
         StatusText = "Exporting every third-party driver… this can take a few minutes.";
         try
         {
+            Directory.CreateDirectory(folder);
             var (code, output) = await DriverService.PnpUtilAsync(DriverStore.ExportArguments(folder), TimeSpan.FromMinutes(20));
             int count = Directory.Exists(folder) ? Directory.GetDirectories(folder).Length : 0;
             if (code == 0 || count > 0)
@@ -132,6 +138,12 @@ public sealed partial class DriversViewModel : PageViewModel
                 StatusText = "The backup failed: " + output.Trim().Split('\n').LastOrDefault();
                 SoundService.Play(UiSound.Warning);
             }
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            ErrorLog.Write("Backing up drivers", e);
+            StatusText = "The backup failed: " + e.Message;
+            SoundService.Play(UiSound.Warning);
         }
         finally
         {
@@ -160,6 +172,12 @@ public sealed partial class DriversViewModel : PageViewModel
                 ? "Drivers installed." + (code == 3010 ? " Restart the PC to finish." : "")
                 : $"Finished with some errors (code {code}) — usually drivers that don't fit this PC's hardware.";
             SoundService.Play(code is 0 or 3010 ? UiSound.Success : UiSound.Warning);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            ErrorLog.Write("Restoring drivers", e);
+            message = "Restoring drivers failed: " + e.Message;
+            SoundService.Play(UiSound.Warning);
         }
         finally
         {

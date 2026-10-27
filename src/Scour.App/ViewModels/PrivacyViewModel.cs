@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Scour.App.Platform;
 using Scour.App.Services;
 using Scour.Core.Privacy;
 
@@ -123,12 +123,8 @@ public sealed partial class PrivacyViewModel : PageViewModel
     }
 
     [RelayCommand]
-    private void RestartExplorer()
+    private async Task RestartExplorerAsync()
     {
-        foreach (var p in Process.GetProcessesByName("explorer"))
-        {
-            try { p.Kill(); } catch { /* already gone */ }
-        }
-        Process.Start(new ProcessStartInfo("explorer.exe") { UseShellExecute = true });
+        await Shell.RestartExplorerAsync();
     }
 }

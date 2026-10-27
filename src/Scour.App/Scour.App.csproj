@@ -15,7 +15,7 @@
     <ApplicationIcon>Assets\scour.ico</ApplicationIcon>
     <AssemblyName>Scour</AssemblyName>
     <RootNamespace>Scour.App</RootNamespace>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <Product>Scour</Product>
     <!-- WPF Fluent theme (ThemeMode) is still flagged experimental. -->
     <NoWarn>$(NoWarn);WPF0001;WFO0003</NoWarn>
