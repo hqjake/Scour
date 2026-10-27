@@ -1,56 +1,58 @@
-05:42:14  Display 1920x1080: ok
-05:42:14  Window 1440x900
-05:42:14  Scour screenshot run on Microsoft Windows NT 10.0.26100.0, 4 CPUs, elevated=True
-05:42:16  dashboard: opening
-05:42:16  dashboard: running action
-05:42:18  dashboard: saved ()
-05:42:18  uninstaller: opening
-05:42:19  uninstaller: running action
-05:42:22  uninstaller: saved (59 programs · 23.6 GB)
-05:42:22  command-palette: opening
-05:42:24  command-palette: saved (2 results)
-05:42:24  app-updates: opening
-05:42:35  app-updates: saved (28 updates available.)
-05:42:35  reinstall-kit: opening
-05:42:44  reinstall-kit: saved (Untick anything you don't want, then press Save kit. Apps winget doesn't know (and their settings) aren't included.)
-05:42:44  junk-cleaner: opening
-05:42:44  junk-cleaner: running action
-05:42:46  junk-cleaner: saved (Found 389 MB of junk.)
-05:42:46  bloatware: opening
-05:42:51  bloatware: saved (Found 1 pre-installed app; 1 is safe to remove.)
-05:42:51  privacy-tweaks: opening
-05:42:53  privacy-tweaks: saved (0 of 17 protections on. Every change is saved first and can be switched back.)
-05:42:53  browser-privacy: opening
-05:42:55  browser-privacy: saved (1 browser profile found.)
-05:42:55  browser-extensions: opening
-05:42:57  browser-extensions: saved (To remove a normal extension, open it in its browser. Extensions with powerful access are fine when you trust who made them.)
-05:42:57  duplicates: opening
-05:42:59  duplicates: saved ()
-05:42:59  registry-cleaner: opening
-05:42:59  registry-cleaner: running action
-05:43:01  registry-cleaner: saved (Found 27 problems.)
-05:43:01  system-info: opening
-05:43:05  system-info: saved ()
-05:43:05  repair-center: opening
-05:43:07  repair-center: saved (Each fix uses Windows' own repair tools. Pick one to run it.)
-05:43:07  startup: opening
-05:43:09  startup: saved (3 startup entries)
-05:43:09  context-menu: opening
-05:43:11  context-menu: saved (4 entries added by programs. Switch an entry off to hide it; switch it back on any time.)
-05:43:11  network: opening
-05:43:13  network: saved (Connected through Ethernet 3 (Ethernet).)
-05:43:13  drivers: opening
-05:43:25  drivers: saved (Your driver store is tidy. Back up your drivers before resetting Windows so you don't have to hunt for them again.)
-05:43:25  disk-analyzer: opening
-05:43:26  disk-analyzer: running action
-05:43:42  disk-analyzer: saved (MFT scan: 1,139,894 files in 208,485 folders, 141.4 GB, in 13.5 s.)
-05:43:42  usb-tools: opening
-05:43:44  usb-tools: saved ()
-05:43:44  settings: opening
-05:43:46  settings: saved ()
-05:43:46  Switching to the light theme
-05:43:46  dashboard-light: opening
-05:43:48  dashboard-light: saved ()
-05:43:48  disk-analyzer-light: opening
-05:43:50  disk-analyzer-light: saved (MFT scan: 1,139,894 files in 208,485 folders, 141.4 GB, in 13.5 s.)
-05:43:50  Done
+15:48:21  Display 1920x1080: ok
+15:48:22  Window 1440x900
+15:48:22  Scour screenshot run on Microsoft Windows NT 10.0.26100.0, 4 CPUs, elevated=True
+15:48:24  dashboard: opening
+15:48:24  dashboard: running action
+15:48:26  dashboard: saved ()
+15:48:26  uninstaller: opening
+15:48:26  uninstaller: running action
+15:48:30  uninstaller: saved (59 programs · 22.2 GB)
+15:48:30  command-palette: opening
+15:48:32  command-palette: saved (2 results)
+15:48:32  game-mode: opening
+15:48:34  game-mode: saved ()
+15:48:34  app-updates: opening
+15:48:43  app-updates: saved (26 updates available.)
+15:48:43  reinstall-kit: opening
+15:48:51  reinstall-kit: saved (Untick anything you don't want, then press Save kit. Apps winget doesn't know (and their settings) aren't included.)
+15:48:51  junk-cleaner: opening
+15:48:51  junk-cleaner: running action
+15:48:53  junk-cleaner: saved (Found 354.9 MB of junk.)
+15:48:53  bloatware: opening
+15:48:58  bloatware: saved (Found 1 pre-installed app; 1 is safe to remove.)
+15:48:58  privacy-tweaks: opening
+15:49:00  privacy-tweaks: saved (0 of 17 protections on. Every change is saved first and can be switched back.)
+15:49:00  browser-privacy: opening
+15:49:02  browser-privacy: saved (1 browser profile found.)
+15:49:02  browser-extensions: opening
+15:49:04  browser-extensions: saved (To remove a normal extension, open it in its browser. Extensions with powerful access are fine when you trust who made them.)
+15:49:04  duplicates: opening
+15:49:06  duplicates: saved ()
+15:49:06  registry-cleaner: opening
+15:49:06  registry-cleaner: running action
+15:49:08  registry-cleaner: saved (Found 3 problems.)
+15:49:08  system-info: opening
+15:49:12  system-info: saved ()
+15:49:12  repair-center: opening
+15:49:14  repair-center: saved (Each fix uses Windows' own repair tools. Pick one to run it.)
+15:49:14  startup: opening
+15:49:15  startup: saved (3 startup entries)
+15:49:15  context-menu: opening
+15:49:17  context-menu: saved (4 entries added by programs. Switch an entry off to hide it; switch it back on any time.)
+15:49:17  network: opening
+15:49:20  network: saved (Connected through Ethernet 4 (Ethernet).)
+15:49:20  drivers: opening
+15:49:31  drivers: saved (Your driver store is tidy. Back up your drivers before resetting Windows so you don't have to hunt for them again.)
+15:49:31  disk-analyzer: opening
+15:49:32  disk-analyzer: running action
+15:49:46  disk-analyzer: saved (MFT scan: 1,142,630 files in 209,936 folders, 142.5 GB, in 10.9 s.)
+15:49:46  usb-tools: opening
+15:49:47  usb-tools: saved ()
+15:49:47  settings: opening
+15:49:49  settings: saved ()
+15:49:49  Switching to the light theme
+15:49:49  dashboard-light: opening
+15:49:51  dashboard-light: saved ()
+15:49:51  disk-analyzer-light: opening
+15:49:53  disk-analyzer-light: saved (MFT scan: 1,142,630 files in 209,936 folders, 142.5 GB, in 10.9 s.)
+15:49:53  Done
