@@ -129,12 +129,59 @@ public static class ProcessRunner
     /// Runs a PowerShell script. Its stdout is UTF-8; parse <see cref="ToolResult.StdOut"/> (errors and
     /// warnings go to stderr, so they can't corrupt JSON output).
     /// </summary>
-    public static Task<ToolResult> PowerShellAsync(string script, TimeSpan timeout, CancellationToken ct = default)
+    public static async Task<ToolResult> PowerShellAsync(string script, TimeSpan timeout, CancellationToken ct = default)
     {
-        var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(
-            "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $ProgressPreference = 'SilentlyContinue'; " +
-            "$WarningPreference = 'SilentlyContinue'; $InformationPreference = 'SilentlyContinue'; " + script));
-        return RunHiddenAsync("powershell.exe", $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {encoded}", timeout, ct);
+        script = "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $ProgressPreference = 'SilentlyContinue'; " +
+                 "$WarningPreference = 'SilentlyContinue'; $InformationPreference = 'SilentlyContinue'\n" + script;
+
+        // A script file rather than -EncodedCommand: antivirus products (and Defender's "obfuscated script" rule)
+        // block hidden encoded commands from unsigned programs, which made every PowerShell-based page fail.
+        // -Command exits 1 when the last statement failed; a script file doesn't unless told to.
+        if (WriteScript(script + "\nif (-not $?) { exit 1 }") is { } file)
+        {
+            try
+            {
+                var result = await RunHiddenAsync("powershell.exe", $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"{file}\"", timeout, ct);
+                // A Group Policy execution policy (AllSigned) overrides Bypass for files but not for commands.
+                if (!result.StdErr.Contains("UnauthorizedAccess", StringComparison.Ordinal) && !result.StdErr.Contains("PSSecurityException", StringComparison.Ordinal))
+                    return result;
+            }
+            finally
+            {
+                try { File.Delete(file); } catch { /* removed with the folder's next use */ }
+            }
+        }
+        var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+        return await RunHiddenAsync("powershell.exe", $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {encoded}", timeout, ct);
+    }
+
+    /// <summary>
+    /// Saves a script where only administrators can write (so nobody can swap it before it runs elevated).
+    /// Returns null if that isn't possible.
+    /// </summary>
+    private static string? WriteScript(string script)
+    {
+        try
+        {
+            var dir = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Scour", "Scripts"));
+            var security = new System.Security.AccessControl.DirectorySecurity();
+            security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+            foreach (var sid in new[] { System.Security.Principal.WellKnownSidType.LocalSystemSid, System.Security.Principal.WellKnownSidType.BuiltinAdministratorsSid })
+                security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(
+                    new System.Security.Principal.SecurityIdentifier(sid, null), System.Security.AccessControl.FileSystemRights.FullControl,
+                    System.Security.AccessControl.InheritanceFlags.ContainerInherit | System.Security.AccessControl.InheritanceFlags.ObjectInherit,
+                    System.Security.AccessControl.PropagationFlags.None, System.Security.AccessControl.AccessControlType.Allow));
+            if (!dir.Exists) dir.Create(security);
+            dir.SetAccessControl(security);
+            var file = Path.Combine(dir.FullName, $"run-{Guid.NewGuid():N}.ps1");
+            // With a BOM: Windows PowerShell reads BOM-less scripts in the ANSI code page.
+            File.WriteAllText(file, script, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+            return file;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static Dictionary<uint, uint> Snapshot()

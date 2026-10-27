@@ -134,7 +134,7 @@ public sealed partial class BloatwareViewModel : PageViewModel
                     if (errors.Count == 0)
                         foreach (var p in i.Match.Packages)
                         {
-                            var data = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", p.FamilyName);
+                            var data = AppxService.DataFolder(_s.Folders.LocalAppData, p.FamilyName);
                             try { if (Directory.Exists(data)) _s.FileSystem.DeleteDirectory(data, _s.Settings.FilesToRecycleBin); }
                             catch { /* in use; harmless */ }
                         }

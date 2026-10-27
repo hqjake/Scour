@@ -52,7 +52,9 @@ public sealed class LeftoverRemover(IRegistry registry, IFileSystem fs, BackupSt
                 var key = item.RegistryKey!.Value;
                 if (item.Kind == LeftoverKind.RegistryValue)
                 {
-                    if (registry.GetValue(key, item.ValueName ?? "") is not null) registry.DeleteValue(key, item.ValueName ?? "");
+                    // No existence check first: a key Scour can't read looks missing, and would be reported as
+                    // removed while still there. Deleting what's already gone is a no-op; denied access throws.
+                    registry.DeleteValue(key, item.ValueName ?? "");
                 }
                 else
                 {
@@ -61,7 +63,7 @@ public sealed class LeftoverRemover(IRegistry registry, IFileSystem fs, BackupSt
                         try { services.StopAndDelete(item.ServiceName); }
                         catch { /* fall back to deleting the key directly */ }
                     }
-                    if (registry.KeyExists(key)) registry.DeleteKeyTree(key);
+                    registry.DeleteKeyTree(key);
                 }
                 report.Removed.Add(item);
             }

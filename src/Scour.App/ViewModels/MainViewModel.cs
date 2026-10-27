@@ -58,8 +58,11 @@ public sealed partial class MainViewModel : ObservableObject
 
     public CommandPaletteViewModel Palette { get; }
 
-    /// <summary>Set when Scour runs as another account than the signed-in one (see <see cref="SessionUser"/>).</summary>
-    public string? OtherUserWarning { get; } = SessionUser.OtherSignedInUser() is { } other
+    /// <summary>
+    /// Set when Scour runs as another account than the signed-in one and can't work on that user's files
+    /// (normally it switches to them; see <see cref="SessionUser"/>).
+    /// </summary>
+    public string? OtherUserWarning { get; } = SessionUser.OtherSignedInUser() is { } other && SessionUser.Other is null
         ? $"Scour is running as {Environment.UserDomainName}\\{Environment.UserName}, but {other} is signed in. Browser, junk, startup and " +
           "Windows app tools only see this account's files. To clean your own account, sign in as an administrator, or make your account one."
         : null;
@@ -150,6 +153,7 @@ public sealed partial class MainViewModel : ObservableObject
     partial void OnCurrentPageChanged(PageViewModel value)
     {
         value.ActivateAsync().Forget("Opening " + value.Title, report: false); // failures show on the page
+        Dashboard.IsShown = value == Dashboard;
         SelectedNavPage = Pages.Contains(value) ? value : null;
     }
 

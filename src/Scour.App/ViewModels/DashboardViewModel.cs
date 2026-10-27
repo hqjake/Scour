@@ -158,8 +158,14 @@ public sealed partial class DashboardViewModel : PageViewModel
         catch { StartupCount = 0; }
     }
 
+    /// <summary>False while another page is shown; the live gauges then stop sampling.</summary>
+    public bool IsShown { get; set; } = true;
+
     private void Sample()
     {
+        // Nobody is looking (another page, minimised or in the tray): don't keep querying drives and CPU.
+        if (!IsShown || System.Windows.Application.Current?.MainWindow is { } w && (!w.IsVisible || w.WindowState == System.Windows.WindowState.Minimized))
+            return;
         if (ProcessNative.GetSystemTimes(out var idle, out var kernel, out var user))
         {
             long dIdle = idle - _idle, dTotal = kernel - _kernel + (user - _user);
