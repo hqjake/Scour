@@ -1,6 +1,11 @@
-Fixes for features that failed or showed empty pages on many PCs, especially non-English Windows.
+Game mode, plus fixes for features that failed or showed empty pages on many PCs, especially non-English Windows.
 
-**Fixed in 1.2.1**
+**New in 1.3.0: Game mode**
+
+- One switch (on its own page, in the tray menu, or **Ctrl+Alt+G** from inside a game) that hands the PC to your game: maximum performance power plan, Windows Game Mode on, Xbox Game Bar background recording off, notifications silenced, launchers/sync clients/updaters slowed down, and optionally raw mouse movement.
+- Every original setting is saved first and put back exactly when you turn it off, even after a restart. Scour's own cleaning and alerts pause while it's on.
+
+**Fixed in 1.3.0**
 
 - **Non-English Windows** — messages from Windows tools (repairs, drivers, DISM, services) were garbled; restore-point cleanup always said "nothing to remove"; removing Windows.old failed; number boxes rejected decimal commas; valid shortcuts with non-English folder names were flagged as broken.
 - **Pages no longer stay empty** — if a page can't load, it says why and tries again next time; errors are saved to `%ProgramData%\Scour\error.log`.

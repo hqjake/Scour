@@ -8,8 +8,9 @@ public sealed class TrayService : IDisposable
 {
     private readonly Forms.NotifyIcon _icon;
     private Action? _balloonClick;
+    private readonly Forms.ToolStripMenuItem _gameMode;
 
-    public TrayService(Action open, Action quickClean, Action checkHealth, Action analyzeDisk, Action exit)
+    public TrayService(Action open, Action quickClean, Action checkHealth, Action analyzeDisk, Action toggleGameMode, Action exit)
     {
         _icon = new Forms.NotifyIcon
         {
@@ -24,6 +25,8 @@ public sealed class TrayService : IDisposable
         menu.Items.Add("Quick clean", null, (_, _) => quickClean());
         menu.Items.Add("Check PC health", null, (_, _) => checkHealth());
         menu.Items.Add("Analyze disk space", null, (_, _) => analyzeDisk());
+        _gameMode = new Forms.ToolStripMenuItem("Game mode", null, (_, _) => toggleGameMode());
+        menu.Items.Add(_gameMode);
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Exit", null, (_, _) => exit());
         _icon.DoubleClick += (_, _) => open();
@@ -35,6 +38,9 @@ public sealed class TrayService : IDisposable
         var res = Application.GetResourceStream(new Uri("pack://application:,,,/Scour;component/Assets/scour.ico"));
         return res is null ? System.Drawing.SystemIcons.Application : new System.Drawing.Icon(res.Stream, 32, 32);
     }
+
+    /// <summary>Ticks "Game mode" in the menu while it is on.</summary>
+    public void SetGameMode(bool on) => _gameMode.Checked = on;
 
     public void Notify(string title, string text, Action? onClick = null, bool warning = false)
     {

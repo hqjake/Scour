@@ -71,6 +71,7 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
     private static readonly Dictionary<Type, string[]> PageKeywords = new()
     {
         [typeof(DashboardViewModel)] = ["home", "overview", "health", "score"],
+        [typeof(GameModeViewModel)] = ["game", "gaming", "fps", "performance", "boost", "turbo", "power plan"],
         [typeof(ProgramsViewModel)] = ["uninstall", "remove", "programs", "apps", "revo", "installed"],
         [typeof(AppUpdatesViewModel)] = ["update", "upgrade", "winget", "outdated"],
         [typeof(BloatwareViewModel)] = ["bloat", "debloat", "preinstalled", "crapware"],
@@ -119,6 +120,8 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
             RunOn<AppUpdatesViewModel>(p => p.RefreshCommand.ExecuteAsync(null))));
         list.Add(Entry("Apply recommended privacy protections", "Turn off telemetry, ads and tracking", "Action", "", ["privacy", "telemetry", "tracking"],
             RunOn<PrivacyViewModel>(p => { p.ApplyRecommendedCommand.Execute(null); return Task.CompletedTask; })));
+        list.Add(Entry(main.GameMode.IsOn ? "Turn off Game mode" : "Turn on Game mode", "Give the PC to your game · " + GameModeHotkey.Description,
+            "Action", "\uE7FC", ["game", "gaming", "fps", "boost", "performance"], (Func<Task>)(() => main.GameMode.ToggleCommand.ExecuteAsync(null))));
         list.Add(Entry("Test internet speed", "Download, upload and ping", "Action", "\uEC4A", ["speed", "internet", "bandwidth", "ping"],
             RunOn<NetworkViewModel>(p => p.RunSpeedTestCommand.ExecuteAsync(null))));
         list.Add(Entry("Show saved Wi-Fi passwords", "Networks this PC remembers", "Action", "\uE701", ["wifi", "wi-fi", "password", "wlan"],

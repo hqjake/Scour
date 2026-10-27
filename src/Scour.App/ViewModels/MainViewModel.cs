@@ -19,9 +19,11 @@ public sealed partial class MainViewModel : ObservableObject
         Forced = new ForcedUninstallViewModel(services);
         Settings = new SettingsViewModel(services);
         Dashboard = new DashboardViewModel(services, Navigate);
+        GameMode = new GameModeViewModel(services);
         Pages =
         [
             Dashboard,
+            GameMode,
             Programs,
             new AppUpdatesViewModel(services),
             new BloatwareViewModel(services),
@@ -139,6 +141,7 @@ public sealed partial class MainViewModel : ObservableObject
     private void DismissUpdate() => AvailableUpdate = null;
 
     public DashboardViewModel Dashboard { get; }
+    public GameModeViewModel GameMode { get; }
     public ProgramsViewModel Programs { get; }
     public ForcedUninstallViewModel Forced { get; }
     public SettingsViewModel Settings { get; }
