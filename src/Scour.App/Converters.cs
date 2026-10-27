@@ -75,3 +75,10 @@ public sealed class ZeroToTrueConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
 }
+
+/// <summary>"{Binding Title, Converter={StaticResource Tr}}": translates bound interface texts.</summary>
+public sealed class TranslateConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value is string s ? Services.Loc.T(s) : value;
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
+}

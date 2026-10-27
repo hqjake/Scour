@@ -16,6 +16,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         Loaded += (_, _) => PlayIntro();
+        // Live pages (Task manager, Sensors) stop sampling while the window is in the tray or minimised.
+        IsVisibleChanged += (_, _) => ReportVisibility();
+        StateChanged += (_, _) => ReportVisibility();
         DataContextChanged += (_, e) =>
         {
             if (e.OldValue is MainViewModel old)
@@ -188,5 +191,15 @@ public partial class MainWindow : Window
         var item = new MenuItem { Header = header };
         item.Click += (_, _) => action();
         menu.Items.Add(item);
+    }
+
+    private bool _reportedVisible = true;
+
+    private void ReportVisibility()
+    {
+        bool visible = IsVisible && WindowState != WindowState.Minimized;
+        if (visible == _reportedVisible || DataContext is not MainViewModel vm) return;
+        _reportedVisible = visible;
+        vm.SetWindowVisible(visible);
     }
 }

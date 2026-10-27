@@ -49,4 +49,10 @@ public abstract partial class PageViewModel : ObservableObject
     }
 
     protected virtual Task LoadAsync() => Task.CompletedTask;
+
+    /// <summary>The page became the visible one (after <see cref="ActivateAsync"/> started).</summary>
+    public virtual void OnShown() { }
+
+    /// <summary>Another page replaced this one; stop live updates.</summary>
+    public virtual void OnHidden() { }
 }

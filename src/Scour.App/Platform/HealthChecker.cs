@@ -50,6 +50,7 @@ public static class HealthChecker
             RegistryProblems = registry,
             Drives = drives,
             Antivirus = av,
+            Battery = SystemInfoCollector.Battery(),
             Uptime = TimeSpan.FromMilliseconds(Environment.TickCount64),
             LastCleanupUtc = s.Settings.LastCleanupUtc,
             UpdatesAvailable = s.LastUpdatesCount,

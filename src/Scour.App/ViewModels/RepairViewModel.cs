@@ -73,6 +73,7 @@ public sealed partial class RepairViewModel : PageViewModel
             item.State = ok ? "Done" : "Finished with problems";
             if (ok && a.NeedsRestart) RestartNeeded = true;
             StatusText = ok ? $"{a.Name}: finished." : $"{a.Name}: finished with problems — see the output.";
+            ChangeHistory.Record("Repair", $"Ran \"{a.Name}\"", ok ? "Finished." : "Finished with problems.");
             SoundService.Play(ok ? UiSound.Success : UiSound.Warning);
         }
         catch (OperationCanceledException)

@@ -55,6 +55,8 @@ public sealed partial class TweakViewModel : ObservableObject
         {
             if (value) _engine.Apply(Tweak);
             else _engine.Undo(Tweak);
+            ChangeHistory.Record("Privacy", $"{(value ? "Turned on" : "Turned off")} \"{Tweak.Name}\"", null,
+                                 new Scour.Core.Removal.UndoInfo(ChangeHistory.PrivacyTweak, (value ? "off:" : "on:") + Tweak.Id));
         }
         catch (Exception e)
         {

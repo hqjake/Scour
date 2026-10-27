@@ -15,8 +15,11 @@ public sealed partial class DnsPresetViewModel(DnsPreset preset) : ObservableObj
     public string Servers => Preset.IsAutomatic ? "From your router" : string.Join("  ·  ", Preset.Servers.Take(2));
 
     [ObservableProperty] private string _latency = "";
-    [ObservableProperty] private bool _isFastest;
-    [ObservableProperty] private bool _isCurrent;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TagText))] private bool _isFastest;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(UseText))] private bool _isCurrent;
+
+    public string TagText => IsFastest ? Loc.T("Fastest from here") : "";
+    public string UseText => Loc.T(IsCurrent ? "In use" : "Use this");
 }
 
 public sealed partial class WifiItemViewModel(WifiProfile profile) : ObservableObject
@@ -155,6 +158,7 @@ public sealed partial class NetworkViewModel : PageViewModel
             await NetworkService.SetDnsAsync(Adapters.Select(a => a.Index), preset.Preset);
             await RefreshAdaptersAsync();
             DnsStatus = $"Now using {preset.Name}. The DNS cache was cleared.";
+            ChangeHistory.Record("Network", $"Switched DNS to {preset.Name}", names);
             SoundService.Play(UiSound.Success);
         }
         catch (Exception e)
@@ -298,6 +302,7 @@ public sealed partial class NetworkViewModel : PageViewModel
             _hosts = new HostsFile(NetworkService.ReadHosts());
             ShowHosts();
             HostsDirty = false;
+            ChangeHistory.Record("Network", "Edited the hosts file", "The original is kept as hosts.scour-backup.");
             HostsStatus = HostsEntries.Count == 0
                 ? "The hosts file is empty — the normal state. Add a line to block a site (0.0.0.0) or point a name at another address."
                 : $"{Format.Plural(HostsEntries.Count(e => e.Enabled), "active line")}. Untick to switch a line off without deleting it.";

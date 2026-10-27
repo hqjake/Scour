@@ -71,6 +71,12 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
     private static readonly Dictionary<Type, string[]> PageKeywords = new()
     {
         [typeof(DashboardViewModel)] = ["home", "overview", "health", "score"],
+        [typeof(TaskManagerViewModel)] = ["task manager", "processes", "end task", "kill", "services", "unlock", "file in use", "locked", "cpu usage"],
+        [typeof(DeviceAccessViewModel)] = ["camera", "webcam", "microphone", "mic", "location", "gps", "spying", "permissions"],
+        [typeof(BootTimeViewModel)] = ["boot", "startup time", "slow startup", "slow boot", "boot time"],
+        [typeof(WindowsUpdateViewModel)] = ["windows update", "pause updates", "update history", "hide update", "failed update", "kb"],
+        [typeof(ChangeHistoryViewModel)] = ["history", "undo", "log", "what changed", "activity", "revert"],
+        [typeof(SensorsViewModel)] = ["temperature", "temp", "fan", "rpm", "gpu", "heat", "overheating", "sensors", "hwmonitor"],
         [typeof(GameModeViewModel)] = ["game", "gaming", "fps", "performance", "boost", "turbo", "power plan"],
         [typeof(ProgramsViewModel)] = ["uninstall", "remove", "programs", "apps", "revo", "installed"],
         [typeof(AppUpdatesViewModel)] = ["update", "upgrade", "winget", "outdated"],
@@ -120,8 +126,13 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
             RunOn<AppUpdatesViewModel>(p => p.RefreshCommand.ExecuteAsync(null))));
         list.Add(Entry("Apply recommended privacy protections", "Turn off telemetry, ads and tracking", "Action", "", ["privacy", "telemetry", "tracking"],
             RunOn<PrivacyViewModel>(p => { p.ApplyRecommendedCommand.Execute(null); return Task.CompletedTask; })));
-        list.Add(Entry(main.GameMode.IsOn ? "Turn off Game mode" : "Turn on Game mode", "Give the PC to your game · " + GameModeHotkey.Description,
+        list.Add(Entry(main.GameMode.IsOn ? "Turn off Game mode" : "Turn on Game mode", "Give the PC to your game · " + GlobalHotkeys.GameModeShortcut,
             "Action", "\uE7FC", ["game", "gaming", "fps", "boost", "performance"], (Func<Task>)(() => main.GameMode.ToggleCommand.ExecuteAsync(null))));
+        list.Add(Entry(services.Overlay.IsVisible ? "Hide the in-game overlay" : "Show the in-game overlay", "FPS, CPU, GPU and memory · " + GlobalHotkeys.OverlayShortcut,
+            "Action", "\uE7F4", ["overlay", "fps", "frame rate", "counter", "osd"], () => services.Overlay.Toggle()));
+        list.Add(Entry("Create a problem report", "Zip logs and system info to send when something doesn't work", "Action", "\uEBE8",
+            ["bug", "report", "logs", "support", "help", "error"],
+            (Func<Task>)(() => { main.Navigate(main.Settings); return main.Settings.CreateProblemReportCommand.ExecuteAsync(null); })));
         list.Add(Entry("Test internet speed", "Download, upload and ping", "Action", "\uEC4A", ["speed", "internet", "bandwidth", "ping"],
             RunOn<NetworkViewModel>(p => p.RunSpeedTestCommand.ExecuteAsync(null))));
         list.Add(Entry("Show saved Wi-Fi passwords", "Networks this PC remembers", "Action", "\uE701", ["wifi", "wi-fi", "password", "wlan"],
@@ -146,9 +157,9 @@ public sealed partial class CommandPaletteViewModel(MainViewModel main, AppServi
 
         // Pages.
         foreach (var page in main.Pages)
-            list.Add(Entry(page.Title, $"Open · {page.Group}", "Page", page.Glyph,
-                PageKeywords.GetValueOrDefault(page.GetType(), []), () => main.Navigate(page)));
-        list.Add(Entry("Settings", "Open · Scour", "Page", main.Settings.Glyph, ["options", "preferences", "configure"], () => main.Navigate(main.Settings)));
+            list.Add(Entry(Loc.T(page.Title), $"{Loc.T("Open")} · {Loc.T(page.Group)}", "Page", page.Glyph,
+                [.. PageKeywords.GetValueOrDefault(page.GetType(), []), page.Title.ToLowerInvariant()], () => main.Navigate(page)));
+        list.Add(Entry(Loc.T("Settings"), Loc.T("Open") + " · Scour", "Page", main.Settings.Glyph, ["options", "preferences", "configure"], () => main.Navigate(main.Settings)));
 
         // Repairs.
         if (main.Pages.OfType<RepairViewModel>().FirstOrDefault() is { } repair)

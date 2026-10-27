@@ -118,8 +118,9 @@ public sealed partial class BrowserExtensionsViewModel(AppServices services) : P
                 RegistryKey = item.Key,
                 ValueName = item.ValueName,
             };
-            services.Backups.Create($"Extension {name}", [leftover], services.Registry, filesToRecycleBin: false, DateTime.UtcNow);
+            var backup = services.Backups.Create($"Extension {name}", [leftover], services.Registry, filesToRecycleBin: false, DateTime.UtcNow);
             Scanner.Remove(item);
+            ChangeHistory.Record("Browsers", $"Removed forced extension {name} from {item.Browser}", item.Location, ChangeHistory.ForBackup(backup));
             SoundService.Play(UiSound.Success);
             await RefreshAsync();
             StatusText = $"Removed. {item.Browser} drops the extension the next time it starts; the backup is under Backups.";

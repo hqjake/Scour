@@ -32,12 +32,18 @@ public sealed partial class MainViewModel : ObservableObject
             new TracesViewModel(services),
             Forced,
             new BackupsViewModel(services),
+            new ChangeHistoryViewModel(services, GameMode),
             new JunkViewModel(services),
             new BrowserPrivacyViewModel(services),
             new BrowserExtensionsViewModel(services),
             new PrivacyViewModel(services),
+            new DeviceAccessViewModel(services),
             new FileFinderViewModel(services),
             new RegistryCleanerViewModel(services),
+            new TaskManagerViewModel(),
+            new SensorsViewModel(),
+            new BootTimeViewModel(Navigate),
+            new WindowsUpdateViewModel(services),
             new SystemInfoViewModel(),
             new RepairViewModel(services),
             new AutorunViewModel(services),
@@ -153,8 +159,11 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>The sidebar selection; null while a page outside the list (Settings) is shown.</summary>
     [ObservableProperty] private PageViewModel? _selectedNavPage;
 
-    partial void OnCurrentPageChanged(PageViewModel value)
+    partial void OnCurrentPageChanged(PageViewModel? oldValue, PageViewModel newValue)
     {
+        oldValue?.OnHidden();
+        newValue.OnShown();
+        var value = newValue;
         value.ActivateAsync().Forget("Opening " + value.Title, report: false); // failures show on the page
         Dashboard.IsShown = value == Dashboard;
         SelectedNavPage = Pages.Contains(value) ? value : null;
@@ -166,6 +175,19 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     public void Navigate(PageViewModel page) => CurrentPage = page;
+
+    /// <summary>The window was hidden (tray, minimised) or shown again: pause or resume the page's live updates.</summary>
+    public void SetWindowVisible(bool visible)
+    {
+        if (visible) CurrentPage.OnShown();
+        else CurrentPage.OnHidden();
+    }
+
+    public void Navigate(Type pageType)
+    {
+        var page = Pages.FirstOrDefault(p => p.GetType() == pageType);
+        if (page is not null) CurrentPage = page;
+    }
 
     public void Navigate<T>() where T : PageViewModel
     {

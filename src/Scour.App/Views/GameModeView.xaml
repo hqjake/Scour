@@ -36,18 +36,7 @@
                     </TextBlock.Style>
                 </TextBlock>
                 <StackPanel Grid.Column="1" Margin="18,0,12,0" VerticalAlignment="Center">
-                    <TextBlock FontSize="18" FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Text" Value="Game mode is off" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsOn}" Value="True">
-                                        <Setter Property="Text" Value="Game mode is on" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                    <TextBlock Text="{Binding HeroTitle}" FontSize="18" FontWeight="SemiBold" />
                     <TextBlock Style="{StaticResource Caption}" Margin="0,2,0,0">
                         <Run Text="{Binding OnSinceText, Mode=OneWay}" />
                         <Run Text="  Press " /><Run Text="{Binding HotkeyText, Mode=OneWay}" FontWeight="SemiBold" /><Run Text=" to switch it from inside a game." />
@@ -61,6 +50,29 @@
 
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
             <StackPanel>
+                <TextBlock Text="In-game overlay" Style="{StaticResource SectionTitle}" Margin="2,0,0,8" />
+                <Border Style="{StaticResource Card}" Margin="0,0,0,16" Padding="16,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" FontSize="14">
+                                <Run Text="FPS, CPU, GPU and memory over your game · " /><Run Text="{Binding OverlayHotkeyText, Mode=OneWay}" />
+                            </TextBlock>
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,2,0,6"
+                                       Text="Shows in windowed and borderless full-screen games (most games' default). Exclusive full-screen hides every other window, including this one." />
+                            <CheckBox Content="Show it whenever Game mode is on" IsChecked="{Binding OverlayWithGameMode}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                            <CheckBox Content="Show now" IsChecked="{Binding OverlayVisible}" />
+                            <ComboBox ItemsSource="{Binding OverlayCorners}" SelectedItem="{Binding OverlayCorner}" Margin="0,8,0,0" MinWidth="130"
+                                      ToolTip="Which corner of the screen" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
                 <TextBlock Text="Boosts" Style="{StaticResource SectionTitle}" Margin="2,0,0,8" />
                 <TextBlock Style="{StaticResource Caption}" Margin="2,0,0,8" Text="Turn Game mode off to change which boosts it uses."
                            Visibility="{Binding IsOn, Converter={StaticResource TruthyToVisibility}}" />
@@ -89,6 +101,66 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding}" Style="{StaticResource Caption}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Automatic Game mode and per-game choices. -->
+                <TextBlock Text="Your games" Style="{StaticResource SectionTitle}" Margin="2,18,0,8" />
+                <Border Style="{StaticResource Card}" Margin="0,0,0,8" Padding="16,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Switch on automatically when I play" FontWeight="SemiBold" FontSize="14" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,2,0,0"
+                                       Text="Game mode turns itself on when one of the games below starts, and off again when it closes. Games from Steam, Epic, GOG, Ubisoft, EA, Riot and Xbox are found automatically." />
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding AutoGameMode}" MinWidth="0" VerticalAlignment="Center" Margin="16,0,0,0" />
+                    </Grid>
+                </Border>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
+                    <Button Style="{StaticResource ToolButton}" Command="{Binding AddGameFolderCommand}" Content="Add a game folder…" />
+                    <Button Style="{StaticResource ToolButton}" Command="{Binding RescanGamesCommand}" Content="Look for games again" />
+                    <TextBlock Text="{Binding GamesStatus}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding Games}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,6" Padding="14,8">
+                                <Expander>
+                                    <Expander.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding Details}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1" Content="Automatic" IsChecked="{Binding Auto}" VerticalAlignment="Center" Margin="12,0,0,0"
+                                                      ToolTip="Switch Game mode on when this game starts" />
+                                        </Grid>
+                                    </Expander.Header>
+                                    <StackPanel Margin="4,8,0,4">
+                                        <CheckBox Content="Use its own boosts instead of the ones above" IsChecked="{Binding UseOwnBoosts}" />
+                                        <ItemsControl ItemsSource="{Binding Boosts}" Margin="22,6,0,0" IsEnabled="{Binding UseOwnBoosts}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" Margin="0,2" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Button Style="{StaticResource ToolButton}" Content="Remove from the list" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                                Command="{Binding DataContext.RemoveGameFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Visibility="{Binding IsCustom, Converter={StaticResource TruthyToVisibility}}" />
+                                    </StackPanel>
+                                </Expander>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

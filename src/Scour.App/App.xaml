@@ -18,6 +18,7 @@
             <local:EnumToBoolConverter x:Key="EnumToBool" />
             <local:StepOpacityConverter x:Key="StepOpacity" />
             <local:InverseBoolConverter x:Key="InverseBool" />
+            <local:TranslateConverter x:Key="Tr" />
             <local:ZeroToTrueConverter x:Key="ZeroToTrue" />
 
             <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>

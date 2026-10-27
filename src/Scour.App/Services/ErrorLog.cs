@@ -27,7 +27,7 @@ public static class ErrorLog
                     $"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)}] Scour {typeof(ErrorLog).Assembly.GetName().Version} on {Environment.OSVersion.VersionString} " +
                     $"({System.Globalization.CultureInfo.CurrentUICulture.Name}) — {context}{Environment.NewLine}{e}{Environment.NewLine}{Environment.NewLine}");
             }
-            ScreenshotRunner.Log($"{context}: {e}");
+            ScreenshotRunner.Problem($"{context}: {e}");
         }
         catch { /* logging must never throw */ }
     }

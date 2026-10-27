@@ -20,6 +20,14 @@
                             <TextBlock Style="{StaticResource Caption}" Text="Clicks, navigation, scan complete and cleanup finished." />
                         </StackPanel>
                     </CheckBox>
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                        <TextBlock Text="Language" VerticalAlignment="Center" Margin="0,0,12,0" />
+                        <ComboBox ItemsSource="{Binding Languages}" SelectedValue="{Binding Language}" SelectedValuePath="Code" DisplayMemberPath="Name" MinWidth="180" />
+                        <Button Content="Restart Scour" Command="{Binding RestartCommand}" Style="{StaticResource ToolButton}" Margin="10,0,0,0"
+                                Visibility="{Binding LanguageChanged, Converter={StaticResource TruthyToVisibility}}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Text="Translations cover the screens and buttons; some messages are still in English." />
                 </StackPanel>
             </Border>
 
@@ -97,7 +105,14 @@
                     <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0">
                         <Run Text="Backups, trace logs and error.log (send it along when reporting a problem) are stored in " /><Run Text="{Binding DataFolder, Mode=OneWay}" />
                     </TextBlock>
-                    <Button Content="Open data folder" Command="{Binding OpenDataFolderCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="Create problem report" Command="{Binding CreateProblemReportCommand}"
+                                IsEnabled="{Binding IsCreatingReport, Converter={StaticResource InverseBool}}"
+                                ToolTip="Zips the error log and a system report onto your Desktop, to send when something doesn't work" />
+                        <Button Content="Open data folder" Command="{Binding OpenDataFolderCommand}" Style="{StaticResource ToolButton}" Margin="8,0,0,0" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding ReportStatus}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,6,0,0"
+                               Visibility="{Binding ReportStatus, Converter={StaticResource TruthyToVisibility}}" />
 
                     <CheckBox IsChecked="{Binding AutoCheckForUpdates}" Margin="0,18,0,0">
                         <StackPanel>

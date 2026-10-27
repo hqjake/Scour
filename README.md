@@ -18,6 +18,9 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 | ![Command palette](docs/screenshots/command-palette.png) **Command palette** (Ctrl+K) | ![Reinstall kit](docs/screenshots/reinstall-kit.png) **Reinstall kit** |
 | ![Network](docs/screenshots/network.png) **Network** — DNS switcher, speed test, Wi-Fi, hosts | ![Drivers](docs/screenshots/drivers.png) **Drivers** — old versions, backup & restore |
 | ![Game mode](docs/screenshots/game-mode.png) **Game mode** — one switch for gaming performance | ![Startup programs](docs/screenshots/startup.png) **Startup programs** |
+| ![Task manager](docs/screenshots/task-manager.png) **Task manager** — processes, services, unlock files | ![Sensors](docs/screenshots/sensors.png) **Sensors** — GPU temperature, fans, load |
+| ![Boot time](docs/screenshots/boot-time.png) **Boot time** — history and what slows it | ![Windows Update](docs/screenshots/windows-update.png) **Windows Update** — pause, history, hide |
+| ![Camera and microphone](docs/screenshots/camera-microphone.png) **Camera & microphone** history | ![Change history](docs/screenshots/change-history.png) **Change history** with undo |
 | ![Context menu](docs/screenshots/context-menu.png) **Context menu** manager | ![Browser extensions](docs/screenshots/browser-extensions.png) **Browser extensions** |
 | ![USB tools](docs/screenshots/usb-tools.png) **USB tools** | ![Settings](docs/screenshots/settings.png) **Settings** — themes, sounds, automatic cleaning |
 | ![Light theme dashboard](docs/screenshots/dashboard-light.png) **Light theme** | ![Light theme disk analyzer](docs/screenshots/disk-analyzer-light.png) **Light theme** |
@@ -66,6 +69,10 @@ Captured automatically from the real app on Windows by the [build workflow](.git
   too), then on a new or reset PC open it, see what's missing and install everything silently with per-app status
 
 **Gaming**
+- **Automatic Game mode** — finds your Steam, Epic, GOG, Ubisoft, EA, Riot and Xbox games (or folders you add), switches
+  Game mode on when one starts and off when it closes, with its own boosts per game if you like
+- **In-game overlay** — FPS (from the game's own frame presents, like PresentMon), CPU, GPU load and temperature and
+  memory in a corner of the screen; **Ctrl+Alt+O** shows or hides it
 - **Game mode** — one switch (or **Ctrl+Alt+G** from inside a game, or the tray menu) that switches to the Ultimate/High
   performance power plan (Best performance mode on laptops), makes sure Windows Game Mode is on, stops Xbox Game Bar's
   background recording, silences notifications, lowers the priority of launchers, sync clients and updaters, and
@@ -73,12 +80,26 @@ Captured automatically from the real app on Windows by the [build workflow](.git
   saved first and put back exactly when it's turned off, even after a restart
 
 **Everywhere**
+- **Change history** — everything Scour changed, with one-click undo for registry removals, privacy tweaks, Game mode,
+  update pauses and camera/microphone blocks
+- **Problem report** — Settings → Create problem report zips the error log and a system report onto the Desktop
+- **Languages** — English, Deutsch, Español, Français, Italiano and Português (follows Windows by default)
 - **Command palette** — press **Ctrl+K** (or the search box in the sidebar) and type a few letters to open any page,
   run an action (quick clean, health check, disk scan, repairs, theme…) or uninstall any program
 - **Automatic updates** — Scour checks GitHub Releases on start, shows a banner when a new version is out and updates
   itself in place (downloads, verifies the SHA-256 checksum, swaps the exe and restarts); can be turned off in Settings
 
 **System**
+- **Task manager** — live CPU, memory, disk and network use per process (end, priority, VirusTotal check), services
+  (start, stop, startup type) and **Unlock files**: which program holds a file that won't delete, and release it
+- **Sensors** — GPU temperature, fan speed, power and load for NVIDIA, AMD and Intel straight from the display driver,
+  ACPI thermal zones and drive temperatures — no kernel driver installed
+- **Boot time** — every start of Windows charted from Windows' own measurements, plus the apps, drivers and services
+  slowing it down
+- **Windows Update** — pause updates (as Settings does), see the history with failures and search an error, hide an
+  update you don't want such as a bad driver
+- **Camera & microphone** — which apps used the camera, microphone and location and when, and block them
+- **Battery health** on laptops (capacity left, charge cycles) in System information and the health check
 - **Repair center** — SFC, DISM, chkdsk scan, network/DNS reset, Windows Update reset, icon cache, Store and Start menu
   repair, stuck printing, clock sync — with live output
 - **System information** — CPU, every RAM module (type, speed, part number, slot), GPU (true VRAM), motherboard,
@@ -140,8 +161,7 @@ the built-in updater. Code signing and winget publishing switch on with reposito
 
 ## Status
 
-Unit-tested (158 tests) and exercised on Windows by CI, which runs the real app and captures the screenshots above.
+Unit-tested (193 tests) and exercised on Windows by CI, which runs the real app, opens every page (also in German) and fails the build on any error, and captures the screenshots above.
 Please report anything that misbehaves, and attach `%ProgramData%\Scour\error.log`, where Scour records every error
 with its details (Settings → Open data folder).
-The process-sampling, network-per-process, file-unlocking and services code exists in `Platform/` but the task manager
-screen is not part of this version.
+CPU core temperatures aren't shown: reading them needs a kernel driver, which Scour deliberately doesn't install.

@@ -104,6 +104,7 @@ public sealed partial class ContextMenuViewModel : PageViewModel
         try
         {
             _menu.SetEnabled(item.Entry, enabled);
+            ChangeHistory.Record("Context menu", $"{(enabled ? "Showed" : "Hid")} \"{item.Name}\" in the right-click menu", "Switch it back on the Context menu page.");
             // A shell extension is blocked by its ID, so every place it appears changes together.
             if (item.Entry.Kind == MenuEntryKind.Handler)
             {

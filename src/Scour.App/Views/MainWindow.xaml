@@ -27,6 +27,12 @@
         <DataTemplate DataType="{x:Type vm:BloatwareViewModel}"><v:BloatwareView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:PrivacyViewModel}"><v:PrivacyView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:GameModeViewModel}"><v:GameModeView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TaskManagerViewModel}"><v:TaskManagerView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DeviceAccessViewModel}"><v:DeviceAccessView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BootTimeViewModel}"><v:BootTimeView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:WindowsUpdateViewModel}"><v:WindowsUpdateView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ChangeHistoryViewModel}"><v:ChangeHistoryView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SensorsViewModel}"><v:SensorsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ReinstallKitViewModel}"><v:ReinstallKitView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:BrowserExtensionsViewModel}"><v:BrowserExtensionsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ContextMenuViewModel}"><v:ContextMenuView /></DataTemplate>
@@ -104,7 +110,7 @@
                             <GroupStyle>
                                 <GroupStyle.HeaderTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" FontSize="10" FontWeight="SemiBold" Margin="22,14,0,4"
+                                        <TextBlock Text="{Binding Name, Converter={StaticResource Tr}}" FontSize="10" FontWeight="SemiBold" Margin="22,14,0,4"
                                                    Foreground="{DynamicResource Scour.Text3Brush}" Typography.Capitals="AllSmallCaps" />
                                     </DataTemplate>
                                 </GroupStyle.HeaderTemplate>
@@ -114,7 +120,7 @@
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Style="{StaticResource Glyph}" Text="{Binding Glyph}" Width="20" FontSize="15" />
-                                    <TextBlock Text="{Binding Title}" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding Title, Converter={StaticResource Tr}}" Margin="12,0,0,0" VerticalAlignment="Center" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

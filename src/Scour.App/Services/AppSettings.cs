@@ -31,8 +31,25 @@ public sealed class AppSettings
     public bool TrayHintShown { get; set; }
     public bool CheckForUpdates { get; set; } = true;
 
+    /// <summary>Interface language code; "" follows Windows.</summary>
+    public string Language { get; set; } = "";
+
     /// <summary>Game mode boosts the user picked; null until they change the defaults.</summary>
     public List<string>? GameModeBoosts { get; set; }
+
+    /// <summary>Switch Game mode on while an installed game runs, and off when it exits.</summary>
+    public bool AutoGameMode { get; set; }
+
+    /// <summary>Per-game choices, keyed by <see cref="Scour.Core.Gaming.GameInfo.Id"/>.</summary>
+    public Dictionary<string, GameProfile> GameProfiles { get; set; } = [];
+
+    /// <summary>Folders the user added as games (anything a launcher doesn't report).</summary>
+    public List<string> CustomGameFolders { get; set; } = [];
+
+    public Scour.App.Views.OverlayCorner OverlayCorner { get; set; } = Scour.App.Views.OverlayCorner.TopLeft;
+
+    /// <summary>Show the in-game overlay whenever Game mode is on.</summary>
+    public bool OverlayWithGameMode { get; set; }
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -63,4 +80,13 @@ public sealed class AppSettings
         }
         catch { /* settings are a convenience */ }
     }
+}
+
+public sealed class GameProfile
+{
+    /// <summary>False: this game never switches Game mode on by itself.</summary>
+    public bool Auto { get; set; } = true;
+
+    /// <summary>Boosts for this game; null uses the ones chosen on the Game mode page.</summary>
+    public List<string>? Boosts { get; set; }
 }

@@ -112,6 +112,7 @@ public sealed partial class DriversViewModel : PageViewModel
             IsBusy = IsLoading = false;
         }
         await RefreshAsync();
+        if (ok > 0) ChangeHistory.Record("Drivers", $"Removed {Format.Plural(ok, "old driver version")}");
         StatusText = $"Removed {Format.Plural(ok, "old driver version")}" + (ok < chosen.Count ? $"; Windows kept {chosen.Count - ok} it still needs." : ".");
     }
 

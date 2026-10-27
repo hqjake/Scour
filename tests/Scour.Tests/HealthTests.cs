@@ -67,3 +67,38 @@ public class HealthTests
     public void Decodes_security_center_state(int state, bool enabled, bool upToDate) =>
         Assert.Equal((enabled, upToDate), HealthScore.DecodeProductState(state));
 }
+
+public class BatteryHealthTests
+{
+    [Fact]
+    public void Health_is_full_charge_against_design_summed_over_batteries()
+    {
+        var b = Scour.Core.Health.BatteryHealth.From([50_000, 20_000], [40_000, 16_000], [0, 312])!;
+        Assert.Equal(80, b.HealthPercent);
+        Assert.Equal("Good", b.Rating);
+        Assert.Equal(312, b.CycleCount);
+        Assert.Equal(100, Scour.Core.Health.BatteryHealth.From([50_000], [52_000], [])!.HealthPercent);
+    }
+
+    [Fact]
+    public void Nonsense_readings_give_no_result()
+    {
+        Assert.Null(Scour.Core.Health.BatteryHealth.From([], [], []));
+        Assert.Null(Scour.Core.Health.BatteryHealth.From([50_000], [0], []));
+        Assert.Null(Scour.Core.Health.BatteryHealth.From([100], [50_000], []));
+    }
+
+    [Fact]
+    public void Only_a_worn_battery_is_an_issue()
+    {
+        Scour.Core.Health.HealthReport Eval(long full) => Scour.Core.Health.HealthScore.Evaluate(new Scour.Core.Health.HealthInputs
+        {
+            Battery = new Scour.Core.Health.BatteryHealth(50_000, full, null),
+            Uptime = TimeSpan.FromHours(1),
+            LastCleanupUtc = DateTime.UtcNow,
+        });
+        Assert.DoesNotContain(Eval(45_000).Issues, i => i.Fix == Scour.Core.Health.HealthFix.Battery);
+        Assert.Contains(Eval(25_000).Issues, i => i.Fix == Scour.Core.Health.HealthFix.Battery && i.Severity == Scour.Core.Health.Severity.Info);
+        Assert.Contains(Eval(15_000).Issues, i => i.Fix == Scour.Core.Health.HealthFix.Battery && i.Severity == Scour.Core.Health.Severity.Warning);
+    }
+}

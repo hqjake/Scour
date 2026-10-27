@@ -15,7 +15,7 @@
     <ApplicationIcon>Assets\scour.ico</ApplicationIcon>
     <AssemblyName>Scour</AssemblyName>
     <RootNamespace>Scour.App</RootNamespace>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <Product>Scour</Product>
     <!-- WPF Fluent theme (ThemeMode) is still flagged experimental. -->
     <NoWarn>$(NoWarn);WPF0001;WFO0003</NoWarn>
@@ -30,6 +30,7 @@
     <Resource Include="Assets\scour.png" />
     <Resource Include="Assets\scour.ico" />
     <Resource Include="Assets\Sounds\*.wav" />
+    <Resource Include="Assets\Lang\*.json" />
   </ItemGroup>
 
   <ItemGroup>
