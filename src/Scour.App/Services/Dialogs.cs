@@ -44,7 +44,7 @@ public static class Dialogs
 
     public static void Error(string message, string title = "Scour")
     {
-        if (Headless) { ScreenshotRunner.Log("Error dialog: " + message); return; }
+        if (Headless) { ScreenshotRunner.Problem("Error dialog: " + message); return; }
         SoundService.Play(UiSound.Warning);
         var owner = Owner;
         if (owner is null) MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);

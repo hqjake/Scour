@@ -1,0 +1,156 @@
+<UserControl x:Class="Scour.App.Views.TaskManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="Task manager" Style="{StaticResource PageTitle}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap"
+                       Text="What's running and what it uses, the services behind Windows and your programs, and which program is holding a file that won't delete." />
+        </StackPanel>
+
+        <TabControl x:Name="Tabs" Grid.Row="1" Margin="0,14,0,0" Background="Transparent" SelectionChanged="Tabs_SelectionChanged">
+            <!-- Processes -->
+            <TabItem Header="Processes">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="240" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" VerticalContentAlignment="Center"
+                                 ToolTip="Filter by name or PID" />
+                        <WrapPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                            <Button Style="{StaticResource ToolButton}" Command="{Binding EndTaskCommand}" Content="End task" />
+                            <Button Style="{StaticResource ToolButton}" Command="{Binding EndTreeCommand}" Content="End tree" />
+                            <Button Style="{StaticResource ToolButton}" Content="Priority…" Click="Priority_Click">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="High" Command="{Binding SetPriorityCommand}" CommandParameter="High" />
+                                        <MenuItem Header="Above normal" Command="{Binding SetPriorityCommand}" CommandParameter="AboveNormal" />
+                                        <MenuItem Header="Normal" Command="{Binding SetPriorityCommand}" CommandParameter="Normal" />
+                                        <MenuItem Header="Below normal" Command="{Binding SetPriorityCommand}" CommandParameter="BelowNormal" />
+                                        <MenuItem Header="Low" Command="{Binding SetPriorityCommand}" CommandParameter="Idle" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                            <Button Style="{StaticResource ToolButton}" Command="{Binding OpenLocationCommand}" Content="Open location" />
+                            <Button Style="{StaticResource ToolButton}" Command="{Binding SearchOnlineCommand}" Content="Search online" />
+                            <Button Style="{StaticResource ToolButton}" Command="{Binding CheckOnlineCommand}" Content="Check on VirusTotal"
+                                    ToolTip="Opens VirusTotal's report for this program. Only its fingerprint (SHA-256) is sent, never the file." />
+                        </WrapPanel>
+                    </Grid>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding ProcessView}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False"
+                              IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="None" SelectionMode="Single" RowHeight="30"
+                              VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="220" />
+                            <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="70" />
+                            <DataGridTextColumn Header="CPU" Binding="{Binding CpuText}" SortMemberPath="Cpu" Width="70" />
+                            <DataGridTextColumn Header="Memory" Binding="{Binding MemoryText}" SortMemberPath="Memory" Width="100" />
+                            <DataGridTextColumn Header="Disk" Binding="{Binding DiskText}" SortMemberPath="Disk" Width="100" />
+                            <DataGridTextColumn Header="Network" Binding="{Binding NetworkText}" SortMemberPath="Network" Width="100" />
+                            <DataGridTextColumn Header="Location" Binding="{Binding Path}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Grid.Row="2" Margin="2,8,0,0">
+                        <TextBlock Text="{Binding Summary}" Style="{StaticResource Caption}" />
+                        <TextBlock Text="{Binding NetworkNote}" Style="{StaticResource Caption}" FontStyle="Italic"
+                                   Visibility="{Binding NetworkNote, Converter={StaticResource TruthyToVisibility}}" />
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Services -->
+            <TabItem Header="Services">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="240" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding ServiceFilter, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" VerticalContentAlignment="Center"
+                                 ToolTip="Filter by name" />
+                        <CheckBox Grid.Column="1" Content="Hide Microsoft services" IsChecked="{Binding HideMicrosoft}" Margin="12,0" VerticalAlignment="Center" />
+                        <WrapPanel Grid.Column="2" VerticalAlignment="Center">
+                            <Button Style="{StaticResource ToolButton}" Command="{Binding StartServiceCommand}" Content="Start" />
+                            <Button Style="{StaticResource ToolButton}" Command="{Binding StopServiceCommand}" Content="Stop" />
+                            <Button Style="{StaticResource ToolButton}" Command="{Binding RestartServiceCommand}" Content="Restart" />
+                            <Button Style="{StaticResource ToolButton}" Content="Startup type…" Click="Priority_Click">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Automatic" Command="{Binding SetStartupCommand}" CommandParameter="Automatic" />
+                                        <MenuItem Header="Automatic (delayed)" Command="{Binding SetStartupCommand}" CommandParameter="AutomaticDelayed" />
+                                        <MenuItem Header="Manual" Command="{Binding SetStartupCommand}" CommandParameter="Manual" />
+                                        <MenuItem Header="Disabled" Command="{Binding SetStartupCommand}" CommandParameter="Disabled" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                            <Button Style="{StaticResource ToolButton}" Command="{Binding RefreshServicesCommand}" ToolTip="Refresh">
+                                <TextBlock Style="{StaticResource Glyph}" Text="&#xE72C;" FontSize="14" />
+                            </Button>
+                        </WrapPanel>
+                    </Grid>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding ServiceView}" SelectedItem="{Binding SelectedService}" AutoGenerateColumns="False"
+                              IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="None" SelectionMode="Single" RowHeight="30">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Service" Binding="{Binding DisplayName}" Width="260" />
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
+                            <DataGridTextColumn Header="Startup" Binding="{Binding Startup}" Width="150" />
+                            <DataGridTextColumn Header="Company" Binding="{Binding Company}" Width="170" />
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Grid.Row="2" Text="Loading services…" Style="{StaticResource Caption}" Margin="2,8,0,0"
+                               Visibility="{Binding IsLoadingServices, Converter={StaticResource TruthyToVisibility}}" />
+                </Grid>
+            </TabItem>
+
+            <!-- Unlock -->
+            <TabItem Header="Unlock files">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <WrapPanel>
+                        <Button Style="{DynamicResource AccentButtonStyle}" Command="{Binding PickLockedFileCommand}" Content="Choose a file…" Margin="0,0,8,0"
+                                IsEnabled="{Binding IsFindingLocks, Converter={StaticResource InverseBool}}" />
+                        <Button Style="{StaticResource ToolButton}" Command="{Binding PickLockedFolderCommand}" Content="Choose a folder…"
+                                IsEnabled="{Binding IsFindingLocks, Converter={StaticResource InverseBool}}" />
+                        <Button Style="{StaticResource ToolButton}" Command="{Binding CloseHandleCommand}" Content="Release file" Margin="16,0,0,0" />
+                        <Button Style="{StaticResource ToolButton}" Command="{Binding EndLockingProcessCommand}" Content="End program" />
+                    </WrapPanel>
+                    <TextBlock Grid.Row="1" Text="{Binding LockTarget}" Style="{StaticResource Caption}" Margin="2,10,0,6" TextTrimming="CharacterEllipsis" />
+                    <DataGrid Grid.Row="2" ItemsSource="{Binding Locks}" SelectedItem="{Binding SelectedLock}" AutoGenerateColumns="False"
+                              IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="None" SelectionMode="Single" RowHeight="30">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Program" Binding="{Binding Process}" Width="280" />
+                            <DataGridTextColumn Header="File" Binding="{Binding Path}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Grid.Row="3" Text="{Binding LockStatus}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="2,8,0,0" />
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <TextBlock Grid.Row="2" Text="{Binding StatusText}" Style="{StaticResource Caption}" Margin="2,10,0,0" />
+    </Grid>
+</UserControl>

@@ -121,9 +121,9 @@ jobs:
           name: winget-manifests
           path: winget
 
-      # Run the real app on this Windows machine and render every page for the README.
-      - name: Capture screenshots
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      # Run the real app on this Windows machine and open every page: renders the README screenshots and
+      # doubles as a self-test (any error, failed page load or error dialog is listed in result.txt).
+      - name: Self-test and screenshots
         timeout-minutes: 25
         shell: pwsh
         run: |
@@ -134,6 +134,20 @@ jobs:
           if (-not $p.WaitForExit(1200000)) { Stop-Process -Id $p.Id -Force; Add-Content (Join-Path $dir 'log.txt') 'TIMEOUT: killed after 20 minutes' }
           Get-ChildItem $dir | Format-Table Name, Length
           Get-Content (Join-Path $dir 'log.txt') -ErrorAction SilentlyContinue
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: self-test
+          path: docs/screenshots
+
+      - name: Check self-test result
+        shell: pwsh
+        run: |
+          $result = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\result.txt'
+          if (-not (Test-Path $result)) { 'The self-test did not finish (no result.txt).'; exit 1 }
+          Get-Content $result
+          if ((Get-Content $result -TotalCount 1) -ne 'PASS') { exit 1 }
 
       - name: Commit screenshots
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'

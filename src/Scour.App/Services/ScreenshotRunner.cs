@@ -11,11 +11,22 @@ namespace Scour.App.Services;
 
 /// <summary>
 /// "--screenshots &lt;folder&gt;": walks through the app with real data and renders each page to PNG.
-/// Used by CI to keep the README screenshots current; doubles as a smoke test.
+/// Used by CI to keep the README screenshots current, and as a smoke test: every page is opened, and any
+/// error (a logged exception, an error dialog, a page that couldn't load) is listed in result.txt, which
+/// fails the build.
 /// </summary>
 public static class ScreenshotRunner
 {
     private static StreamWriter? _log;
+    private static readonly List<string> Problems = [];
+
+    /// <summary>Records something that went wrong during the run (no-op outside --screenshots).</summary>
+    public static void Problem(string message)
+    {
+        if (_log is null) return;
+        lock (Problems) Problems.Add(message);
+        Log("PROBLEM: " + message);
+    }
 
     public static void Log(string message)
     {
@@ -65,6 +76,10 @@ public static class ScreenshotRunner
             await Shot<UsbViewModel>(window, vm, dir, "usb-tools", null);
             await Shot(window, dir, "settings", vm.Settings, null);
 
+            // Every other page must at least open and load cleanly.
+            foreach (var page in vm.Pages.Where(p => !Visited.Contains(p)).ToList())
+                await Visit(window, page);
+
             Log("Switching to the light theme");
             ThemeService.Apply(dark: false);
             await Shot(window, dir, "dashboard-light", vm.Dashboard, null);
@@ -74,13 +89,45 @@ public static class ScreenshotRunner
         }
         catch (Exception e)
         {
-            Log("FAILED: " + e);
+            Problem("Run aborted: " + e);
         }
         finally
         {
+            List<string> problems;
+            lock (Problems) problems = [.. Problems];
+            File.WriteAllLines(Path.Combine(dir, "result.txt"),
+                problems.Count == 0 ? ["PASS"] : ["FAIL", .. problems]);
+            Log(problems.Count == 0 ? "Self-test passed" : $"Self-test failed: {problems.Count} problem(s)");
             _log?.Dispose();
             _log = null;
         }
+    }
+
+    private static readonly HashSet<PageViewModel> Visited = [];
+
+    private static async Task Visit(MainWindow w, PageViewModel page)
+    {
+        Visited.Add(page);
+        try
+        {
+            Log($"{page.Title}: visiting");
+            ((MainViewModel)w.DataContext).Navigate(page);
+            await WaitAsync(() => !page.IsLoading, 120);
+            await Task.Delay(800);
+            if (page.IsLoading) Problem($"{page.Title}: still loading after 2 minutes");
+            CheckStatus(page);
+            Log($"{page.Title}: ok ({page.StatusText})");
+        }
+        catch (Exception e)
+        {
+            Problem($"{page.Title}: {e}");
+        }
+    }
+
+    private static void CheckStatus(PageViewModel page)
+    {
+        if (page.StatusText.StartsWith("Couldn't load", StringComparison.Ordinal))
+            Problem($"{page.Title}: {page.StatusText}");
     }
 
     private static Task Shot<T>(MainWindow w, MainViewModel vm, string dir, string name, Func<T, Task>? action, int timeoutSeconds = 60)
@@ -89,7 +136,7 @@ public static class ScreenshotRunner
         var page = vm.Pages.OfType<T>().FirstOrDefault();
         if (page is null)
         {
-            Log($"{name}: page not found");
+            Problem($"{name}: page not found");
             return Task.CompletedTask;
         }
         return Shot(w, dir, name, page, action is null ? null : p => action((T)p), timeoutSeconds);
@@ -97,6 +144,7 @@ public static class ScreenshotRunner
 
     private static async Task Shot(MainWindow w, string dir, string name, PageViewModel page, Func<PageViewModel, Task>? action, int timeoutSeconds = 60)
     {
+        Visited.Add(page);
         try
         {
             Log($"{name}: opening");
@@ -107,17 +155,18 @@ public static class ScreenshotRunner
                 Log($"{name}: running action");
                 var run = action(page);
                 var finished = await Task.WhenAny(run, Task.Delay(TimeSpan.FromSeconds(timeoutSeconds)));
-                if (finished != run) Log($"{name}: action timed out");
+                if (finished != run) Problem($"{name}: action timed out");
                 else await run;
                 await WaitAsync(() => !page.IsLoading, timeoutSeconds);
             }
             await Task.Delay(1400); // let page transitions and gauge animations settle
             await CaptureAsync(w, Path.Combine(dir, name + ".png"));
+            CheckStatus(page);
             Log($"{name}: saved ({page.StatusText})");
         }
         catch (Exception e)
         {
-            Log($"{name}: ERROR {e}");
+            Problem($"{name}: {e}");
         }
     }
 
@@ -137,7 +186,7 @@ public static class ScreenshotRunner
         }
         catch (Exception e)
         {
-            Log($"command-palette: ERROR {e}");
+            Problem($"command-palette: {e}");
         }
         finally
         {

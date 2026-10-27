@@ -258,6 +258,6 @@ public partial class App : Application
         if (message == _lastError && DateTime.UtcNow - _lastErrorTime < TimeSpan.FromSeconds(10)) return;
         _lastError = message;
         _lastErrorTime = DateTime.UtcNow;
-        Dialogs.Error($"Something went wrong:\n\n{message}\n\nDetails were saved to {ErrorLog.FilePath}");
+        Dialogs.Error($"Something went wrong:\n\n{message}\n\nThe details were saved. To report this, use Settings → Create problem report.");
     }
 }

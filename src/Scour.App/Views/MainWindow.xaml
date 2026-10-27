@@ -27,6 +27,7 @@
         <DataTemplate DataType="{x:Type vm:BloatwareViewModel}"><v:BloatwareView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:PrivacyViewModel}"><v:PrivacyView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:GameModeViewModel}"><v:GameModeView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TaskManagerViewModel}"><v:TaskManagerView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ReinstallKitViewModel}"><v:ReinstallKitView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:BrowserExtensionsViewModel}"><v:BrowserExtensionsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ContextMenuViewModel}"><v:ContextMenuView /></DataTemplate>

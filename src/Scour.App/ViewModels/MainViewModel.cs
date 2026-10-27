@@ -38,6 +38,7 @@ public sealed partial class MainViewModel : ObservableObject
             new PrivacyViewModel(services),
             new FileFinderViewModel(services),
             new RegistryCleanerViewModel(services),
+            new TaskManagerViewModel(),
             new SystemInfoViewModel(),
             new RepairViewModel(services),
             new AutorunViewModel(services),
@@ -153,8 +154,11 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>The sidebar selection; null while a page outside the list (Settings) is shown.</summary>
     [ObservableProperty] private PageViewModel? _selectedNavPage;
 
-    partial void OnCurrentPageChanged(PageViewModel value)
+    partial void OnCurrentPageChanged(PageViewModel? oldValue, PageViewModel newValue)
     {
+        oldValue?.OnHidden();
+        newValue.OnShown();
+        var value = newValue;
         value.ActivateAsync().Forget("Opening " + value.Title, report: false); // failures show on the page
         Dashboard.IsShown = value == Dashboard;
         SelectedNavPage = Pages.Contains(value) ? value : null;

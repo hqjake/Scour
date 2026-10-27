@@ -120,26 +120,83 @@ public static class LockFinder
     {
         if (!ProcessNative.DuplicateHandle(hProc, handle, ProcessNative.GetCurrentProcess(), out var dup, 0, false, ProcessNative.DUPLICATE_SAME_ACCESS))
             return null;
-        try
+        var (finished, path) = NameQueries.Query(dup);
+        // A query that never returns still uses the duplicate; closing it under the stuck call could hand
+        // the same handle value to something else, so it's deliberately left open.
+        if (finished) ProcessNative.CloseHandle(dup);
+        return path;
+    }
+
+    private static string? QueryName(IntPtr dup)
+    {
+        if (ProcessNative.GetFileType(dup) != ProcessNative.FILE_TYPE_DISK) return null;
+        var sb = new StringBuilder(1024);
+        uint len = ProcessNative.GetFinalPathNameByHandle(dup, sb, (uint)sb.Capacity, 0);
+        if (len == 0 || len >= sb.Capacity) return null;
+        var p = sb.ToString();
+        if (p.StartsWith(@"\\?\UNC\", StringComparison.Ordinal)) p = @"\\" + p[8..];
+        else if (p.StartsWith(@"\\?\", StringComparison.Ordinal)) p = p[4..];
+        return p;
+    }
+
+    /// <summary>
+    /// Runs name queries on one dedicated thread with a time budget each. Some handles (synchronous pipes)
+    /// block the query forever: that thread is then abandoned and a fresh one takes over. Using the thread
+    /// pool instead let a few stuck queries starve every later one, so scans took minutes and found nothing.
+    /// </summary>
+    private static class NameQueries
+    {
+        private const int MaxAbandoned = 16;
+        private static readonly object Gate = new();
+        private static System.Collections.Concurrent.BlockingCollection<Request>? _queue;
+        private static int _abandoned;
+
+        private sealed class Request(IntPtr handle)
         {
-            // Name queries can block forever on some pipe handles; give each one a short time budget.
-            var task = Task.Run(() =>
-            {
-                if (ProcessNative.GetFileType(dup) != ProcessNative.FILE_TYPE_DISK) return null;
-                var sb = new StringBuilder(1024);
-                uint len = ProcessNative.GetFinalPathNameByHandle(dup, sb, (uint)sb.Capacity, 0);
-                if (len == 0 || len >= sb.Capacity) return null;
-                var p = sb.ToString();
-                if (p.StartsWith(@"\\?\UNC\", StringComparison.Ordinal)) p = @"\\" + p[8..];
-                else if (p.StartsWith(@"\\?\", StringComparison.Ordinal)) p = p[4..];
-                return (string?)p;
-            });
-            if (!task.Wait(150)) return null; // abandon; leaving the duplicate open avoids racing the stuck call
-            return task.Result;
+            public IntPtr Handle { get; } = handle;
+            public string? Result;
+            public readonly ManualResetEventSlim Done = new();
         }
-        finally
+
+        public static (bool Finished, string? Path) Query(IntPtr handle)
         {
-            ProcessNative.CloseHandle(dup);
+            System.Collections.Concurrent.BlockingCollection<Request> queue;
+            lock (Gate)
+            {
+                if (_abandoned >= MaxAbandoned) return (true, null); // too many stuck queries: stop asking
+                queue = _queue ??= StartWorker();
+            }
+            var request = new Request(handle);
+            try { queue.Add(request); }
+            catch (InvalidOperationException) { return (true, null); } // another caller just retired this worker
+            if (request.Done.Wait(250)) return (true, request.Result);
+            lock (Gate)
+            {
+                // The worker is stuck on this handle: give later queries a new one.
+                if (ReferenceEquals(_queue, queue))
+                {
+                    queue.CompleteAdding();
+                    _queue = null;
+                    _abandoned++;
+                }
+            }
+            return (false, null);
+        }
+
+        private static System.Collections.Concurrent.BlockingCollection<Request> StartWorker()
+        {
+            var queue = new System.Collections.Concurrent.BlockingCollection<Request>();
+            var thread = new Thread(() =>
+            {
+                foreach (var r in queue.GetConsumingEnumerable())
+                {
+                    try { r.Result = QueryName(r.Handle); }
+                    catch { r.Result = null; }
+                    r.Done.Set();
+                }
+            }) { IsBackground = true, Name = "Scour handle names" };
+            thread.Start();
+            return queue;
         }
     }
 
