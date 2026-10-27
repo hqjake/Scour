@@ -4,7 +4,76 @@ namespace Scour.App.Platform;
 
 internal static partial class NativeMethods
 {
+    // ---- console
+
+    [DllImport("kernel32.dll")]
+    public static extern uint GetOEMCP();
+
+    [DllImport("kernel32.dll")]
+    public static extern uint GetACP();
+
+    // ---- sessions
+
+    public const int WTSUserName = 5;
+    public const int WTSDomainName = 7;
+
+    [DllImport("wtsapi32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "WTSQuerySessionInformationW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool WTSQuerySessionInformation(IntPtr hServer, int sessionId, int wtsInfoClass, out IntPtr ppBuffer, out int pBytesReturned);
+
+    [DllImport("wtsapi32.dll")]
+    public static extern void WTSFreeMemory(IntPtr pMemory);
+
+    // ---- power and system settings (Game mode)
+
+    public const uint ACCESS_SCHEME = 16;
+
+    [DllImport("powrprof.dll")]
+    public static extern uint PowerGetActiveScheme(IntPtr userRootPowerKey, out IntPtr activePolicyGuid);
+
+    [DllImport("powrprof.dll")]
+    public static extern uint PowerSetActiveScheme(IntPtr userRootPowerKey, in Guid schemeGuid);
+
+    [DllImport("powrprof.dll")]
+    public static extern uint PowerEnumerate(IntPtr rootPowerKey, IntPtr schemeGuid, IntPtr subGroupOfPowerSettingsGuid, uint accessFlags,
+                                             uint index, byte[] buffer, ref uint bufferSize);
+
+    /// <summary>The power mode slider (Windows 10 1709+); not in the SDK headers but exported by powrprof.</summary>
+    [DllImport("powrprof.dll")]
+    public static extern uint PowerGetEffectiveOverlayScheme(out Guid effectiveOverlayGuid);
+
+    [DllImport("powrprof.dll")]
+    public static extern uint PowerSetActiveOverlayScheme(Guid overlaySchemeGuid);
+
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr LocalFree(IntPtr hMem);
+
+    public const uint SPI_SETMOUSE = 0x0004;
+    public const uint SPIF_SENDCHANGE = 0x02;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, int[] pvParam, uint fWinIni);
+
+    public static readonly IntPtr HWND_BROADCAST = new(0xffff);
+    public const uint WM_SETTINGCHANGE = 0x001A;
+    public const uint SMTO_ABORTIFHUNG = 0x0002;
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint msg, IntPtr wParam, string lParam, uint flags, uint timeout, out IntPtr result);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
     // ---- files
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "GetLongPathNameW")]
+    public static extern uint GetLongPathName(string lpszShortPath, System.Text.StringBuilder lpszLongPath, uint cchBuffer);
 
     public const uint MOVEFILE_DELAY_UNTIL_REBOOT = 0x4;
 

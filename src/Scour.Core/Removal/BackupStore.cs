@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Scour.Core.Leftovers;
@@ -31,7 +32,7 @@ public sealed class BackupStore(IFileSystem fs, string rootDir)
 
     public BackupManifest Create(string programName, IReadOnlyList<LeftoverItem> items, IRegistry registry, bool filesToRecycleBin, DateTime nowUtc)
     {
-        var id = nowUtc.ToString("yyyyMMdd-HHmmss") + "-" + Sanitize(programName);
+        var id = nowUtc.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + "-" + Sanitize(programName);
         var dir = WinPath.Combine(rootDir, id);
         fs.CreateDirectory(dir);
 

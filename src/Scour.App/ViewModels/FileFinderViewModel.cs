@@ -37,7 +37,7 @@ public sealed partial class FileFinderViewModel(AppServices services) : PageView
     public override string Glyph => "\uE8C8";
     public override string Group => "Cleaning";
 
-    public ObservableCollection<string> Folders { get; } = [Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)];
+    public ObservableCollection<string> Folders { get; } = [services.Folders.UserProfile];
     public ObservableCollection<FoundFileViewModel> Results { get; } = [];
     public System.ComponentModel.ICollectionView ResultsView => _resultsView ??= CreateView();
     private System.ComponentModel.ICollectionView? _resultsView;

@@ -18,8 +18,12 @@ public static class SystemInfoCollector
         {
             progress?.Report(title);
             var s = new InfoSection(title, glyph);
+            _queryError = null;
             try { fill(s); }
             catch (Exception e) { s.Error = e.Message; }
+            // A section that came out empty because WMI failed says so instead of looking blank.
+            if (s.Error is null && _queryError is not null && s.Groups.All(g => g.Rows.Count == 0))
+                s.Error = _queryError;
             sections.Add(s);
         }
         Run("Overview", "", Overview);
@@ -71,6 +75,8 @@ public static class SystemInfoCollector
 
     // ---------------------------------------------------------------- WMI helpers
 
+    [ThreadStatic] private static string? _queryError;
+
     private static List<ManagementObject> Query(string wql, string scope = @"root\cimv2")
     {
         try
@@ -78,8 +84,11 @@ public static class SystemInfoCollector
             using var searcher = new ManagementObjectSearcher(new ManagementScope(scope), new ObjectQuery(wql));
             return searcher.Get().Cast<ManagementObject>().ToList();
         }
-        catch
+        catch (Exception e)
         {
+            _queryError ??= e is COMException { HResult: unchecked((int)0x80070422) }
+                ? "The Windows Management Instrumentation service is disabled, so Windows can't report this."
+                : "Windows Management Instrumentation didn't answer: " + e.Message;
             return [];
         }
     }
@@ -308,7 +317,8 @@ public static class SystemInfoCollector
     private static void Storage(InfoSection s)
     {
         const string scope = @"root\Microsoft\Windows\Storage";
-        var reliability = Query("SELECT * FROM MSFT_StorageReliabilityCounter", scope).ToDictionary(r => S(r, "DeviceId"), r => r);
+        var reliability = Query("SELECT * FROM MSFT_StorageReliabilityCounter", scope)
+            .GroupBy(r => S(r, "DeviceId")).ToDictionary(g => g.Key, g => g.First());
         var disks = Query("SELECT * FROM MSFT_PhysicalDisk", scope);
         foreach (var d in disks)
         {

@@ -71,7 +71,7 @@ public sealed class WindowsServiceController : IServiceController
 
     private static void Run(string verb, string service)
     {
-        var psi = new ProcessStartInfo("sc.exe", $"{verb} \"{service}\"") { CreateNoWindow = true, UseShellExecute = false };
+        var psi = new ProcessStartInfo(ProcessRunner.ToolPath("sc.exe"), $"{verb} \"{service}\"") { CreateNoWindow = true, UseShellExecute = false };
         using var p = Process.Start(psi);
         p?.WaitForExit(15_000);
     }
@@ -104,8 +104,41 @@ public static class Shell
     {
         // Regedit opens at the last key it showed, so point that at our key first.
         using (var k = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Applets\Regedit"))
-            k.SetValue("LastKey", "Computer\\" + key.LongPath);
+        {
+            // The tree's root is translated ("Ordinateur", "Компьютер"); reuse the name regedit last saved.
+            var root = "Computer";
+            if (k.GetValue("LastKey") is string last && last.IndexOf('\\') is > 0 and var slash &&
+                last[(slash + 1)..].StartsWith("HKEY_", StringComparison.OrdinalIgnoreCase))
+                root = last[..slash];
+            k.SetValue("LastKey", root + "\\" + key.LongPath);
+        }
         Start("regedit.exe", "-m");
+    }
+
+    /// <summary>
+    /// Restarts Explorer. Windows brings the shell back by itself after it ends; starting it from Scour too
+    /// gave a second Explorer window, or a taskbar running as administrator (breaking drag-and-drop).
+    /// </summary>
+    public static async Task RestartExplorerAsync()
+    {
+        foreach (var p in Process.GetProcessesByName("explorer"))
+            using (p)
+            {
+                try { p.Kill(); } catch { /* already gone */ }
+            }
+        for (int i = 0; i < 20; i++)
+        {
+            await Task.Delay(250);
+            if (IsExplorerRunning()) return;
+        }
+        Process.Start(new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe")) { UseShellExecute = true });
+    }
+
+    public static bool IsExplorerRunning()
+    {
+        var running = Process.GetProcessesByName("explorer");
+        foreach (var p in running) p.Dispose();
+        return running.Length > 0;
     }
 
     public static void OpenUrl(string url) => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });

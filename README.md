@@ -17,6 +17,7 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 | ![Bloatware remover](docs/screenshots/bloatware.png) **Bloatware remover** | ![Privacy tweaks](docs/screenshots/privacy-tweaks.png) **Privacy tweaks** |
 | ![Command palette](docs/screenshots/command-palette.png) **Command palette** (Ctrl+K) | ![Reinstall kit](docs/screenshots/reinstall-kit.png) **Reinstall kit** |
 | ![Network](docs/screenshots/network.png) **Network** — DNS switcher, speed test, Wi-Fi, hosts | ![Drivers](docs/screenshots/drivers.png) **Drivers** — old versions, backup & restore |
+| ![Game mode](docs/screenshots/game-mode.png) **Game mode** — one switch for gaming performance | ![Startup programs](docs/screenshots/startup.png) **Startup programs** |
 | ![Context menu](docs/screenshots/context-menu.png) **Context menu** manager | ![Browser extensions](docs/screenshots/browser-extensions.png) **Browser extensions** |
 | ![USB tools](docs/screenshots/usb-tools.png) **USB tools** | ![Settings](docs/screenshots/settings.png) **Settings** — themes, sounds, automatic cleaning |
 | ![Light theme dashboard](docs/screenshots/dashboard-light.png) **Light theme** | ![Light theme disk analyzer](docs/screenshots/disk-analyzer-light.png) **Light theme** |
@@ -63,6 +64,13 @@ Captured automatically from the real app on Windows by the [build workflow](.git
 - **App updates** — finds outdated apps with winget and updates them all silently, with an ignore list
 - **Reinstall kit** — save the apps on this PC to a small file (winget's own export format, so `winget import` reads it
   too), then on a new or reset PC open it, see what's missing and install everything silently with per-app status
+
+**Gaming**
+- **Game mode** — one switch (or **Ctrl+Alt+G** from inside a game, or the tray menu) that switches to the Ultimate/High
+  performance power plan (Best performance mode on laptops), makes sure Windows Game Mode is on, stops Xbox Game Bar's
+  background recording, silences notifications, lowers the priority of launchers, sync clients and updaters, and
+  optionally turns off mouse acceleration. Scour's own cleaning and alerts pause while it's on. Every original setting is
+  saved first and put back exactly when it's turned off, even after a restart
 
 **Everywhere**
 - **Command palette** — press **Ctrl+K** (or the search box in the sidebar) and type a few letters to open any page,
@@ -132,7 +140,8 @@ the built-in updater. Code signing and winget publishing switch on with reposito
 
 ## Status
 
-Unit-tested (141 tests) and exercised on Windows by CI, which runs the real app and captures the screenshots above.
-Please report anything that misbehaves.
+Unit-tested (158 tests) and exercised on Windows by CI, which runs the real app and captures the screenshots above.
+Please report anything that misbehaves, and attach `%ProgramData%\Scour\error.log`, where Scour records every error
+with its details (Settings → Open data folder).
 The process-sampling, network-per-process, file-unlocking and services code exists in `Platform/` but the task manager
 screen is not part of this version.

@@ -86,9 +86,29 @@ public sealed class RegistryCleaner(IRegistry registry, IFileSystem fs, KnownFol
         if (target is null) return false;
         if (WinPath.IsSameOrUnder(target, folders.WindowsDir) || IsWindowsComponentFolder(target)) return false;
         if (target.StartsWith(@"\\", StringComparison.Ordinal)) return false; // network share
+        if (target.Contains('\uFFFD')) return false; // a name that didn't decode (old shortcut in another code page)
         var root = target[..3];
         if (!fs.DirectoryExists(root)) return false; // drive not connected
-        return !fs.FileExists(target) && !fs.DirectoryExists(target);
+        if (fs.FileExists(target) || fs.DirectoryExists(target)) return false;
+        return !LongerPathExists(folders.Expand(pathOrCommand!.Trim()), target);
+    }
+
+    /// <summary>
+    /// Unquoted paths with spaces ("rundll32 C:\Program Files\App\x.dll,Run", "C:\My Tools\a.exe") are cut at
+    /// the first space when parsed. Before calling one missing, try the longer readings Windows itself tries.
+    /// </summary>
+    private bool LongerPathExists(string command, string target)
+    {
+        int start = command.IndexOf(target, StringComparison.OrdinalIgnoreCase);
+        if (start < 0) return false;
+        var rest = command[start..];
+        for (int i = target.Length; i <= rest.Length; i++)
+        {
+            if (i < rest.Length && rest[i] is not (' ' or ',' or '"')) continue;
+            var candidate = rest[..i].TrimEnd();
+            if (candidate.Length > target.Length && (fs.FileExists(candidate) || fs.DirectoryExists(candidate))) return true;
+        }
+        return false;
     }
 
     /// <summary>"C:\Program Files\Windows NT\…", "…\Windows Defender\…": owned by Windows, often redirected.</summary>

@@ -175,6 +175,11 @@ public sealed class JunkCleaner(IFileSystem fs, KnownFolders folders)
                 new(WinPath.Combine(f.LocalAppData, @"Opera Software\Opera GX Stable\Cache")),
                 new(WinPath.Combine(f.RoamingAppData, @"Opera Software\Opera Stable\Code Cache")),
                 new(WinPath.Combine(f.RoamingAppData, @"Opera Software\Opera GX Stable\Code Cache")),
+                // Newer Opera builds keep the profile in a "Default" subfolder.
+                new(WinPath.Combine(f.LocalAppData, @"Opera Software\Opera Stable\Default\Cache")),
+                new(WinPath.Combine(f.LocalAppData, @"Opera Software\Opera GX Stable\Default\Cache")),
+                new(WinPath.Combine(f.RoamingAppData, @"Opera Software\Opera Stable\Default\Code Cache")),
+                new(WinPath.Combine(f.RoamingAppData, @"Opera Software\Opera GX Stable\Default\Code Cache")),
             ],
         },
         new()

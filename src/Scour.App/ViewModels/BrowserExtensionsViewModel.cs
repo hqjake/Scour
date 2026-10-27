@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Scour.App.Platform;
 using Scour.App.Services;
 using Scour.Core.Junk;
 using Scour.Core.Leftovers;
@@ -94,7 +94,7 @@ public sealed partial class BrowserExtensionsViewModel(AppServices services) : P
         };
         try
         {
-            Process.Start(new ProcessStartInfo(exe, url) { UseShellExecute = true });
+            Unelevated.Start(exe, url); // join the browser the user already has open, not a new admin copy
         }
         catch (Exception ex)
         {

@@ -1,6 +1,8 @@
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using System.Windows.Markup;
 using System.Windows.Threading;
 using Scour.App.Platform;
 using Scour.App.Services;
@@ -17,6 +19,8 @@ public partial class App : Application
     private MainWindow? _window;
     private MainViewModel? _vm;
     private DispatcherTimer? _diskTimer;
+    private GameModeHotkey? _hotkey;
+    private bool _sessionEnding;
 
     /// <summary>Set when the user really wants to quit (tray "Exit"), so closing the window doesn't just hide it.</summary>
     public bool ExitRequested { get; private set; }
@@ -25,6 +29,21 @@ public partial class App : Application
     {
         base.OnStartup(e);
         DispatcherUnhandledException += OnUnhandledException;
+        SessionEnding += (_, _) => _sessionEnding = true;
+        TaskScheduler.UnobservedTaskException += (_, args) =>
+        {
+            ErrorLog.Write("Background task", args.Exception);
+            args.SetObserved();
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            if (args.ExceptionObject is Exception ex) ErrorLog.Write("Crash", ex);
+        };
+        // WPF formats and parses bound numbers and dates as en-US unless told otherwise, so "1,5" typed on a
+        // German PC was rejected and dates showed in US order.
+        FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement),
+            new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
+        Scour.Core.Shortcuts.LnkParser.AnsiEncoding = ProcessRunner.AnsiEncoding;
         _services = new AppServices();
 
         if (e.Args.Contains("--autoclean", StringComparer.OrdinalIgnoreCase))
@@ -49,7 +68,7 @@ public partial class App : Application
 
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
         _vm = new MainViewModel(_services);
-        _vm.QuickClean = () => _ = QuickCleanAsync();
+        _vm.QuickClean = () => QuickCleanAsync().Forget("Quick clean");
         _window = new MainWindow { DataContext = _vm, SkipIntro = screenshots };
         MainWindow = _window;
         _window.Closing += OnMainWindowClosing;
@@ -76,11 +95,13 @@ public partial class App : Application
         if (!startHidden) _window.Show();
 
         StartDiskWatch();
-        _ = UpdateService.CleanUpAsync();
-        if (_services.Settings.CheckForUpdates) _ = CheckForUpdatesLaterAsync();
+        _vm.GameMode.Changed += on => _tray?.SetGameMode(on);
+        _hotkey = new GameModeHotkey(ToggleGameMode);
+        UpdateService.CleanUpAsync().Forget("Removing the previous version", report: false);
+        if (_services.Settings.CheckForUpdates) CheckForUpdatesLaterAsync().Forget("Checking for updates", report: false);
         // Re-register scheduled tasks so they follow Scour if its exe was moved.
         if (_services.Settings.AutoClean != CleaningSchedule.Off || _services.Settings.StartInTray)
-            _ = ScheduleService.ApplyAsync(_services.Settings);
+            ScheduleService.ApplyAsync(_services.Settings).Forget("Updating scheduled tasks", report: false);
     }
 
     private async Task CheckForUpdatesLaterAsync()
@@ -97,10 +118,12 @@ public partial class App : Application
         if (_tray is not null || _services is null) return;
         _tray = new TrayService(
             open: ShowMainWindow,
-            quickClean: () => _ = QuickCleanAsync(),
-            checkHealth: () => { ShowMainWindow(); if (_vm is not null) { _vm.Navigate(_vm.Dashboard); _ = _vm.Dashboard.CheckHealthCommand.ExecuteAsync(null); } },
+            quickClean: () => QuickCleanAsync().Forget("Quick clean"),
+            checkHealth: () => { ShowMainWindow(); if (_vm is not null) { _vm.Navigate(_vm.Dashboard); _vm.Dashboard.CheckHealthCommand.ExecuteAsync(null).Forget("Health check"); } },
             analyzeDisk: () => { ShowMainWindow(); _vm?.Navigate<DiskAnalyzerViewModel>(); },
-            exit: () => Quit());
+            toggleGameMode: ToggleGameMode,
+            exit: () => { AskToEndGameMode(); Quit(); });
+        _tray.SetGameMode(_vm?.GameMode.IsOn == true);
     }
 
     public void RemoveTray()
@@ -119,7 +142,12 @@ public partial class App : Application
 
     private void OnMainWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
-        if (ExitRequested || _services is null || !_services.Settings.KeepInTray) return;
+        if (ExitRequested || _services is null) return;
+        if (!_services.Settings.KeepInTray)
+        {
+            AskToEndGameMode();
+            return;
+        }
         EnsureTray();
         e.Cancel = true;
         _window!.Hide();
@@ -131,10 +159,29 @@ public partial class App : Application
         }
     }
 
+    /// <summary>
+    /// Game mode outlives Scour (it's only settings), but silenced notifications shouldn't be forgotten. Asked
+    /// only when the user closes Scour, never during an update or when Windows signs out.
+    /// </summary>
+    private void AskToEndGameMode()
+    {
+        if (_vm?.GameMode.IsOn != true || Dialogs.Headless || _sessionEnding) return;
+        if (Dialogs.Confirm("Game mode is still on. Turn it off before closing Scour?\n\nChoose No to keep it on; open Scour again to turn it off later."))
+            _services?.GameMode.Disable();
+    }
+
+    /// <summary>From the tray menu or Ctrl+Alt+G (possibly from inside a game, so a sound is the feedback).</summary>
+    private void ToggleGameMode()
+    {
+        if (_vm is null || _vm.GameMode.IsBusy) return;
+        _vm.GameMode.ToggleCommand.ExecuteAsync(null).Forget("Switching Game mode");
+    }
+
     private void Quit(bool closeWindow = true)
     {
         if (ExitRequested) return;
         ExitRequested = true;
+        _hotkey?.Dispose();
         _diskTimer?.Stop();
         RemoveTray();
         if (closeWindow) _window?.Close();
@@ -156,6 +203,7 @@ public partial class App : Application
 
     private static async Task RunScheduledCleanAsync(AppServices s)
     {
+        if (s.GameMode.IsOn) return; // never clean (and slow the disk) in the middle of a game; the next run catches up
         try
         {
             var result = await Task.Run(() => AutoCleaner.Run(s.Junk, AutoCleaner.DefaultCategories(s.Junk), DateTime.UtcNow));
@@ -183,7 +231,7 @@ public partial class App : Application
     private void CheckDiskSpace()
     {
         var s = _services?.Settings;
-        if (s is null || !s.LowDiskAlerts || _tray is null) return;
+        if (s is null || !s.LowDiskAlerts || _tray is null || _services!.GameMode.IsOn) return;
         if (s.LastLowDiskAlertUtc is { } last && DateTime.UtcNow - last < TimeSpan.FromHours(24)) return;
         try
         {
@@ -198,10 +246,18 @@ public partial class App : Application
         catch { /* drive query failed */ }
     }
 
+    private static string? _lastError;
+    private static DateTime _lastErrorTime;
+
     private static void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        ScreenshotRunner.Log("Unhandled: " + e.Exception);
-        Dialogs.Error("Something went wrong:\n\n" + e.Exception.Message);
         e.Handled = true;
+        ErrorLog.Write("Unhandled", e.Exception);
+        // An error raised during layout repeats on every pass; show it once, not an endless chain of boxes.
+        var message = e.Exception.Message;
+        if (message == _lastError && DateTime.UtcNow - _lastErrorTime < TimeSpan.FromSeconds(10)) return;
+        _lastError = message;
+        _lastErrorTime = DateTime.UtcNow;
+        Dialogs.Error($"Something went wrong:\n\n{message}\n\nDetails were saved to {ErrorLog.FilePath}");
     }
 }

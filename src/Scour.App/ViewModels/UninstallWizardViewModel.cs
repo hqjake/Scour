@@ -351,7 +351,19 @@ public sealed partial class UninstallWizardViewModel : ObservableObject
         Stage = WizardStage.Removing;
         var job = _jobs[JobIndex];
         var progress = new Progress<string>(s => Status = s);
-        var report = await Task.Run(() => _s.CreateRemover().Remove(job.Title, selected, _s.RemovalOptions, DateTime.UtcNow, progress));
+        RemovalReport report;
+        try
+        {
+            report = await Task.Run(() => _s.CreateRemover().Remove(job.Title, selected, _s.RemovalOptions, DateTime.UtcNow, progress));
+        }
+        catch (Exception e)
+        {
+            // Without this the wizard stayed in "Removing" and refused to close.
+            ErrorLog.Write("Removing leftovers", e);
+            SoundService.Play(UiSound.Warning);
+            Finish("Removal failed: " + e.Message);
+            return;
+        }
         _report = report;
 
         foreach (var f in report.Failed) Failures.Add(f);
@@ -382,7 +394,7 @@ public sealed partial class UninstallWizardViewModel : ObservableObject
         ResultSummary = summary;
         Stage = WizardStage.Done;
         Status = "";
-        if (_quick && !HasFailures && HasMoreJobs) _ = NextAsync();
+        if (_quick && !HasFailures && HasMoreJobs) NextAsync().Forget("Starting the next uninstall");
     }
 
     [RelayCommand]

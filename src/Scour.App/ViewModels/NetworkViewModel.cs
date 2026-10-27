@@ -81,18 +81,26 @@ public sealed partial class NetworkViewModel : PageViewModel
 
     protected override async Task LoadAsync()
     {
+        // Each section loads on its own, so one failing (e.g. no network adapters readable) doesn't leave the
+        // whole page empty.
         IsLoading = true;
         try
         {
             await RefreshAdaptersAsync();
             await TestDnsAsync();
         }
+        catch (Exception e)
+        {
+            ErrorLog.Write("Reading network adapters", e);
+            DnsStatus = "Couldn't read the network adapters: " + e.Message;
+        }
         finally
         {
             IsLoading = false;
         }
-        LoadHosts();
-        _ = LoadTraceAsync();
+        try { LoadHosts(); }
+        catch (Exception e) { ErrorLog.Write("Reading the hosts file", e); }
+        LoadTraceAsync().Forget("Looking up your connection", report: false);
     }
 
     private async Task RefreshAdaptersAsync()

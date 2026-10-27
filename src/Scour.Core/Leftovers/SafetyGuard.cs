@@ -84,10 +84,23 @@ public sealed class SafetyGuard
     {
         path = WinPath.Normalize(path);
         if (path.Length <= 3 || WinPath.Depth(path) < 1) return true;
+        // "C:\PROGRA~1\…" (old installers store 8.3 names) is Program Files to Windows but not to any check
+        // below, which compare text. Such a path can't be proven safe, so it is never deleted.
+        if (path.Split('\\').Any(IsShortName)) return true;
         if (WinPath.IsSameOrUnder(path, _folders.WindowsDir)) return true;
         foreach (var r in _protectedRoots)
             if (WinPath.IsSameOrUnder(r, path)) return true; // path is a protected root or one of its ancestors
         return ContainsProtectedInstall(path);
+    }
+
+    /// <summary>An 8.3 short name such as "PROGRA~1" or "MICROS~2.EXE".</summary>
+    private static bool IsShortName(string segment)
+    {
+        int tilde = segment.IndexOf('~');
+        if (tilde < 1 || tilde + 1 >= segment.Length || !char.IsAsciiDigit(segment[tilde + 1])) return false;
+        int dot = segment.IndexOf('.');
+        int stem = dot < 0 ? segment.Length : dot;
+        return stem <= 8 && segment.Length - stem <= 4 && !segment.Contains(' ');
     }
 
     /// <summary>True if another installed program lives in or below <paramref name="path"/>.</summary>

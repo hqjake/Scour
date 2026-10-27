@@ -82,7 +82,7 @@ public sealed partial class WindowsAppsViewModel : PageViewModel
         try
         {
             await AppxService.RemoveAsync(app);
-            var data = AppxService.DataFolder(app);
+            var data = AppxService.DataFolder(_s.Folders.LocalAppData, app.FamilyName);
             if (Directory.Exists(data))
             {
                 try { _s.FileSystem.DeleteDirectory(data, _s.Settings.FilesToRecycleBin); }

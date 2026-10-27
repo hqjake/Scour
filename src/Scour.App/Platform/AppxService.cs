@@ -20,16 +20,21 @@ public sealed class AppxPackage
 /// <summary>Microsoft Store / MSIX packages, via the Appx PowerShell module.</summary>
 public static class AppxService
 {
+    /// <summary>Store apps belong to an account; target the signed-in one, not the administrator Scour runs as.</summary>
+    private static string UserArg => SessionUser.Other is { } user ? $" -User '{user.Sid}'" : "";
+
     public static async Task<List<AppxPackage>> ListAsync(CancellationToken ct = default)
     {
-        const string script =
-            "Get-AppxPackage -PackageTypeFilter Main | Where-Object { -not $_.IsFramework } | " +
+        var script =
+            $"Get-AppxPackage{UserArg} -PackageTypeFilter Main | " + "Where-Object { -not $_.IsFramework } | " +
             "Select-Object Name, PackageFullName, PackageFamilyName, Publisher, @{n='Version';e={$_.Version.ToString()}}, " +
             "InstallLocation, NonRemovable, @{n='SignatureKind';e={$_.SignatureKind.ToString()}} | ConvertTo-Json -Depth 2 -Compress";
-        var (code, output) = await ProcessRunner.PowerShellAsync(script, TimeSpan.FromMinutes(2), ct);
-        if (code != 0) throw new InvalidOperationException("Could not list Windows apps: " + output.Trim());
+        var result = await ProcessRunner.PowerShellAsync(script, TimeSpan.FromMinutes(2), ct);
+        // PowerShell exits 1 when one package can't be read even though the rest were listed fine.
+        var json = result.StdOut.Trim();
+        if (result.ExitCode != 0 && !json.StartsWith('[') && !json.StartsWith('{'))
+            throw new InvalidOperationException("Could not list Windows apps: " + result.Output.Trim());
 
-        var json = output.Trim();
         if (json.Length == 0) return [];
         using var doc = JsonDocument.Parse(json);
         var items = doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement.EnumerateArray().ToList() : [doc.RootElement];
@@ -60,7 +65,7 @@ public static class AppxService
     public static async Task RemoveAsync(AppxPackage package, CancellationToken ct = default)
     {
         var (code, output) = await ProcessRunner.PowerShellAsync(
-            $"Remove-AppxPackage -Package '{package.FullName.Replace("'", "''")}' -ErrorAction Stop", TimeSpan.FromMinutes(5), ct);
+            $"Remove-AppxPackage -Package '{package.FullName.Replace("'", "''")}'{UserArg} -ErrorAction Stop", TimeSpan.FromMinutes(5), ct);
         if (code != 0) throw new InvalidOperationException(output.Trim());
     }
 
@@ -75,12 +80,12 @@ public static class AppxService
         foreach (var (name, full) in list)
         {
             string n = name.Replace("'", "''"), f = full.Replace("'", "''");
-            sb.Append($"try {{ Remove-AppxPackage -Package '{f}'{(allUsers ? " -AllUsers" : "")}; ");
+            sb.Append($"try {{ Remove-AppxPackage -Package '{f}'{(allUsers ? " -AllUsers" : UserArg)}; ");
             if (deprovision)
                 sb.Append($"Get-AppxProvisionedPackage -Online | Where-Object {{ $_.DisplayName -eq '{n}' }} | Remove-AppxProvisionedPackage -Online | Out-Null; ");
             sb.Append($"\"OK|{n}\" }} catch {{ \"FAIL|{n}|$($_.Exception.Message -replace '[\\r\\n]+', ' ')\" }}\n");
         }
-        var (_, output) = await ProcessRunner.PowerShellAsync(sb.ToString(), TimeSpan.FromMinutes(15), ct);
+        var output = (await ProcessRunner.PowerShellAsync(sb.ToString(), TimeSpan.FromMinutes(15), ct)).StdOut;
         var result = list.ToDictionary(p => p.Name, _ => (string?)"No result reported", StringComparer.OrdinalIgnoreCase);
         foreach (var line in output.Split('\n').Select(l => l.Trim()))
         {
@@ -92,8 +97,7 @@ public static class AppxService
     }
 
     /// <summary>The per-user data folder Windows leaves behind for a removed package.</summary>
-    public static string DataFolder(AppxPackage package) =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", package.FamilyName);
+    public static string DataFolder(string localAppData, string familyName) => Path.Combine(localAppData, "Packages", familyName);
 
     /// <summary>"Microsoft.WindowsCalculator" → "Windows Calculator".</summary>
     public static string FriendlyName(string packageName)

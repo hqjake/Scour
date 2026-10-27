@@ -100,7 +100,9 @@ public sealed class BrowserExtensions(IFileSystem fs, IRegistry registry, Browse
                 folder = fs.EnumerateDirectories(WinPath.Combine(root, id)).OrderByDescending(VersionKey).FirstOrDefault();
             if (folder is null || !fs.FileExists(WinPath.Combine(folder, "manifest.json"))) continue;
 
-            using var manifest = JsonDocument.Parse(fs.ReadAllText(WinPath.Combine(folder, "manifest.json")));
+            // One broken manifest must not hide the rest of the profile's extensions.
+            using var manifest = TryReadManifest(WinPath.Combine(folder, "manifest.json"));
+            if (manifest is null) continue;
             var m = manifest.RootElement;
             if (m.TryGetProperty("theme", out _)) continue; // themes can't do anything
             var messages = LoadMessages(folder, Str(m, "default_locale"));
@@ -125,6 +127,20 @@ public sealed class BrowserExtensions(IFileSystem fs, IRegistry registry, Browse
             var (abilities, risk) = Assess(permissions);
             if (source is ExtensionSource.Policy or ExtensionSource.Sideloaded && risk < ExtensionRisk.Medium) risk = ExtensionRisk.Medium;
             yield return new BrowserExtension(profile, id, name, Str(m, "version") ?? "", description, enabled, source, abilities, risk);
+        }
+    }
+
+    /// <summary>Chromium accepts comments and trailing commas in manifests, so this does too.</summary>
+    private JsonDocument? TryReadManifest(string path)
+    {
+        try
+        {
+            return JsonDocument.Parse(fs.ReadAllText(path),
+                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException)
+        {
+            return null;
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Scour.Core.Platform;
 
 namespace Scour.Core.Repair;
@@ -154,12 +155,15 @@ public static class RepairCatalog
                 Steps =
                 [
                     RepairStep.Run(Exe("net.exe"), "start w32time", ignoreFailure: true),
-                    RepairStep.Run(Exe("w32tm.exe"), "/resync /force"),
+                    RepairStep.Run(Exe("w32tm.exe"), "/config /update", ignoreFailure: true),
+                    // A service that has only just started often has no time source yet; the second try then works.
+                    RepairStep.Run(Exe("w32tm.exe"), "/resync /force", ignoreFailure: true),
+                    RepairStep.Run(Exe("w32tm.exe"), "/resync /force", label: "w32tm.exe /resync /force (again)"),
                 ],
             },
         ];
     }
 
     /// <summary>"SoftwareDistribution" → "SoftwareDistribution.old-20261014-2130".</summary>
-    public static string BackupName(string folder, DateTime now) => $"{folder.TrimEnd('\\')}.old-{now:yyyyMMdd-HHmm}";
+    public static string BackupName(string folder, DateTime now) => $"{folder.TrimEnd('\\')}.old-" + now.ToString("yyyyMMdd-HHmm", CultureInfo.InvariantCulture);
 }

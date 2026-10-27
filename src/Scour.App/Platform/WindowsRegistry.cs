@@ -11,10 +11,28 @@ public sealed class WindowsRegistry : IRegistry
     private readonly Dictionary<RegHive, RegistryKey> _bases = new()
     {
         [RegHive.LocalMachine] = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64),
-        [RegHive.CurrentUser] = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64),
+        [RegHive.CurrentUser] = CurrentUserHive(),
         [RegHive.ClassesRoot] = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Registry64),
         [RegHive.Users] = RegistryKey.OpenBaseKey(RegistryHive.Users, RegistryView.Registry64),
     };
+
+    /// <summary>
+    /// HKCU — of the account signed in to the desktop when Scour was elevated with another administrator's
+    /// password (see <see cref="SessionUser"/>), so startup entries, privacy settings and per-user programs are theirs.
+    /// </summary>
+    private static RegistryKey CurrentUserHive()
+    {
+        if (SessionUser.Other is { } user)
+        {
+            try
+            {
+                var hive = RegistryKey.OpenBaseKey(RegistryHive.Users, RegistryView.Registry64).OpenSubKey(user.Sid, writable: true);
+                if (hive is not null) return hive;
+            }
+            catch { /* fall back to Scour's own account */ }
+        }
+        return RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+    }
 
     private RegistryKey? Open(RegKeyPath path, bool writable = false)
     {
@@ -23,9 +41,24 @@ public sealed class WindowsRegistry : IRegistry
             var b = _bases[path.Hive];
             return path.SubPath.Length == 0 ? b : b.OpenSubKey(path.SubPath, writable);
         }
-        catch (Exception e) when (e is SecurityException or UnauthorizedAccessException or IOException)
+        catch (Exception e) when (e is SecurityException or UnauthorizedAccessException or IOException
+                                      or ArgumentException or ObjectDisposedException)
         {
+            // ArgumentException: a key name over 255 characters, built from registry data.
             return null;
+        }
+    }
+
+    /// <summary>Null only if the key doesn't exist; access denied throws (unlike <see cref="Open"/>), so a
+    /// protected key is reported as not deleted rather than as already gone.</summary>
+    private RegistryKey? OpenForWriting(RegKeyPath path)
+    {
+        var b = _bases[path.Hive];
+        if (path.SubPath.Length == 0) return b;
+        try { return b.OpenSubKey(path.SubPath, writable: true); }
+        catch (Exception e) when (e is SecurityException or UnauthorizedAccessException)
+        {
+            throw new IOException($"Access to {path} was denied.", e);
         }
     }
 
@@ -111,13 +144,18 @@ public sealed class WindowsRegistry : IRegistry
     public void DeleteKeyTree(RegKeyPath key)
     {
         if (key.Parent is not { } parent) throw new InvalidOperationException("Refusing to delete a registry hive.");
-        using var p = Open(parent, writable: true) ?? throw new IOException($"Cannot open {parent} for writing.");
-        p.DeleteSubKeyTree(key.Name, throwOnMissingSubKey: false);
+        var p = OpenForWriting(parent);
+        if (p is null) return; // nothing to delete, same as a missing subkey
+        try { p.DeleteSubKeyTree(key.Name, throwOnMissingSubKey: false); }
+        finally { Release(parent, p); }
     }
 
     public void DeleteValue(RegKeyPath key, string name)
     {
-        var k = Open(key, writable: true) ?? throw new IOException($"Cannot open {key} for writing.");
+        // A missing key has no values to delete (e.g. re-enabling a context-menu entry when the "Blocked"
+        // key was never created).
+        var k = OpenForWriting(key);
+        if (k is null) return;
         try { k.DeleteValue(name, throwOnMissingValue: false); }
         finally { Release(key, k); }
     }

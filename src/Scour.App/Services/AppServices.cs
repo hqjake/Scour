@@ -25,6 +25,7 @@ public sealed class AppServices
     public JunkCleaner Junk { get; }
     public IconCache Icons { get; }
     public IServiceController ServiceController { get; }
+    public GameModeService GameMode { get; }
 
     /// <summary>Apps with updates at the last check (null until App updates has run).</summary>
     public int? LastUpdatesCount { get; set; }
@@ -46,6 +47,7 @@ public sealed class AppServices
         Junk = new JunkCleaner(FileSystem, Folders);
         Icons = new IconCache(Folders);
         ServiceController = new WindowsServiceController();
+        GameMode = GameModeService.Create(Folders.AppDataDir, Registry, FileSystem);
     }
 
     /// <summary>Raised when something outside the programs page installed or removed software.</summary>

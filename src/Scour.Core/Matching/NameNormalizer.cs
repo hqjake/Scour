@@ -75,7 +75,8 @@ public static class NameNormalizer
 
     public static IReadOnlyList<string> Words(string s)
     {
-        var parts = Regex.Split(s, @"[^A-Za-z0-9\+#]+|(?<=[a-z])(?=[A-Z])");
+        // Any script's letters, not just A-Z: "Éditeur" stays whole and Cyrillic or CJK names have words at all.
+        var parts = Regex.Split(s, @"[^\p{L}\p{N}\+#]+|(?<=\p{Ll})(?=\p{Lu})");
         return parts.Select(Normalize).Where(w => w.Length > 0).ToList();
     }
 

@@ -21,7 +21,19 @@ public static class WingetService
             }
             catch { /* bad PATH entry */ }
         }
-        return null;
+        // The alias above exists only for accounts that have signed in and registered App Installer — not for
+        // an administrator account entered at the UAC prompt. The real exe is reachable from any admin.
+        try
+        {
+            var apps = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps");
+            var arch = System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64 ? "arm64" : "x64";
+            return Directory.EnumerateDirectories(apps, $"Microsoft.DesktopAppInstaller_*_{arch}__8wekyb3d8bbwe")
+                .Select(d => Path.Combine(d, "winget.exe"))
+                .Where(File.Exists)
+                .OrderByDescending(p => Version.TryParse(Path.GetFileName(Path.GetDirectoryName(p))!.Split('_')[1], out var v) ? v : new Version())
+                .FirstOrDefault();
+        }
+        catch { return null; }
     }
 
     public static async Task<List<WingetPackage>> ListUpgradesAsync(bool includeUnknown, CancellationToken ct = default)
@@ -33,10 +45,10 @@ public static class WingetService
             "[pscustomobject]@{ Name = $_.Name; Id = $_.Id; Version = \"$($_.InstalledVersion)\"; Available = \"$($_.AvailableVersions[0])\"; Source = \"$($_.Source)\" } } | ConvertTo-Json -Compress";
         try
         {
-            var (code, output) = await ProcessRunner.PowerShellAsync(script, TimeSpan.FromMinutes(3), ct);
-            if (code == 0)
+            var result = await ProcessRunner.PowerShellAsync(script, TimeSpan.FromSeconds(60), ct);
+            if (result.ExitCode == 0)
             {
-                var list = ParseJson(output);
+                var list = ParseJson(result.StdOut);
                 return includeUnknown ? list : list.Where(p => !p.Version.Equals("Unknown", StringComparison.OrdinalIgnoreCase)).ToList();
             }
         }
@@ -84,7 +96,18 @@ public static class WingetService
         return RunAsync(winget, ReinstallKit.InstallArguments(app), output, ct);
     }
 
+    private const string NoInteractivity = " --disable-interactivity";
+
     private static async Task<int> RunAsync(string exe, string args, Action<string> output, CancellationToken ct)
+    {
+        int code = await RunOnceAsync(exe, args, output, ct);
+        // winget before 1.4 (still common on Windows 10) rejects --disable-interactivity as an unknown argument.
+        if (unchecked((uint)code) == 0x8A150002 && args.Contains(NoInteractivity, StringComparison.Ordinal))
+            code = await RunOnceAsync(exe, args.Replace(NoInteractivity, ""), output, ct);
+        return code;
+    }
+
+    private static async Task<int> RunOnceAsync(string exe, string args, Action<string> output, CancellationToken ct)
     {
         var psi = new ProcessStartInfo(exe, args)
         {

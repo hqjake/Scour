@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -86,7 +87,7 @@ public sealed partial class ReinstallKitViewModel(AppServices services) : PageVi
             await ScanThisPcAsync();
             if (Apps.Count == 0) return;
         }
-        var file = Dialogs.SaveFile("Save reinstall kit", "Scour reinstall kit (*.json)|*.json", $"Scour kit - {Environment.MachineName} - {DateTime.Now:yyyy-MM-dd}.json");
+        var file = Dialogs.SaveFile("Save reinstall kit", "Scour reinstall kit (*.json)|*.json", $"Scour kit - {Environment.MachineName} - {DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}.json");
         if (file is null || _thisPcExport is null) return;
         try
         {

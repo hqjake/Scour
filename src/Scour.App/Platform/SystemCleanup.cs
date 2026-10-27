@@ -1,5 +1,5 @@
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Management;
 using Scour.Core.Platform;
 
 namespace Scour.App.Platform;
@@ -37,7 +37,8 @@ public static class SystemCleanup
                     progress.Report("Cleaning up the component store (DISM)…");
                     var (code, output) = await ProcessRunner.RunHiddenAsync("dism.exe", "/Online /Cleanup-Image /StartComponentCleanup /NoRestart",
                                                                             TimeSpan.FromHours(1), ct);
-                    return code == 0 ? "Component store cleaned." : "DISM reported a problem: " + LastLine(output);
+                    // 3010: done, a restart finishes it.
+                    return code is 0 or 3010 ? "Component store cleaned." : "DISM reported a problem: " + LastLine(output);
                 },
             },
             new SystemCleanupAction
@@ -49,7 +50,8 @@ public static class SystemCleanup
                 {
                     if (!Directory.Exists(windowsOld)) return "Nothing to remove.";
                     progress.Report("Taking ownership of Windows.old…");
-                    await ProcessRunner.RunHiddenAsync("takeown.exe", $"/F \"{windowsOld}\" /R /A /D Y", TimeSpan.FromMinutes(30), ct);
+                    // Not takeown: its "/D Y" answer is localized (J, O, S…) and rejected on non-English Windows.
+                    await ProcessRunner.RunHiddenAsync("icacls.exe", $"\"{windowsOld}\" /setowner *S-1-5-32-544 /T /C /Q", TimeSpan.FromMinutes(30), ct);
                     progress.Report("Granting access to Windows.old…");
                     await ProcessRunner.RunHiddenAsync("icacls.exe", $"\"{windowsOld}\" /grant *S-1-5-32-544:F /T /C /Q", TimeSpan.FromMinutes(30), ct);
                     progress.Report("Deleting Windows.old…");
@@ -68,35 +70,55 @@ public static class SystemCleanup
             {
                 Name = "Older system restore points",
                 Description = "Deletes all restore points except the most recent one.",
-                Estimate = async ct =>
+                Estimate = ct => Task.Run(() =>
                 {
-                    int n = await CountShadowsAsync(drive, ct);
+                    int n = ShadowCopies(drive).Count;
                     return n <= 1 ? "Nothing to remove" : $"{n - 1} restore point(s)";
-                },
-                Run = async (progress, ct) =>
+                }, ct),
+                Run = (progress, ct) => Task.Run(() =>
                 {
-                    int n = await CountShadowsAsync(drive, ct);
-                    for (int i = 0; i < n - 1; i++)
+                    var shadows = ShadowCopies(drive);
+                    int deleted = 0, failed = 0;
+                    foreach (var shadow in shadows.Take(shadows.Count - 1))
                     {
-                        progress.Report($"Deleting restore point {i + 1} of {n - 1}…");
-                        await ProcessRunner.RunHiddenAsync("vssadmin.exe", $"delete shadows /for={drive} /oldest /quiet", TimeSpan.FromMinutes(5), ct);
+                        ct.ThrowIfCancellationRequested();
+                        progress.Report($"Deleting restore point {deleted + failed + 1} of {shadows.Count - 1}…");
+                        try { shadow.Delete(); deleted++; }
+                        catch { failed++; }
                     }
-                    return n <= 1 ? "Nothing to remove." : $"Deleted {n - 1} older restore point(s).";
-                },
+                    foreach (var shadow in shadows) shadow.Dispose();
+                    if (shadows.Count <= 1) return "Nothing to remove.";
+                    return $"Deleted {deleted} older restore point(s)." + (failed > 0 ? $" {failed} could not be deleted." : "");
+                }, ct),
             },
         ];
     }
 
-    private static async Task<int> CountShadowsAsync(string drive, CancellationToken ct)
+    /// <summary>
+    /// The drive's shadow copies (restore points), oldest first. Read through WMI rather than vssadmin,
+    /// whose text output is translated on non-English Windows.
+    /// </summary>
+    private static List<ManagementObject> ShadowCopies(string drive)
     {
         try
         {
-            var (_, output) = await ProcessRunner.RunHiddenAsync("vssadmin.exe", $"list shadows /for={drive}", TimeSpan.FromMinutes(2), ct);
-            return Regex.Matches(output, @"Shadow Copy ID", RegexOptions.IgnoreCase).Count;
+            string? volume = null;
+            using (var volumes = new ManagementObjectSearcher($"SELECT DeviceID FROM Win32_Volume WHERE DriveLetter = '{drive}'"))
+                foreach (var v in volumes.Get()) using (v) volume ??= v["DeviceID"] as string;
+            if (volume is null) return [];
+
+            using var searcher = new ManagementObjectSearcher("SELECT ID, VolumeName, InstallDate FROM Win32_ShadowCopy");
+            var list = new List<ManagementObject>();
+            foreach (ManagementObject o in searcher.Get())
+            {
+                if (string.Equals(o["VolumeName"] as string, volume, StringComparison.OrdinalIgnoreCase)) list.Add(o);
+                else o.Dispose();
+            }
+            return list.OrderBy(o => o["InstallDate"] as string ?? "", StringComparer.Ordinal).ToList();
         }
         catch
         {
-            return 0;
+            return [];
         }
     }
 

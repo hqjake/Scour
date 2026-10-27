@@ -28,10 +28,10 @@ public static class UsbService
             "$letters = (Get-Partition -DiskNumber $_.Number -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter } | ForEach-Object { \"$($_.DriveLetter):\" }) -join ' '; " +
             "[pscustomobject]@{ Number = $_.Number; Name = $_.FriendlyName; Size = $_.Size; Bus = \"$($_.BusType)\"; Style = \"$($_.PartitionStyle)\"; " +
             "Letters = $letters; Serial = \"$($_.SerialNumber)\"; Sector = $_.LogicalSectorSize } } | ConvertTo-Json -Compress";
-        var (code, output) = await ProcessRunner.PowerShellAsync(script, TimeSpan.FromMinutes(1));
-        if (code != 0) throw new InvalidOperationException(output.Trim());
+        var result = await ProcessRunner.PowerShellAsync(script, TimeSpan.FromMinutes(1));
+        if (result.ExitCode != 0) throw new InvalidOperationException(LastLine(result.Output));
         var list = new List<UsbDisk>();
-        foreach (var e in JsonItems(output))
+        foreach (var e in JsonItems(result.StdOut))
             list.Add(new UsbDisk(e.GetProperty("Number").GetInt32(), Str(e, "Name"), e.GetProperty("Size").GetInt64(), Str(e, "Bus"),
                                  Str(e, "Style"), Str(e, "Letters"), Str(e, "Serial").Trim(), e.TryGetProperty("Sector", out var s) && s.ValueKind == JsonValueKind.Number ? s.GetInt32() : 512));
         return list;
@@ -68,9 +68,9 @@ $p = New-Partition -DiskNumber $n -UseMaximumSize -AssignDriveLetter {partitionA
 Start-Sleep -Seconds 2
 $p = Get-Partition -DiskNumber $n -PartitionNumber $p.PartitionNumber
 [pscustomobject]@{{ Letter = ""$($p.DriveLetter)""; Offset = $p.Offset; Size = $p.Size; Number = $p.PartitionNumber; Sector = $d.LogicalSectorSize }} | ConvertTo-Json -Compress";
-        var (code, output) = await ProcessRunner.PowerShellAsync(script, TimeSpan.FromMinutes(5));
-        if (code != 0) throw new InvalidOperationException("Partitioning failed: " + LastLine(output));
-        var e = JsonItems(output).Single();
+        var result = await ProcessRunner.PowerShellAsync(script, TimeSpan.FromMinutes(5));
+        if (result.ExitCode != 0) throw new InvalidOperationException("Partitioning failed: " + LastLine(result.Output));
+        var e = JsonItems(result.StdOut).Single();
         var letter = Str(e, "Letter");
         if (letter.Length == 0 || letter[0] == '\0') throw new InvalidOperationException("Windows didn't assign a drive letter to the new partition.");
         return new PreparedPartition(letter[0], e.GetProperty("Offset").GetInt64(), e.GetProperty("Size").GetInt64(),
@@ -165,11 +165,11 @@ $p = Get-Partition -DiskNumber $n -PartitionNumber $p.PartitionNumber
     public static async Task<char> MountIsoAsync(string isoPath)
     {
         var path = isoPath.Replace("'", "''");
-        var (code, output) = await ProcessRunner.PowerShellAsync(
+        var result = await ProcessRunner.PowerShellAsync(
             $"$ErrorActionPreference = 'Stop'; $img = Mount-DiskImage -ImagePath '{path}' -PassThru; Start-Sleep -Milliseconds 800; " +
             "($img | Get-Volume).DriveLetter", TimeSpan.FromMinutes(2));
-        var letter = output.Trim();
-        if (code != 0 || letter.Length == 0) throw new InvalidOperationException("Could not open the ISO: " + LastLine(output));
+        var letter = result.StdOut.Split('\n').Select(l => l.Trim()).LastOrDefault(l => l.Length == 1 && char.IsAsciiLetter(l[0])) ?? "";
+        if (result.ExitCode != 0 || letter.Length == 0) throw new InvalidOperationException("Could not open the ISO: " + LastLine(result.Output));
         return letter[0];
     }
 

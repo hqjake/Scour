@@ -45,6 +45,7 @@ public static class ScreenshotRunner
                 return Task.Delay(1500); // icon loads
             });
             await PaletteShot(window, vm, dir);
+            await Shot(window, dir, "game-mode", vm.GameMode, null);
             await Shot<AppUpdatesViewModel>(window, vm, dir, "app-updates", null, 180);
             await Shot<ReinstallKitViewModel>(window, vm, dir, "reinstall-kit", null, 240);
             await Shot<JunkViewModel>(window, vm, dir, "junk-cleaner", p => p.ScanCommand.ExecuteAsync(null), 180);
