@@ -173,7 +173,8 @@ public sealed partial class TaskManagerViewModel : PageViewModel
 
     private bool Refuse(ProcessRowViewModel p)
     {
-        if (!Critical.Contains(p.Name) && p.Pid > 4) return false;
+        // The process list names include ".exe" (csrss.exe); the list of Windows' own processes doesn't.
+        if (!Critical.Contains(Path.GetFileNameWithoutExtension(p.Name)) && p.Pid > 4) return false;
         Dialogs.Error($"{p.Name} is part of Windows. Ending it would crash or sign out the PC, so Scour won't.");
         return true;
     }
@@ -395,7 +396,7 @@ public sealed partial class TaskManagerViewModel : PageViewModel
     private async Task EndLockingProcessAsync()
     {
         if (SelectedLock is not { } l) return;
-        if (Critical.Contains(l.Lock.ProcessName))
+        if (Critical.Contains(Path.GetFileNameWithoutExtension(l.Lock.ProcessName)))
         {
             Dialogs.Error($"{l.Lock.ProcessName} is part of Windows and can't be ended. Restart the PC to release the file.");
             return;

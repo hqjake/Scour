@@ -114,7 +114,7 @@ public sealed class GameWatcher : IDisposable
 
     private void Raise(Action<GameInfo>? handler, GameInfo game)
     {
-        if (handler is null) return;
+        if (handler is null || _timer is null) return; // stopped while this check was running
         if (_context is null) handler(game);
         else _context.Post(_ => handler(game), null);
     }

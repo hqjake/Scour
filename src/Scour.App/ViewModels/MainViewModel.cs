@@ -176,6 +176,13 @@ public sealed partial class MainViewModel : ObservableObject
 
     public void Navigate(PageViewModel page) => CurrentPage = page;
 
+    /// <summary>The window was hidden (tray, minimised) or shown again: pause or resume the page's live updates.</summary>
+    public void SetWindowVisible(bool visible)
+    {
+        if (visible) CurrentPage.OnShown();
+        else CurrentPage.OnHidden();
+    }
+
     public void Navigate(Type pageType)
     {
         var page = Pages.FirstOrDefault(p => p.GetType() == pageType);

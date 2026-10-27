@@ -83,6 +83,7 @@ public sealed partial class GameModeViewModel : PageViewModel
             Boosts.Add(item);
         }
         _autoGameMode = services.Settings.AutoGameMode;
+        _customFolders = [.. services.Settings.CustomGameFolders];
         _watcher = new GameWatcher(FindGames);
         _watcher.GameStarted += OnGameStarted;
         _watcher.GameStopped += OnGameStopped;
@@ -204,6 +205,7 @@ public sealed partial class GameModeViewModel : PageViewModel
     private Task SwitchOffAsync() => Run(async () =>
     {
         var errors = await Task.Run(_s.GameMode.Disable);
+        ChangeHistory.Superseded(ChangeHistory.GameModeOn);
         ChangeHistory.Record("Game mode", "Turned Game mode off", errors.Count == 0 ? "Every setting was put back." : string.Join(" ", errors));
         foreach (var e in errors) Log.Add(e);
         StatusText = errors.Count == 0 ? "Game mode is off; everything is back as it was." : "Game mode is off, but some settings couldn't be put back (see below).";
@@ -262,6 +264,9 @@ public sealed partial class GameModeViewModel : PageViewModel
         SwitchOffAsync().Forget("Switching Game mode off after " + game.Name);
     }
 
+    /// <summary>A copy of the user's game folders for the watcher thread (the settings list changes on the UI thread).</summary>
+    private volatile string[] _customFolders;
+
     private List<GameInfo> FindGames()
     {
         var drives = DriveInfo.GetDrives().Where(d =>
@@ -269,7 +274,7 @@ public sealed partial class GameModeViewModel : PageViewModel
             try { return d.DriveType == DriveType.Fixed && d.IsReady; }
             catch { return false; }
         }).Select(d => d.RootDirectory.FullName).ToList();
-        return new GameLibrary(_s.Registry, _s.FileSystem, _s.Folders).Find(drives, _s.Settings.CustomGameFolders);
+        return new GameLibrary(_s.Registry, _s.FileSystem, _s.Folders).Find(drives, _customFolders);
     }
 
     [RelayCommand]
@@ -313,6 +318,7 @@ public sealed partial class GameModeViewModel : PageViewModel
         {
             _s.Settings.CustomGameFolders.Add(folder);
             _s.Settings.Save();
+            _customFolders = [.. _s.Settings.CustomGameFolders];
         }
         await RescanGamesAsync();
     }
@@ -322,6 +328,7 @@ public sealed partial class GameModeViewModel : PageViewModel
     {
         if (game is not { IsCustom: true }) return;
         _s.Settings.CustomGameFolders.RemoveAll(f => string.Equals(f, game.Game.InstallDir, StringComparison.OrdinalIgnoreCase));
+        _customFolders = [.. _s.Settings.CustomGameFolders];
         _s.Settings.GameProfiles.Remove(game.Game.Id);
         _s.Settings.Save();
         await RescanGamesAsync();

@@ -120,11 +120,9 @@ public static class LockFinder
     {
         if (!ProcessNative.DuplicateHandle(hProc, handle, ProcessNative.GetCurrentProcess(), out var dup, 0, false, ProcessNative.DUPLICATE_SAME_ACCESS))
             return null;
-        var (finished, path) = NameQueries.Query(dup);
-        // A query that never returns still uses the duplicate; closing it under the stuck call could hand
-        // the same handle value to something else, so it's deliberately left open.
-        if (finished) ProcessNative.CloseHandle(dup);
-        return path;
+        // Closes the duplicate itself: right away, or once a slow query finally returns (a query that never
+        // returns keeps it, as closing it under the stuck call could hand the same value to something else).
+        return NameQueries.Query(dup);
     }
 
     private static string? QueryName(IntPtr dup)
@@ -151,25 +149,32 @@ public static class LockFinder
         private static System.Collections.Concurrent.BlockingCollection<Request>? _queue;
         private static int _abandoned;
 
+        private const int Pending = 0, Finished = 1, Abandoned = 2;
+
         private sealed class Request(IntPtr handle)
         {
             public IntPtr Handle { get; } = handle;
             public string? Result;
+            public int State;
             public readonly ManualResetEventSlim Done = new();
         }
 
-        public static (bool Finished, string? Path) Query(IntPtr handle)
+        public static string? Query(IntPtr handle)
         {
             System.Collections.Concurrent.BlockingCollection<Request> queue;
             lock (Gate)
             {
-                if (_abandoned >= MaxAbandoned) return (true, null); // too many stuck queries: stop asking
+                if (_abandoned >= MaxAbandoned) { ProcessNative.CloseHandle(handle); return null; } // too many stuck queries: stop asking
                 queue = _queue ??= StartWorker();
             }
             var request = new Request(handle);
             try { queue.Add(request); }
-            catch (InvalidOperationException) { return (true, null); } // another caller just retired this worker
-            if (request.Done.Wait(250)) return (true, request.Result);
+            catch (InvalidOperationException) { ProcessNative.CloseHandle(handle); return null; } // another caller just retired this worker
+            if (request.Done.Wait(250) || Interlocked.CompareExchange(ref request.State, Abandoned, Pending) == Finished)
+            {
+                ProcessNative.CloseHandle(handle);
+                return request.Result;
+            }
             lock (Gate)
             {
                 // The worker is stuck on this handle: give later queries a new one.
@@ -180,7 +185,7 @@ public static class LockFinder
                     _abandoned++;
                 }
             }
-            return (false, null);
+            return null;
         }
 
         private static System.Collections.Concurrent.BlockingCollection<Request> StartWorker()
@@ -192,6 +197,8 @@ public static class LockFinder
                 {
                     try { r.Result = QueryName(r.Handle); }
                     catch { r.Result = null; }
+                    // A slow (not stuck) query whose caller gave up: the handle is ours to close now.
+                    if (Interlocked.CompareExchange(ref r.State, Finished, Pending) == Abandoned) ProcessNative.CloseHandle(r.Handle);
                     r.Done.Set();
                 }
             }) { IsBackground = true, Name = "Scour handle names" };

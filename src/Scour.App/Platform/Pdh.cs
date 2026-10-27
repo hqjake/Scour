@@ -40,7 +40,7 @@ public sealed class PdhQuery : IDisposable
     public Dictionary<string, double> Read(string path)
     {
         var result = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-        if (!_counters.TryGetValue(path, out var counter)) return result;
+        if (_query == IntPtr.Zero || !_counters.TryGetValue(path, out var counter)) return result;
         uint size = 0, count = 0;
         uint status = PdhGetFormattedCounterArray(counter, PDH_FMT_DOUBLE | PDH_FMT_NOCAP100, ref size, out count, IntPtr.Zero);
         if (status != PDH_MORE_DATA || size == 0) return result;
@@ -70,6 +70,7 @@ public sealed class PdhQuery : IDisposable
     {
         if (_query != IntPtr.Zero) PdhCloseQuery(_query);
         _query = IntPtr.Zero;
+        _counters.Clear();
     }
 
     [StructLayout(LayoutKind.Sequential)]

@@ -171,7 +171,11 @@ public partial class App : Application
     {
         if (_vm?.GameMode.IsOn != true || Dialogs.Headless || _sessionEnding) return;
         if (Dialogs.Confirm("Game mode is still on. Turn it off before closing Scour?\n\nChoose No to keep it on; open Scour again to turn it off later."))
+        {
             _services?.GameMode.Disable();
+            ChangeHistory.Superseded(ChangeHistory.GameModeOn);
+            ChangeHistory.Record("Game mode", "Turned Game mode off when closing Scour");
+        }
     }
 
     /// <summary>From the tray menu or Ctrl+Alt+G (possibly from inside a game, so a sound is the feedback).</summary>

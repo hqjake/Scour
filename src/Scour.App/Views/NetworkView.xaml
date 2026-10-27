@@ -73,8 +73,8 @@
                                                 <TextBlock Text="{Binding Servers}" Style="{StaticResource Caption}" Margin="0,4,0,0" FontFamily="Consolas" />
                                             </StackPanel>
                                             <Grid Grid.Row="2">
-                                                <TextBlock x:Name="Tag" Style="{StaticResource Caption}" VerticalAlignment="Center" />
-                                                <Button x:Name="Use" Content="Use this" HorizontalAlignment="Right" Style="{StaticResource ToolButton}"
+                                                <TextBlock x:Name="Tag" Text="{Binding TagText}" Style="{StaticResource Caption}" VerticalAlignment="Center" />
+                                                <Button x:Name="Use" Content="{Binding UseText}" HorizontalAlignment="Right" Style="{StaticResource ToolButton}"
                                                         Command="{Binding DataContext.UseDnsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
                                             </Grid>
                                         </Grid>
@@ -82,12 +82,10 @@
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding IsFastest}" Value="True">
                                             <Setter TargetName="Ms" Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
-                                            <Setter TargetName="Tag" Property="Text" Value="Fastest from here" />
                                             <Setter TargetName="Tag" Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsCurrent}" Value="True">
                                             <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource Scour.AccentBrush}" />
-                                            <Setter TargetName="Use" Property="Content" Value="In use" />
                                             <Setter TargetName="Use" Property="IsEnabled" Value="False" />
                                         </DataTrigger>
                                     </DataTemplate.Triggers>

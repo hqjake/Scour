@@ -31,6 +31,19 @@ public static class ChangeHistory
 
     public static void MarkUndone(string id) => _log?.MarkUndone(id);
 
+    /// <summary>
+    /// The change was reversed some other way (Game mode switched off, updates resumed): earlier entries of
+    /// this kind can no longer be undone, and undoing them would reverse the current state instead.
+    /// </summary>
+    public static void Superseded(string undoKind)
+    {
+        try
+        {
+            foreach (var e in List().Where(e => e.CanUndo && e.Undo!.Kind == undoKind)) _log?.MarkUndone(e.Id);
+        }
+        catch (Exception e) { ErrorLog.Write("Recording change history", e); }
+    }
+
     /// <summary>Undo info for a removal that saved a registry backup (null when nothing was backed up).</summary>
     public static UndoInfo? ForBackup(BackupManifest? backup) => backup?.RegistryFile is null ? null : new UndoInfo(RegistryBackup, backup.Id);
 }

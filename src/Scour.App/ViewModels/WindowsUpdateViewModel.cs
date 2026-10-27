@@ -76,6 +76,7 @@ public sealed partial class WindowsUpdateViewModel(AppServices services) : PageV
         {
             var until = _pause.Pause(PauseDays, DateTime.UtcNow);
             ShowPause();
+            ChangeHistory.Superseded(ChangeHistory.UpdatePause); // a new pause replaces the old one
             ChangeHistory.Record("Windows Update", $"Paused updates until {until.ToLocalTime():g}", null,
                                  new Scour.Core.Removal.UndoInfo(ChangeHistory.UpdatePause, ""));
             StatusText = $"Paused until {until.ToLocalTime():f}. Security updates wait too, so don't leave it paused for long.";
@@ -93,6 +94,7 @@ public sealed partial class WindowsUpdateViewModel(AppServices services) : PageV
         {
             _pause.Resume();
             ShowPause();
+            ChangeHistory.Superseded(ChangeHistory.UpdatePause);
             ChangeHistory.Record("Windows Update", "Resumed updates");
             StatusText = "Updates resumed.";
         }

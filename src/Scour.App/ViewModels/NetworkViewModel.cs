@@ -15,8 +15,11 @@ public sealed partial class DnsPresetViewModel(DnsPreset preset) : ObservableObj
     public string Servers => Preset.IsAutomatic ? "From your router" : string.Join("  ·  ", Preset.Servers.Take(2));
 
     [ObservableProperty] private string _latency = "";
-    [ObservableProperty] private bool _isFastest;
-    [ObservableProperty] private bool _isCurrent;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TagText))] private bool _isFastest;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(UseText))] private bool _isCurrent;
+
+    public string TagText => IsFastest ? Loc.T("Fastest from here") : "";
+    public string UseText => Loc.T(IsCurrent ? "In use" : "Use this");
 }
 
 public sealed partial class WifiItemViewModel(WifiProfile profile) : ObservableObject

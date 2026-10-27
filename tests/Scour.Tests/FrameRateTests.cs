@@ -24,8 +24,17 @@ public class FrameRateTests
         f.Add(1, Ms(0));
         f.Add(1, Ms(16));
         Assert.NotNull(f.Rate(1, Ms(500)));
+        Assert.NotNull(f.Rate(1, Ms(1500))); // a batch of frames may still be on its way
         Assert.Null(f.Rate(1, Ms(5000)));
         Assert.Null(f.Rate(99, Ms(0)));
         Assert.Null(f.Busiest(Ms(9000)));
+    }
+
+    [Fact]
+    public void Rate_holds_between_batches_of_events()
+    {
+        var f = new FrameRate();
+        for (int i = 0; i < 60; i++) f.Add(1, Ms(i * 1000.0 / 60)); // a second of 60 fps, delivered at once
+        Assert.Equal(60, f.Rate(1, Ms(1900))!.Value, 0);          // read 0.9 s later, before the next batch
     }
 }

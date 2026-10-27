@@ -22,9 +22,10 @@ public static class ProblemReport
 
         using var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create);
         Add(zip, "about.txt", About(s));
+        bool hasLog = false;
         foreach (var log in new[] { ErrorLog.FilePath, ErrorLog.FilePath + ".old" })
-            AddFile(zip, log, Path.GetFileName(log));
-        if (!zip.Entries.Any(e => e.Name == "error.log")) Add(zip, "error.log", "(no errors recorded)");
+            hasLog |= AddFile(zip, log, Path.GetFileName(log));
+        if (!hasLog) Add(zip, "error.log", "(no errors recorded)");
         AddFile(zip, AppSettings.FilePath, "settings.json");
         AddFile(zip, Path.Combine(s.Folders.AppDataDir, "game-mode.json"), "game-mode.json");
         AddFile(zip, Path.Combine(s.Folders.AppDataDir, "history.jsonl"), "history.jsonl");
@@ -58,15 +59,24 @@ public static class ProblemReport
         w.Write(text);
     }
 
-    private static void AddFile(ZipArchive zip, string path, string name)
+    /// <summary>Adds a file if it exists and can be read; true if it was added.</summary>
+    private static bool AddFile(ZipArchive zip, string path, string name)
     {
         try
         {
-            if (!File.Exists(path)) return;
-            using var src = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            if (!File.Exists(path)) return false;
+            // Read it first: a half-created entry can't be removed from a zip being written.
+            byte[] data;
+            using (var src = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            using (var buffer = new MemoryStream())
+            {
+                src.CopyTo(buffer);
+                data = buffer.ToArray();
+            }
             using var dst = zip.CreateEntry(name).Open();
-            src.CopyTo(dst);
+            dst.Write(data);
+            return true;
         }
-        catch { /* unreadable: leave it out */ }
+        catch { return false; } // unreadable: leave it out
     }
 }

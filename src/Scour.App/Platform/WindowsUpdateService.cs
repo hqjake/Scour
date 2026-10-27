@@ -13,7 +13,7 @@ public static class WindowsUpdateService
             $count = $searcher.GetTotalHistoryCount()
             if ($count -gt 0) {
               $searcher.QueryHistory(0, [Math]::Min($count, 200)) | Where-Object { $_.Title } | ForEach-Object {
-                [pscustomobject]@{ Title = $_.Title; Date = $_.Date.ToUniversalTime().ToString('o'); Result = [int]$_.ResultCode; HResult = [int]$_.HResult; Operation = [int]$_.Operation }
+                [pscustomobject]@{ Title = $_.Title; Date = [DateTime]::SpecifyKind($_.Date, 'Utc').ToString('o'); Result = [int]$_.ResultCode; HResult = [int]$_.HResult; Operation = [int]$_.Operation }
               } | ConvertTo-Json -Compress
             }
             """;

@@ -87,29 +87,38 @@ public static class Loc
                 else foreach (var run in tb.Inlines.OfType<Run>())
                         if (IsLiteral(run, Run.TextProperty)) Set(run, Run.TextProperty, run.Text);
                 break;
-            case HeaderedContentControl h when h.Header is string s && IsLiteral(h, HeaderedContentControl.HeaderProperty):
-                h.Header = T(s);
+            // Item containers (list rows, combo items) hold data, not interface text.
+            case HeaderedContentControl h when h.Header is string s && IsLiteral(h, HeaderedContentControl.HeaderProperty) && !IsItemContainer(h):
+                Set(h, HeaderedContentControl.HeaderProperty, s);
                 break;
-            case HeaderedItemsControl h when h.Header is string s && IsLiteral(h, HeaderedItemsControl.HeaderProperty):
-                h.Header = T(s);
+            case HeaderedItemsControl h when h.Header is string s && IsLiteral(h, HeaderedItemsControl.HeaderProperty) && !IsItemContainer(h):
+                Set(h, HeaderedItemsControl.HeaderProperty, s);
                 break;
-            case ContentControl c when c.Content is string s && IsLiteral(c, ContentControl.ContentProperty):
-                c.Content = T(s);
+            case ContentControl c when c.Content is string s && IsLiteral(c, ContentControl.ContentProperty) && !IsItemContainer(c):
+                Set(c, ContentControl.ContentProperty, s);
                 break;
             case DataGrid grid:
                 foreach (var col in grid.Columns)
                     if (col.Header is string s && IsLiteral(col, DataGridColumn.HeaderProperty)) col.Header = T(s);
                 break;
         }
-        if (d is FrameworkElement fe && fe.ToolTip is string tip && IsLiteral(fe, FrameworkElement.ToolTipProperty)) fe.ToolTip = T(tip);
-        if (d is Window w && IsLiteral(w, Window.TitleProperty)) w.Title = T(w.Title);
+        if (d is FrameworkElement fe && fe.ToolTip is string tip && IsLiteral(fe, FrameworkElement.ToolTipProperty)) Set(fe, FrameworkElement.ToolTipProperty, tip);
+        if (d is Window w && IsLiteral(w, Window.TitleProperty)) Set(w, Window.TitleProperty, w.Title);
     }
 
     private static void Set(DependencyObject d, DependencyProperty p, string value)
     {
         var t = T(value);
-        if (!ReferenceEquals(t, value)) d.SetValue(p, t);
+        if (ReferenceEquals(t, value)) return;
+        // A text from a template is set as the current value, not a local one, so the template's triggers can
+        // still change it (a local value would outrank them for good).
+        if (DependencyPropertyHelper.GetValueSource(d, p).BaseValueSource == BaseValueSource.Local) d.SetValue(p, t);
+        else d.SetCurrentValue(p, t);
     }
+
+    private static bool IsItemContainer(DependencyObject d) => ItemsControl.ItemsControlFromItemContainer(d) is { } owner &&
+                                                               owner.ItemContainerGenerator.ItemFromContainer(d) != DependencyProperty.UnsetValue &&
+                                                               !ReferenceEquals(owner.ItemContainerGenerator.ItemFromContainer(d), d);
 
     /// <summary>
     /// Only texts written into the view itself are replaced: a binding, a style or a trigger owns its value,

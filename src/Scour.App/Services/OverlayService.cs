@@ -50,8 +50,7 @@ public sealed class OverlayService : IDisposable
         _window = null;
         _frames?.Dispose();
         _frames = null;
-        _sensors?.Dispose();
-        _sensors = null;
+        // The sensor reader stays: a sample may be running on another thread right now, and it's cheap to keep.
         Changed?.Invoke(false);
     }
 
@@ -94,7 +93,11 @@ public sealed class OverlayService : IDisposable
         return pid == 0 || pid == Environment.ProcessId ? null : (int)pid;
     }
 
-    public void Dispose() => Hide();
+    public void Dispose()
+    {
+        Hide();
+        if (!_sampling) _sensors?.Dispose();
+    }
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
